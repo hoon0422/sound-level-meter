@@ -37,33 +37,19 @@ function meterColor(value: number) {
   return "#f44336";
 }
 
-const toPercent = (value: number): `${number}%` => {
-  return `${Math.round(value * 100)}%`;
-};
-
 export default function App() {
-  const {
-    start,
-    stop,
-    isRunning,
-    dbfs,
-    peakHz,
-    bars,
-    bass,
-    mid,
-    treble,
-    error,
-  } = useMicrophoneSpectrum({
-    fftSize: 4096,
-    barCount: 32,
-    uiFps: 30,
-    minHz: 80,
-    maxHz: 500,
-    noiseFloorDbfs: -65,
-    barSmoothingAlpha: 0.2,
-    sampleRate: 44100,
-    smoothingTimeConstant: 0.3,
-  });
+  const { start, stop, isRunning, dbfs, peakHz, bars, error } =
+    useMicrophoneSpectrum({
+      fftSize: 4096,
+      barCount: 32,
+      uiFps: 30,
+      minHz: 80,
+      maxHz: 500,
+      noiseFloorDbfs: -65,
+      barSmoothingAlpha: 0.2,
+      sampleRate: 44100,
+      smoothingTimeConstant: 0.3,
+    });
 
   useEffect(() => {
     initRecording();
@@ -85,20 +71,16 @@ export default function App() {
         {isRunning ? (
           <View style={{ width: "100%", alignItems: "center" }}>
             <View style={styles.statsContainer}>
-              <Text style={{ fontSize: 16 }}>dBFS: {dbfs.toFixed(1)}</Text>
-              {error ? (
-                <Text style={{ color: "#ff6b6b", marginTop: 8 }}>{error}</Text>
-              ) : null}
-              <Text style={{ fontSize: 16, marginTop: 6 }}>
+              <Text>dBFS: {dbfs.toFixed(1)}</Text>
+              {error ? <Text style={{ color: "#ff6b6b" }}>{error}</Text> : null}
+              <Text>
                 Peak Frequency:{" "}
                 {peakHz != null ? `${peakHz.toFixed(0)} Hz` : "—"}
               </Text>
             </View>
-            <View style={{ marginTop: 20, width: "100%" }}>
-              <Text style={{ marginBottom: 8 }}>Spectrum</Text>
+            <View style={styles.spectrumContainer}>
               <View
                 style={{
-                  width: "100%",
                   height: 180,
                   flexDirection: "row",
                   alignItems: "flex-end",
@@ -116,64 +98,7 @@ export default function App() {
                   />
                 ))}
               </View>
-            </View>
-            <View style={{ marginTop: 24, gap: 12 }}>
-              <Text style={{ color: "white" }}>
-                Bass: {(bass * 100).toFixed(0)}%
-              </Text>
-              <View
-                style={{
-                  height: 10,
-                  backgroundColor: "#333",
-                  borderRadius: 999,
-                }}>
-                <View
-                  style={{
-                    width: toPercent(bass),
-                    height: 10,
-                    backgroundColor: meterColor(bass),
-                    borderRadius: 999,
-                  }}
-                />
-              </View>
-
-              <Text style={{ color: "white" }}>
-                Mid: {(mid * 100).toFixed(0)}%
-              </Text>
-              <View
-                style={{
-                  height: 10,
-                  backgroundColor: "#333",
-                  borderRadius: 999,
-                }}>
-                <View
-                  style={{
-                    width: toPercent(mid),
-                    height: 10,
-                    backgroundColor: meterColor(mid),
-                    borderRadius: 999,
-                  }}
-                />
-              </View>
-
-              <Text style={{ color: "white" }}>
-                Treble: {(treble * 100).toFixed(0)}%
-              </Text>
-              <View
-                style={{
-                  height: 10,
-                  backgroundColor: "#333",
-                  borderRadius: 999,
-                }}>
-                <View
-                  style={{
-                    width: toPercent(treble),
-                    height: 10,
-                    backgroundColor: meterColor(treble),
-                    borderRadius: 999,
-                  }}
-                />
-              </View>
+              <Text>Spectrum</Text>
             </View>
           </View>
         ) : (
@@ -217,6 +142,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
+  },
+  spectrumContainer: {
+    width: "80%",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
   statsText: {
     fontSize: 30,
