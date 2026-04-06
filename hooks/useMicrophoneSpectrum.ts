@@ -1,12 +1,11 @@
-// useMicrophoneSpectrum.ts
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  AnalyserNode,
-  AudioContext,
-  AudioManager,
-  AudioNode,
-  AudioRecorder,
-} from "react-native-audio-api";
+  createMicrophoneSpectrumSession,
+  MicrophoneSpectrumSession,
+  stopMicrophoneSpectrumSession,
+} from "@/audio/microphoneSpectrumSession";
+import { analyzeSpectrumFrame } from "@/audio/spectrumAnalysis";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AudioManager } from "react-native-audio-api";
 
 export type MicrophoneSpectrumSnapshot = {
   isRunning: boolean;
@@ -35,204 +34,34 @@ export type UseMicrophoneSpectrumOptions = {
   autoResumeContext?: boolean;
 };
 
-const DEFAULTS: Required<UseMicrophoneSpectrumOptions> = {
-  fftSize: 2048,
-  barCount: 32,
-  uiFps: 20,
-  minHz: 80,
-  maxHz: 8000,
-  minDecibels: -90,
-  maxDecibels: -10,
-  smoothingTimeConstant: 0.8,
-  noiseFloorDbfs: -65,
-  barSmoothingAlpha: 0.2,
-  sampleRate: 44100,
-  autoResumeContext: true,
-};
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function hzToBin(hz: number, sampleRate: number, fftSize: number) {
-  return Math.floor((hz * fftSize) / sampleRate);
-}
-
-function dbfsFromTimeDomainFloat(data: Float32Array, floor = -100) {
-  let sum = 0;
-  for (let i = 0; i < data.length; i++) {
-    const x = data[i];
-    sum += x * x;
-  }
-
-  const rms = Math.sqrt(sum / data.length);
-  if (rms <= 1e-8) return floor;
-  return Math.max(20 * Math.log10(rms), floor);
-}
-
-function averageFrequencyRange(
-  freqData: Uint8Array,
-  sampleRate: number,
-  fftSize: number,
-  minHz: number,
-  maxHz: number,
-) {
-  const start = clamp(
-    hzToBin(minHz, sampleRate, fftSize),
-    0,
-    freqData.length - 1,
-  );
-  const end = clamp(
-    hzToBin(maxHz, sampleRate, fftSize),
-    0,
-    freqData.length - 1,
-  );
-
-  if (end < start) return 0;
-
-  let sum = 0;
-  let count = 0;
-
-  for (let i = start; i <= end; i++) {
-    sum += freqData[i];
-    count++;
-  }
-
-  return count > 0 ? sum / count / 255 : 0;
-}
-
-function getPeakFrequencySmoothed(
-  freqData: Uint8Array,
-  sampleRate: number,
-  fftSize: number,
-  minHz: number,
-  maxHz: number,
-) {
-  const start = Math.max(1, Math.floor((minHz * fftSize) / sampleRate));
-  const end = Math.min(
-    freqData.length - 2,
-    Math.floor((maxHz * fftSize) / sampleRate),
-  );
-
-  let bestScore = -1;
-  let bestIndex = -1;
-
-  for (let i = start; i <= end; i++) {
-    const score =
-      freqData[i - 1] * 0.25 + freqData[i] * 0.5 + freqData[i + 1] * 0.25;
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestIndex = i;
-    }
-  }
-
-  if (bestIndex < 0) {
-    return { peakHz: null, peakLevel: null };
-  }
-
-  return {
-    peakHz: (bestIndex * sampleRate) / fftSize,
-    peakLevel: bestScore / 255,
+const DEFAULT_MICROPHONE_SPECTRUM_OPTIONS: Required<UseMicrophoneSpectrumOptions> =
+  {
+    fftSize: 2048,
+    barCount: 32,
+    uiFps: 20,
+    minHz: 80,
+    maxHz: 8000,
+    minDecibels: -90,
+    maxDecibels: -10,
+    smoothingTimeConstant: 0.8,
+    noiseFloorDbfs: -65,
+    barSmoothingAlpha: 0.2,
+    sampleRate: 44100,
+    autoResumeContext: true,
   };
-}
-
-function buildLogBars(
-  freqData: Uint8Array,
-  sampleRate: number,
-  fftSize: number,
-  barCount: number,
-  minHz: number,
-  maxHz: number,
-) {
-  const bars: number[] = [];
-
-  for (let bar = 0; bar < barCount; bar++) {
-    const startRatio = bar / barCount;
-    const endRatio = (bar + 1) / barCount;
-
-    const startHz = minHz * Math.pow(maxHz / minHz, startRatio);
-    const endHz = minHz * Math.pow(maxHz / minHz, endRatio);
-
-    const startBin = clamp(
-      hzToBin(startHz, sampleRate, fftSize),
-      0,
-      freqData.length - 1,
-    );
-    const endBin = clamp(
-      hzToBin(endHz, sampleRate, fftSize),
-      0,
-      freqData.length - 1,
-    );
-
-    let sum = 0;
-    let count = 0;
-
-    for (let i = startBin; i <= endBin; i++) {
-      sum += freqData[i];
-      count++;
-    }
-
-    bars.push(count > 0 ? sum / count / 255 : 0);
-  }
-
-  return bars;
-}
-
-function smoothArray(prev: number[], next: number[], alpha: number) {
-  if (prev.length === 0) return next;
-  return next.map((value, i) => {
-    const oldValue = prev[i] ?? value;
-    return oldValue * (1 - alpha) + value * alpha;
-  });
-}
 
 export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
-  const opts = { ...DEFAULTS, ...options };
+  const opts = { ...DEFAULT_MICROPHONE_SPECTRUM_OPTIONS, ...options };
 
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const recorderRef = useRef<AudioRecorder | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const adapterRef = useRef<AudioNode | null>(null);
-
-  const freqDataRef = useRef<Uint8Array | null>(null);
-  const timeDataRef = useRef<Float32Array | null>(null);
+  const sessionRef = useRef<MicrophoneSpectrumSession | null>(null);
   const smoothedBarsRef = useRef<number[]>([]);
   const rafRef = useRef<number | null>(null);
   const runningRef = useRef(false);
   const lastUiUpdateRef = useRef(0);
 
-  const [snapshot, setSnapshot] = useState<MicrophoneSpectrumSnapshot>({
-    isRunning: false,
-    dbfs: -100,
-    peakHz: null,
-    peakLevel: null,
-    bars: Array(opts.barCount).fill(0),
-    bass: 0,
-    mid: 0,
-    treble: 0,
-    error: null,
-  });
-
-  const cleanupGraphOnly = useCallback(() => {
-    try {
-      recorderRef.current?.disconnect();
-    } catch {}
-
-    try {
-      adapterRef.current?.disconnect();
-    } catch {}
-
-    try {
-      analyserRef.current?.disconnect();
-    } catch {}
-
-    adapterRef.current = null;
-    analyserRef.current = null;
-    freqDataRef.current = null;
-    timeDataRef.current = null;
-    smoothedBarsRef.current = [];
-  }, []);
+  const [snapshot, setSnapshot] = useState<MicrophoneSpectrumSnapshot>(() =>
+    createIdleMicrophoneSpectrumSnapshot(opts.barCount),
+  );
 
   const stop = useCallback(async () => {
     runningRef.current = false;
@@ -242,100 +71,43 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
       rafRef.current = null;
     }
 
-    try {
-      recorderRef.current?.stop();
-    } catch {}
-
-    cleanupGraphOnly();
-
-    try {
-      await audioContextRef.current?.suspend();
-    } catch {}
-
-    try {
-      await AudioManager.setAudioSessionActivity(false);
-    } catch {}
-
-    try {
-      await audioContextRef.current?.close();
-    } catch {}
-
-    audioContextRef.current = null;
-    recorderRef.current = null;
+    await stopMicrophoneSpectrumSession(sessionRef.current);
+    sessionRef.current = null;
+    smoothedBarsRef.current = [];
 
     setSnapshot(prev => ({
       ...prev,
       isRunning: false,
     }));
-  }, [cleanupGraphOnly]);
+  }, []);
 
   const tick = useCallback(() => {
     if (!runningRef.current) return;
 
-    const ctx = audioContextRef.current;
-    const analyser = analyserRef.current;
-    const freqData = freqDataRef.current;
-    const timeData = timeDataRef.current;
-
-    if (!ctx || !analyser || !freqData || !timeData) {
+    const session = sessionRef.current;
+    if (!session) {
       rafRef.current = requestAnimationFrame(tick);
       return;
     }
 
-    analyser.getByteFrequencyData(freqData);
-    analyser.getFloatTimeDomainData(timeData);
+    session.analyser.getByteFrequencyData(session.freqData);
+    session.analyser.getFloatTimeDomainData(session.timeData);
 
-    const dbfs = dbfsFromTimeDomainFloat(timeData, -100);
-
-    const rawBars = buildLogBars(
-      freqData,
-      ctx.sampleRate,
-      analyser.fftSize,
-      opts.barCount,
-      opts.minHz,
-      opts.maxHz,
-    );
-
-    const bars = smoothArray(
+    const analysis = analyzeSpectrumFrame(
+      session.freqData,
+      session.timeData,
       smoothedBarsRef.current,
-      rawBars,
-      opts.barSmoothingAlpha,
+      {
+        sampleRate: session.audioContext.sampleRate,
+        fftSize: session.analyser.fftSize,
+        barCount: opts.barCount,
+        minHz: opts.minHz,
+        maxHz: opts.maxHz,
+        noiseFloorDbfs: opts.noiseFloorDbfs,
+        barSmoothingAlpha: opts.barSmoothingAlpha,
+      },
     );
-    smoothedBarsRef.current = bars;
-
-    const bass = averageFrequencyRange(
-      freqData,
-      ctx.sampleRate,
-      analyser.fftSize,
-      20,
-      250,
-    );
-    const mid = averageFrequencyRange(
-      freqData,
-      ctx.sampleRate,
-      analyser.fftSize,
-      250,
-      2000,
-    );
-    const treble = averageFrequencyRange(
-      freqData,
-      ctx.sampleRate,
-      analyser.fftSize,
-      2000,
-      8000,
-    );
-
-    const hasMeaningfulSignal = dbfs > opts.noiseFloorDbfs;
-
-    const { peakHz, peakLevel } = hasMeaningfulSignal
-      ? getPeakFrequencySmoothed(
-          freqData,
-          ctx.sampleRate,
-          analyser.fftSize,
-          opts.minHz,
-          opts.maxHz,
-        )
-      : { peakHz: null, peakLevel: null };
+    smoothedBarsRef.current = analysis.bars;
 
     const now = Date.now();
     const uiInterval = 1000 / opts.uiFps;
@@ -345,13 +117,7 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
 
       setSnapshot({
         isRunning: true,
-        dbfs,
-        peakHz,
-        peakLevel,
-        bars,
-        bass,
-        mid,
-        treble,
+        ...analysis,
         error: null,
       });
     }
@@ -390,50 +156,22 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
         return false;
       }
 
-      const audioContext = new AudioContext({ sampleRate: opts.sampleRate });
-      const recorder = new AudioRecorder();
-      const analyser = audioContext.createAnalyser();
-      const adapter = audioContext.createRecorderAdapter();
+      sessionRef.current = await createMicrophoneSpectrumSession({
+        sampleRate: opts.sampleRate,
+        fftSize: opts.fftSize,
+        smoothingTimeConstant: opts.smoothingTimeConstant,
+        minDecibels: opts.minDecibels,
+        maxDecibels: opts.maxDecibels,
+        autoResumeContext: opts.autoResumeContext,
+      });
 
-      analyser.fftSize = opts.fftSize;
-      analyser.smoothingTimeConstant = opts.smoothingTimeConstant;
-      analyser.minDecibels = opts.minDecibels;
-      analyser.maxDecibels = opts.maxDecibels;
-
-      recorder.connect(adapter);
-      adapter.connect(analyser);
-      analyser.connect(audioContext.destination);
-
-      if (opts.autoResumeContext && audioContext.state === "suspended") {
-        await audioContext.resume();
-      }
-
-      const startResult = recorder.start();
-      if (startResult.status === "error") {
-        throw new Error(startResult.message);
-      }
-
-      audioContextRef.current = audioContext;
-      recorderRef.current = recorder;
-      analyserRef.current = analyser;
-      adapterRef.current = adapter;
-
-      freqDataRef.current = new Uint8Array(analyser.frequencyBinCount);
-      timeDataRef.current = new Float32Array(analyser.fftSize);
       smoothedBarsRef.current = [];
       lastUiUpdateRef.current = 0;
       runningRef.current = true;
 
       setSnapshot({
+        ...createIdleMicrophoneSpectrumSnapshot(opts.barCount),
         isRunning: true,
-        dbfs: -100,
-        peakHz: null,
-        peakLevel: null,
-        bars: Array(opts.barCount).fill(0),
-        bass: 0,
-        mid: 0,
-        treble: 0,
-        error: null,
       });
 
       rafRef.current = requestAnimationFrame(tick);
@@ -478,4 +216,20 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
     }),
     [snapshot, start, stop],
   );
+}
+
+function createIdleMicrophoneSpectrumSnapshot(
+  barCount: number,
+): MicrophoneSpectrumSnapshot {
+  return {
+    isRunning: false,
+    dbfs: -100,
+    peakHz: null,
+    peakLevel: null,
+    bars: Array(barCount).fill(0),
+    bass: 0,
+    mid: 0,
+    treble: 0,
+    error: null,
+  };
 }
