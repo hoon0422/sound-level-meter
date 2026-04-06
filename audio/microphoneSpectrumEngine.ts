@@ -6,7 +6,7 @@ import {
   AudioRecorder,
 } from "react-native-audio-api";
 
-type CreateMicrophoneSpectrumSessionOptions = {
+type CreateMicrophoneSpectrumEngineOptions = {
   sampleRate: number;
   fftSize: number;
   smoothingTimeConstant: number;
@@ -15,18 +15,26 @@ type CreateMicrophoneSpectrumSessionOptions = {
   autoResumeContext: boolean;
 };
 
-export type MicrophoneSpectrumSession = {
+export type MicrophoneSpectrumEngine = {
   audioContext: AudioContext;
   recorder: AudioRecorder;
   analyser: AnalyserNode;
   adapter: AudioNode;
-  freqData: Uint8Array;
-  timeData: Float32Array;
 };
 
-export async function createMicrophoneSpectrumSession(
-  options: CreateMicrophoneSpectrumSessionOptions,
-): Promise<MicrophoneSpectrumSession> {
+let microphoneSpectrumEngine: MicrophoneSpectrumEngine | null = null;
+
+export function getMicrophoneSpectrumEngine() {
+  return microphoneSpectrumEngine;
+}
+
+export async function createMicrophoneSpectrumEngine(
+  options: CreateMicrophoneSpectrumEngineOptions,
+): Promise<MicrophoneSpectrumEngine> {
+  if (microphoneSpectrumEngine) {
+    return microphoneSpectrumEngine;
+  }
+
   const audioContext = new AudioContext({ sampleRate: options.sampleRate });
   const recorder = new AudioRecorder();
   const analyser = audioContext.createAnalyser();
@@ -50,20 +58,21 @@ export async function createMicrophoneSpectrumSession(
     throw new Error(startResult.message);
   }
 
-  return {
+  microphoneSpectrumEngine = {
     audioContext,
     recorder,
     analyser,
     adapter,
-    freqData: new Uint8Array(analyser.frequencyBinCount),
-    timeData: new Float32Array(analyser.fftSize),
   };
+
+  return microphoneSpectrumEngine;
 }
 
-export async function stopMicrophoneSpectrumSession(
-  session: MicrophoneSpectrumSession | null,
-) {
-  if (!session) {
+export async function stopMicrophoneSpectrumEngine() {
+  const engine = microphoneSpectrumEngine;
+  microphoneSpectrumEngine = null;
+
+  if (!engine) {
     try {
       await AudioManager.setAudioSessionActivity(false);
     } catch {}
@@ -71,23 +80,23 @@ export async function stopMicrophoneSpectrumSession(
   }
 
   try {
-    session.recorder.stop();
+    engine.recorder.stop();
   } catch {}
 
   try {
-    session.recorder.disconnect();
+    engine.recorder.disconnect();
   } catch {}
 
   try {
-    session.adapter.disconnect();
+    engine.adapter.disconnect();
   } catch {}
 
   try {
-    session.analyser.disconnect();
+    engine.analyser.disconnect();
   } catch {}
 
   try {
-    await session.audioContext.suspend();
+    await engine.audioContext.suspend();
   } catch {}
 
   try {
@@ -95,6 +104,6 @@ export async function stopMicrophoneSpectrumSession(
   } catch {}
 
   try {
-    await session.audioContext.close();
+    await engine.audioContext.close();
   } catch {}
 }
