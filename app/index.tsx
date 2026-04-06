@@ -1,24 +1,13 @@
-import {
-  AudioModule,
-  RecordingOptions,
-  RecordingPresets,
-  setAudioModeAsync,
-  useAudioRecorder,
-  useAudioRecorderState,
-} from "expo-audio";
-import { useEffect } from "react";
+import { useMicrophoneSpectrum } from "@/hooks/useMicrophoneSpectrum";
+import { useCallback, useEffect } from "react";
 import { Alert, Button, Linking, StyleSheet, Text, View } from "react-native";
+import { AudioManager } from "react-native-audio-api";
 
-const MeteringRecordingOptions: RecordingOptions = {
-  ...RecordingPresets.HIGH_QUALITY,
-  isMeteringEnabled: true,
-};
-
-const OFFSET = 90;
+// const OFFSET = 90;
 
 const isRecordingInitialized = async () => {
-  const status = await AudioModule.getRecordingPermissionsAsync();
-  return status.granted;
+  const status = await AudioManager.checkRecordingPermissions();
+  return status === "Granted";
 };
 
 const initRecording = async () => {
@@ -26,67 +15,174 @@ const initRecording = async () => {
     return;
   }
 
-  const status = await AudioModule.requestRecordingPermissionsAsync();
-  if (!status.granted) {
-    Alert.alert("Permission to access microphone was denied", undefined, [
-      { text: "OK" },
-      {
-        text: "Open settings",
-        onPress: () => {
-          Linking.openSettings();
-        },
-      },
-    ]);
-    return false;
+  const status = await AudioManager.requestRecordingPermissions();
+  if (status === "Granted") {
+    return true;
   }
 
-  setAudioModeAsync({
-    playsInSilentMode: true,
-    allowsRecording: true,
-    allowsBackgroundRecording: true,
-  });
-  return true;
+  Alert.alert("Permission to access microphone was denied", undefined, [
+    { text: "OK" },
+    {
+      text: "Open settings",
+      onPress: () => {
+        Linking.openSettings();
+      },
+    },
+  ]);
+  return false;
+};
+function meterColor(value: number) {
+  if (value < 0.33) return "#4caf50";
+  if (value < 0.66) return "#ff9800";
+  return "#f44336";
+}
+
+const toPercent = (value: number): `${number}%` => {
+  return `${Math.round(value * 100)}%`;
 };
 
 export default function App() {
-  const audioRecorder = useAudioRecorder(MeteringRecordingOptions);
-  const recorderState = useAudioRecorderState(audioRecorder);
+  const {
+    start,
+    stop,
+    isRunning,
+    dbfs,
+    peakHz,
+    bars,
+    bass,
+    mid,
+    treble,
+    error,
+  } = useMicrophoneSpectrum({
+    fftSize: 4096,
+    barCount: 32,
+    uiFps: 30,
+    minHz: 80,
+    maxHz: 500,
+    noiseFloorDbfs: -65,
+    barSmoothingAlpha: 0.2,
+    sampleRate: 44100,
+    smoothingTimeConstant: 0.3,
+  });
 
   useEffect(() => {
     initRecording();
   }, []);
 
-  const record = async () => {
+  const record = useCallback(async () => {
     if (!(await isRecordingInitialized())) {
       const result = await initRecording();
       if (!result) {
         return;
       }
     }
-    await audioRecorder.prepareToRecordAsync();
-    audioRecorder.record();
-  };
-
-  const stopRecording = async () => {
-    // The recording will be available on `audioRecorder.uri`.
-    await audioRecorder.stop();
-  };
+    await start();
+  }, [start]);
 
   return (
     <View style={styles.page}>
       <View style={styles.container}>
-        {recorderState.metering === undefined ? (
-          <Text style={styles.dbText}>Press record</Text>
+        {isRunning ? (
+          <View>
+            <View style={styles.statsContainer}>
+              <Text style={{ fontSize: 16 }}>dBFS: {dbfs.toFixed(1)}</Text>
+              {error ? (
+                <Text style={{ color: "#ff6b6b", marginTop: 8 }}>{error}</Text>
+              ) : null}
+              <Text style={{ fontSize: 16, marginTop: 6 }}>
+                Peak Frequency:{" "}
+                {peakHz != null ? `${peakHz.toFixed(0)} Hz` : "—"}
+              </Text>
+            </View>
+            <View style={{ marginTop: 20 }}>
+              <Text style={{ marginBottom: 8 }}>Spectrum</Text>
+              <View
+                style={{
+                  height: 180,
+                  flexDirection: "row",
+                  alignItems: "flex-end",
+                  gap: 2,
+                }}>
+                {bars.map((value, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      flex: 1,
+                      height: Math.max(2, value * 180),
+                      backgroundColor: meterColor(value),
+                      borderRadius: 2,
+                    }}
+                  />
+                ))}
+              </View>
+            </View>
+            <View style={{ marginTop: 24, gap: 12 }}>
+              <Text style={{ color: "white" }}>
+                Bass: {(bass * 100).toFixed(0)}%
+              </Text>
+              <View
+                style={{
+                  height: 10,
+                  backgroundColor: "#333",
+                  borderRadius: 999,
+                }}>
+                <View
+                  style={{
+                    width: toPercent(bass),
+                    height: 10,
+                    backgroundColor: meterColor(bass),
+                    borderRadius: 999,
+                  }}
+                />
+              </View>
+
+              <Text style={{ color: "white" }}>
+                Mid: {(mid * 100).toFixed(0)}%
+              </Text>
+              <View
+                style={{
+                  height: 10,
+                  backgroundColor: "#333",
+                  borderRadius: 999,
+                }}>
+                <View
+                  style={{
+                    width: toPercent(mid),
+                    height: 10,
+                    backgroundColor: meterColor(mid),
+                    borderRadius: 999,
+                  }}
+                />
+              </View>
+
+              <Text style={{ color: "white" }}>
+                Treble: {(treble * 100).toFixed(0)}%
+              </Text>
+              <View
+                style={{
+                  height: 10,
+                  backgroundColor: "#333",
+                  borderRadius: 999,
+                }}>
+                <View
+                  style={{
+                    width: toPercent(treble),
+                    height: 10,
+                    backgroundColor: meterColor(treble),
+                    borderRadius: 999,
+                  }}
+                />
+              </View>
+            </View>
+          </View>
         ) : (
-          <Text style={styles.dbText}>
-            {(recorderState.metering + OFFSET).toFixed(2)}dB
-          </Text>
+          <Text style={styles.statsText}>Press record</Text>
         )}
         <Button
-          title={recorderState.isRecording ? "Stop" : "Record"}
+          title={isRunning ? "Stop" : "Record"}
           onPress={() => {
-            if (recorderState.isRecording) {
-              stopRecording();
+            if (isRunning) {
+              stop();
             } else {
               record();
             }
@@ -115,7 +211,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 16,
   },
-  dbText: {
+  statsContainer: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+  },
+  statsText: {
     fontSize: 30,
   },
 });
