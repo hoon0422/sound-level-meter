@@ -6,8 +6,12 @@ import {
   useAudioRecorder,
   useAudioRecorderState,
 } from "expo-audio";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Button, Linking, StyleSheet, Text, View } from "react-native";
+
+import AnalysisGraph from "@/components/AnalysisGraph";
+import SoundGraph from "@/components/SoundGraph";
+import useAudioStore from "@/store/audioStore";
 
 const MeteringRecordingOptions: RecordingOptions = {
   ...RecordingPresets.HIGH_QUALITY,
@@ -49,12 +53,20 @@ const initRecording = async () => {
 };
 
 export default function App() {
+  const { setIsRecording, setMetering, clearSamples, setRecordingStartTime, addLog, samples, recordingStartTime } = useAudioStore();
+
   const audioRecorder = useAudioRecorder(MeteringRecordingOptions);
   const recorderState = useAudioRecorderState(audioRecorder);
+  const [isGraph, setIsGraph] = useState(true);
 
   useEffect(() => {
     initRecording();
   }, []);
+
+  useEffect(() => {
+    setIsRecording(recorderState.isRecording);
+    setMetering(recorderState.metering);
+  }, [recorderState.isRecording, recorderState.metering]);
 
   const record = async () => {
     if (!(await isRecordingInitialized())) {
@@ -63,13 +75,51 @@ export default function App() {
         return;
       }
     }
+
+    await setAudioModeAsync({
+      playsInSilentMode: true,
+      allowsRecording: true,
+      allowsBackgroundRecording: true,
+    });
+
+    clearSamples();
+    setRecordingStartTime(Date.now());
     await audioRecorder.prepareToRecordAsync();
     audioRecorder.record();
   };
 
   const stopRecording = async () => {
-    // The recording will be available on `audioRecorder.uri`.
     await audioRecorder.stop();
+
+    if (samples.length === 0) return;
+
+    const now = new Date();
+    const startMs = recordingStartTime ?? samples[0].timestamp;
+    const endMs = samples[samples.length - 1].timestamp;
+    const durationMs = endMs - startMs;
+
+    const durationSec = Math.floor(durationMs / 1000);
+    const durationMin = Math.floor(durationSec / 60);
+    const durationRemSec = durationSec % 60;
+    const durationStr =
+      durationMin > 0
+        ? `${durationMin}m ${durationRemSec}s`
+        : `${durationRemSec}s`;
+
+    const dbValues = samples.map((s) => s.db);
+    const maxDb = Math.max(...dbValues);
+    const minDb = Math.min(...dbValues);
+    const avgDb = dbValues.reduce((a, b) => a + b, 0) / dbValues.length;
+
+    addLog({
+      id: `${now.getTime()}`,
+      date: now.toLocaleDateString(),
+      time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      duration: durationStr,
+      maxDb: parseFloat(maxDb.toFixed(1)),
+      minDb: parseFloat(minDb.toFixed(1)),
+      avgDb: parseFloat(avgDb.toFixed(1)),
+    });
   };
 
   return (
@@ -82,16 +132,28 @@ export default function App() {
             {(recorderState.metering + OFFSET).toFixed(2)}dB
           </Text>
         )}
-        <Button
-          title={recorderState.isRecording ? "Stop" : "Record"}
-          onPress={() => {
-            if (recorderState.isRecording) {
-              stopRecording();
-            } else {
-              record();
-            }
-          }}
-        />
+        {isGraph ? <SoundGraph /> : <AnalysisGraph />}
+        <View style={styles.buttonRow}>
+          {/* Graph Mode Toggle */}
+          <Button
+            title={isGraph ? "Analysis" : "Graph"}
+            onPress={() => setIsGraph(!isGraph)}
+          />
+
+          {/* Record Button */}
+          <Button
+            title={recorderState.isRecording ? "Stop" : "Record"}
+            onPress={() => {
+              if (recorderState.isRecording) {
+                stopRecording();
+              } else {
+                record();
+              }
+            }}
+          />
+
+          <Button title="Download"/>
+        </View>
       </View>
     </View>
   );
@@ -103,8 +165,9 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    paddingBlock: 40,
-    paddingInline: 20,
+    paddingTop: 60,
+    paddingBlock: 20,
+    paddingInline: 10,
   },
   container: {
     flex: 1,
@@ -114,6 +177,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 25,
+    marginTop: 20,
+    width: '100%',
+    paddingHorizontal: 20,
   },
   dbText: {
     fontSize: 30,
