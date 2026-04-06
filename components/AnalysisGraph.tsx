@@ -1,60 +1,61 @@
 import React from 'react';
-import { useEffect } from 'react';
 import { StyleSheet, View, Dimensions, Text } from 'react-native';
-import Svg, { Polyline, Line, Text as SvgText } from 'react-native-svg';
 import useAudioStore from '../store/audioStore';
 
 const OFFSET = 90;
-const MAX_POINTS = 6000; // 10min × 60s × ~10 samples/sec
-
-const GRAPH_WIDTH = Dimensions.get('window').width - 48;
-const GRAPH_HEIGHT = 200;
-const PADDING = { top: 15, bottom: 25, left: 20, right: 25 };
-
-const INNER_W = GRAPH_WIDTH - PADDING.left - PADDING.right;
-const INNER_H = GRAPH_HEIGHT - PADDING.top - PADDING.bottom;
-
-const DB_MIN = 0;
-const DB_MAX = 100;
-const Y_LABELS = [0, 25, 50, 75, 100];
-const X_LABELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const RANGES = [
-  { num: "<20", label: "Barely audible" },
-  { num: "30", label: "Quiet forest" },
-  { num: "40", label: "Library" },
-  { num: "50", label: "Light rainfall" },
-  { num: "60", label: "Casual talk" },
-  { num: "70", label: "Busy street" },
-  { num: "80", label: "Heavy traffic" },
-  { num: "90", label: "Subway" },
-  { num: "100", label: "Plane taking off" },
-  { num: ">110", label: "Danger zone" },
+  { min: 0,   max: 20,  label: "Barely audible", display: "<20" },
+  { min: 20,  max: 30,  label: "Quiet forest",   display: "30" },
+  { min: 30,  max: 40,  label: "Library",        display: "40" },
+  { min: 40,  max: 50,  label: "Light rainfall", display: "50" },
+  { min: 50,  max: 60,  label: "Casual talk",    display: "60" },
+  { min: 60,  max: 70,  label: "Busy street",    display: "70" },
+  { min: 70,  max: 80,  label: "Heavy traffic",  display: "80" },
+  { min: 80,  max: 90,  label: "Subway",         display: "90" },
+  { min: 90,  max: 100, label: "Plane taking off", display: "100" },
+  { min: 100, max: 150, label: "Danger zone",    display: ">110" },
 ];
 
 export default function AnalysisGraph() {
-  const { isRecording, metering, addSample, samples, recordingStartTime } = useAudioStore();
+  const { metering } = useAudioStore();
 
-  useEffect(() => {
-    if (!isRecording) return;
-    if (metering === undefined || metering === null) return;
-
-    addSample({
-      db: Math.min(DB_MAX, Math.max(DB_MIN, metering + OFFSET)),
-      timestamp: Date.now(),
-    });
-  }, [metering]);
+  // Calculate current dB level
+  const currentDb = metering !== undefined 
+    ? Math.min(150, Math.max(0, metering + OFFSET)) 
+    : null;
 
   return (
     <View style={styles.container}>
-      {RANGES.map((range) => (
-        <View key={range.num} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <View style={{ width: 100 }}>
-            <Text style={{ fontSize: 12, color: '#6b6b6b' }}>{range.num}dB</Text>
+      {RANGES.map((range, index) => {
+        // Check if currentDb falls within this specific range
+        const isActive = currentDb !== null && currentDb >= range.min && currentDb < range.max;
+
+        return (
+          <View 
+            key={index} 
+            style={[
+              styles.row, 
+              isActive && styles.activeRow 
+            ]}
+          >
+            {/* DB Value Column */}
+            <View style={styles.dbColumn}>
+              <Text style={[styles.text, isActive && styles.activeText]}>
+                {range.display}dB
+              </Text>
+            </View>
+
+            {/* Description Label */}
+            <Text 
+              style={[styles.text, isActive && styles.activeText, { flex: 1 }]}
+              numberOfLines={1}
+            >
+              {range.label}
+            </Text>
           </View>
-          <Text style={{ fontSize: 12, color: '#6b6b6b' }}>{range.label}</Text>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -63,8 +64,39 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     marginHorizontal: 16,
     width: Dimensions.get('window').width - 48,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+  },
+  activeRow: {
+    backgroundColor: '#f2f2f7',
+  },
+  iconColumn: {
+    width: 28,
+    justifyContent: 'center',
+  },
+  checkmark: {
+    fontSize: 14,
+  },
+  dbColumn: {
+    width: 120,
+    alignItems: 'flex-end',
+    paddingRight: 40,
+  },
+  text: {
+    fontSize: 13,
+    color: '#8e8e93',
+  },
+  activeText: {
+    color: '#000', // Black text for the active row to make it pop
+    fontWeight: '600',
   },
 });

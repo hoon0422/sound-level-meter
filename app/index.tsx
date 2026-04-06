@@ -58,6 +58,7 @@ export default function App() {
   const audioRecorder = useAudioRecorder(MeteringRecordingOptions);
   const recorderState = useAudioRecorderState(audioRecorder);
   const [isGraph, setIsGraph] = useState(true);
+  const [isFreq, setIsFreq] = useState(true);
 
   useEffect(() => {
     initRecording();
@@ -152,7 +153,10 @@ export default function App() {
             }}
           />
 
-          <Button title="Download"/>
+          <Button
+            title={isFreq ? "dB" : "Hz"}
+            onPress={() => setIsFreq(!isFreq)}
+          />
         </View>
       </View>
     </View>
