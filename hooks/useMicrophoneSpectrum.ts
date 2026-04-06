@@ -151,6 +151,10 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
         return false;
       }
 
+      AudioManager.setAudioSessionOptions({
+        iosCategory: "playAndRecord",
+        iosOptions: ["defaultToSpeaker", "allowBluetoothHFP"],
+      });
       const sessionActivated = await AudioManager.setAudioSessionActivity(true);
       if (!sessionActivated) {
         setSnapshot(prev => ({
