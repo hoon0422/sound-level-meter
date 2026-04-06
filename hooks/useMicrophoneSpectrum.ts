@@ -13,9 +13,6 @@ export type MicrophoneSpectrumSnapshot = {
   peakHz: number | null;
   peakLevel: number | null;
   bars: number[];
-  bass: number;
-  mid: number;
-  treble: number;
   error: string | null;
 };
 
@@ -238,9 +235,6 @@ function createIdleMicrophoneSpectrumSnapshot(
     peakHz: null,
     peakLevel: null,
     bars: Array(barCount).fill(0),
-    bass: 0,
-    mid: 0,
-    treble: 0,
     error: null,
   };
 }

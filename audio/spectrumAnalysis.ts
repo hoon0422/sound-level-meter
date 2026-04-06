@@ -13,9 +13,6 @@ export type SpectrumFrameAnalysis = {
   peakHz: number | null;
   peakLevel: number | null;
   bars: number[];
-  bass: number;
-  mid: number;
-  treble: number;
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -36,37 +33,6 @@ function dbfsFromTimeDomainFloat(data: Float32Array, floor = -100) {
   const rms = Math.sqrt(sum / data.length);
   if (rms <= 1e-8) return floor;
   return Math.max(20 * Math.log10(rms), floor);
-}
-
-function averageFrequencyRange(
-  freqData: Uint8Array,
-  sampleRate: number,
-  fftSize: number,
-  minHz: number,
-  maxHz: number,
-) {
-  const start = clamp(
-    hzToBin(minHz, sampleRate, fftSize),
-    0,
-    freqData.length - 1,
-  );
-  const end = clamp(
-    hzToBin(maxHz, sampleRate, fftSize),
-    0,
-    freqData.length - 1,
-  );
-
-  if (end < start) return 0;
-
-  let sum = 0;
-  let count = 0;
-
-  for (let i = start; i <= end; i++) {
-    sum += freqData[i];
-    count++;
-  }
-
-  return count > 0 ? sum / count / 255 : 0;
 }
 
 function getPeakFrequencySmoothed(
@@ -175,28 +141,6 @@ export function analyzeSpectrumFrame(
     config.barSmoothingAlpha,
   );
 
-  const bass = averageFrequencyRange(
-    freqData,
-    config.sampleRate,
-    config.fftSize,
-    20,
-    250,
-  );
-  const mid = averageFrequencyRange(
-    freqData,
-    config.sampleRate,
-    config.fftSize,
-    250,
-    2000,
-  );
-  const treble = averageFrequencyRange(
-    freqData,
-    config.sampleRate,
-    config.fftSize,
-    2000,
-    8000,
-  );
-
   const hasMeaningfulSignal = dbfs > config.noiseFloorDbfs;
   const { peakHz, peakLevel } = hasMeaningfulSignal
     ? getPeakFrequencySmoothed(
@@ -213,8 +157,5 @@ export function analyzeSpectrumFrame(
     peakHz,
     peakLevel,
     bars,
-    bass,
-    mid,
-    treble,
   };
 }
