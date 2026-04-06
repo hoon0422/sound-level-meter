@@ -1,8 +1,8 @@
 import {
-  createMicrophoneSpectrumSession,
-  MicrophoneSpectrumSession,
-  stopMicrophoneSpectrumSession,
-} from "@/audio/microphoneSpectrumSession";
+  createMicrophoneSpectrumEngine,
+  getMicrophoneSpectrumEngine,
+  stopMicrophoneSpectrumEngine,
+} from "@/audio/microphoneSpectrumEngine";
 import { analyzeSpectrumFrame } from "@/audio/spectrumAnalysis";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AudioManager } from "react-native-audio-api";
@@ -53,7 +53,8 @@ const DEFAULT_MICROPHONE_SPECTRUM_OPTIONS: Required<UseMicrophoneSpectrumOptions
 export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
   const opts = { ...DEFAULT_MICROPHONE_SPECTRUM_OPTIONS, ...options };
 
-  const sessionRef = useRef<MicrophoneSpectrumSession | null>(null);
+  const freqDataRef = useRef<Uint8Array | null>(null);
+  const timeDataRef = useRef<Float32Array | null>(null);
   const smoothedBarsRef = useRef<number[]>([]);
   const rafRef = useRef<number | null>(null);
   const runningRef = useRef(false);
@@ -71,8 +72,9 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
       rafRef.current = null;
     }
 
-    await stopMicrophoneSpectrumSession(sessionRef.current);
-    sessionRef.current = null;
+    await stopMicrophoneSpectrumEngine();
+    freqDataRef.current = null;
+    timeDataRef.current = null;
     smoothedBarsRef.current = [];
 
     setSnapshot(prev => ({
@@ -84,22 +86,25 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
   const tick = useCallback(() => {
     if (!runningRef.current) return;
 
-    const session = sessionRef.current;
-    if (!session) {
+    const engine = getMicrophoneSpectrumEngine();
+    const freqData = freqDataRef.current;
+    const timeData = timeDataRef.current;
+
+    if (!engine || !freqData || !timeData) {
       rafRef.current = requestAnimationFrame(tick);
       return;
     }
 
-    session.analyser.getByteFrequencyData(session.freqData);
-    session.analyser.getFloatTimeDomainData(session.timeData);
+    engine.analyser.getByteFrequencyData(freqData);
+    engine.analyser.getFloatTimeDomainData(timeData);
 
     const analysis = analyzeSpectrumFrame(
-      session.freqData,
-      session.timeData,
+      freqData,
+      timeData,
       smoothedBarsRef.current,
       {
-        sampleRate: session.audioContext.sampleRate,
-        fftSize: session.analyser.fftSize,
+        sampleRate: engine.audioContext.sampleRate,
+        fftSize: engine.analyser.fftSize,
         barCount: opts.barCount,
         minHz: opts.minHz,
         maxHz: opts.maxHz,
@@ -156,7 +161,7 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
         return false;
       }
 
-      sessionRef.current = await createMicrophoneSpectrumSession({
+      const engine = await createMicrophoneSpectrumEngine({
         sampleRate: opts.sampleRate,
         fftSize: opts.fftSize,
         smoothingTimeConstant: opts.smoothingTimeConstant,
@@ -165,6 +170,8 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
         autoResumeContext: opts.autoResumeContext,
       });
 
+      freqDataRef.current = new Uint8Array(engine.analyser.frequencyBinCount);
+      timeDataRef.current = new Float32Array(engine.analyser.fftSize);
       smoothedBarsRef.current = [];
       lastUiUpdateRef.current = 0;
       runningRef.current = true;

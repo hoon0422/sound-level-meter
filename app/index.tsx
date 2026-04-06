@@ -83,7 +83,7 @@ export default function App() {
     <View style={styles.page}>
       <View style={styles.container}>
         {isRunning ? (
-          <View>
+          <View style={{ width: "100%", alignItems: "center" }}>
             <View style={styles.statsContainer}>
               <Text style={{ fontSize: 16 }}>dBFS: {dbfs.toFixed(1)}</Text>
               {error ? (
@@ -94,10 +94,11 @@ export default function App() {
                 {peakHz != null ? `${peakHz.toFixed(0)} Hz` : "—"}
               </Text>
             </View>
-            <View style={{ marginTop: 20 }}>
+            <View style={{ marginTop: 20, width: "100%" }}>
               <Text style={{ marginBottom: 8 }}>Spectrum</Text>
               <View
                 style={{
+                  width: "100%",
                   height: 180,
                   flexDirection: "row",
                   alignItems: "flex-end",
