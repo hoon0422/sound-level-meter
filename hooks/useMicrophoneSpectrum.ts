@@ -50,7 +50,7 @@ const DEFAULT_MICROPHONE_SPECTRUM_OPTIONS: Required<UseMicrophoneSpectrumOptions
 export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
   const opts = { ...DEFAULT_MICROPHONE_SPECTRUM_OPTIONS, ...options };
 
-  const freqDataRef = useRef<Uint8Array | null>(null);
+  const freqDataRef = useRef<Float32Array | null>(null);
   const timeDataRef = useRef<Float32Array | null>(null);
   const smoothedBarsRef = useRef<number[]>([]);
   const rafRef = useRef<number | null>(null);
@@ -92,7 +92,7 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
       return;
     }
 
-    engine.analyser.getByteFrequencyData(freqData);
+    engine.analyser.getFloatFrequencyData(freqData);
     engine.analyser.getFloatTimeDomainData(timeData);
 
     const analysis = analyzeSpectrumFrame(
@@ -105,6 +105,8 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
         barCount: opts.barCount,
         minHz: opts.minHz,
         maxHz: opts.maxHz,
+        minDecibels: opts.minDecibels,
+        maxDecibels: opts.maxDecibels,
         noiseFloorDbfs: opts.noiseFloorDbfs,
         barSmoothingAlpha: opts.barSmoothingAlpha,
       },
@@ -128,7 +130,9 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
   }, [
     opts.barCount,
     opts.barSmoothingAlpha,
+    opts.maxDecibels,
     opts.maxHz,
+    opts.minDecibels,
     opts.minHz,
     opts.noiseFloorDbfs,
     opts.uiFps,
@@ -150,7 +154,7 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
 
       AudioManager.setAudioSessionOptions({
         iosCategory: "playAndRecord",
-        iosOptions: ["defaultToSpeaker", "allowBluetoothHFP"],
+        iosMode: "measurement",
       });
       const sessionActivated = await AudioManager.setAudioSessionActivity(true);
       if (!sessionActivated) {
@@ -171,7 +175,7 @@ export function useMicrophoneSpectrum(options?: UseMicrophoneSpectrumOptions) {
         autoResumeContext: opts.autoResumeContext,
       });
 
-      freqDataRef.current = new Uint8Array(engine.analyser.frequencyBinCount);
+      freqDataRef.current = new Float32Array(engine.analyser.frequencyBinCount);
       timeDataRef.current = new Float32Array(engine.analyser.fftSize);
       smoothedBarsRef.current = [];
       lastUiUpdateRef.current = 0;
