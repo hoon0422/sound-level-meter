@@ -140,18 +140,19 @@ function smoothArray(prev: number[], next: number[], alpha: number) {
   });
 }
 
-export function analyzeSpectrumFrame(
+export function calibrateDbfsForDisplay(dbfs: number) {
+  return dbfs + CALIBRATION_PEAK_DBFS;
+}
+
+export function analyzeFrequencyFrame(
   freqData: Float32Array,
-  timeData: Float32Array,
   prevBars: number[],
-  config: SpectrumAnalysisConfig,
-): SpectrumFrameAnalysis {
+  config: Omit<SpectrumAnalysisConfig, "noiseFloorDbfs">,
+): Omit<SpectrumFrameAnalysis, "dbfs"> {
   const normalizedFreqData = Float32Array.from(
     freqData,
     value => normalizeDecibel(value, config.minDecibels, config.maxDecibels),
   );
-  const dbfs = dbfsFromTimeDomainFloat(timeData, -100);
-  const calibratedDbfs = dbfs + CALIBRATION_PEAK_DBFS;
   const bars = smoothArray(
     prevBars,
     buildLogBars(
@@ -165,21 +166,34 @@ export function analyzeSpectrumFrame(
     config.barSmoothingAlpha,
   );
 
-  const hasMeaningfulSignal = dbfs > config.noiseFloorDbfs;
-  const { peakHz, peakLevel } = hasMeaningfulSignal
-    ? getPeakFrequencySmoothed(
-        normalizedFreqData,
-        config.sampleRate,
-        config.fftSize,
-        config.minHz,
-        config.maxHz,
-      )
-    : { peakHz: null, peakLevel: null };
+  const { peakHz, peakLevel } = getPeakFrequencySmoothed(
+    normalizedFreqData,
+    config.sampleRate,
+    config.fftSize,
+    config.minHz,
+    config.maxHz,
+  );
 
   return {
-    dbfs: calibratedDbfs,
     peakHz,
     peakLevel,
     bars,
+  };
+}
+
+export function analyzeSpectrumFrame(
+  freqData: Float32Array,
+  timeData: Float32Array,
+  prevBars: number[],
+  config: SpectrumAnalysisConfig,
+): SpectrumFrameAnalysis {
+  const dbfs = dbfsFromTimeDomainFloat(timeData, -100);
+  const frequencyAnalysis = analyzeFrequencyFrame(freqData, prevBars, config);
+
+  return {
+    dbfs: calibrateDbfsForDisplay(dbfs),
+    peakHz: dbfs > config.noiseFloorDbfs ? frequencyAnalysis.peakHz : null,
+    peakLevel: dbfs > config.noiseFloorDbfs ? frequencyAnalysis.peakLevel : null,
+    bars: frequencyAnalysis.bars,
   };
 }
