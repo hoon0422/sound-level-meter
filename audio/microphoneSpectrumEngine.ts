@@ -5,7 +5,9 @@ import {
   GainNode,
   AudioNode,
   AudioRecorder,
+  WorkletNode,
 } from "react-native-audio-api";
+import { scheduleOnRN } from "react-native-worklets";
 
 type CreateMicrophoneSpectrumEngineOptions = {
   sampleRate: number;
@@ -14,6 +16,12 @@ type CreateMicrophoneSpectrumEngineOptions = {
   minDecibels: number;
   maxDecibels: number;
   autoResumeContext: boolean;
+  onAudioMetrics: (metrics: AudioRuntimeMetrics) => void;
+};
+
+export type AudioRuntimeMetrics = {
+  dbfs: number;
+  elapsedSeconds: number;
 };
 
 export type MicrophoneSpectrumEngine = {
@@ -21,6 +29,7 @@ export type MicrophoneSpectrumEngine = {
   recorder: AudioRecorder;
   analyser: AnalyserNode;
   adapter: AudioNode;
+  workletNode: WorkletNode;
   muteGain: GainNode;
 };
 
@@ -41,6 +50,42 @@ export async function createMicrophoneSpectrumEngine(
   const recorder = new AudioRecorder();
   const analyser = audioContext.createAnalyser();
   const adapter = audioContext.createRecorderAdapter();
+  const workletNode = audioContext.createWorkletNode(
+    (audioData, inputChannelCount) => {
+      "worklet";
+
+      const channelCount = Math.max(inputChannelCount, 1);
+      const frameCount = audioData[0]?.length ?? 0;
+      if (frameCount === 0) {
+        return;
+      }
+
+      let sum = 0;
+      for (let channel = 0; channel < channelCount; channel++) {
+        const samples = audioData[channel];
+        if (!samples) {
+          continue;
+        }
+
+        for (let i = 0; i < samples.length; i++) {
+          const sample = samples[i];
+          sum += sample * sample;
+        }
+      }
+
+      const rms = Math.sqrt(sum / (frameCount * channelCount));
+      const dbfs = rms <= 1e-8 ? -100 : Math.max(20 * Math.log10(rms), -100);
+      const elapsedSeconds = frameCount / options.sampleRate;
+
+      scheduleOnRN(options.onAudioMetrics, {
+        dbfs,
+        elapsedSeconds,
+      });
+    },
+    options.fftSize,
+    1,
+    "AudioRuntime",
+  );
   const muteGain = audioContext.createGain();
 
   analyser.fftSize = options.fftSize;
@@ -51,7 +96,8 @@ export async function createMicrophoneSpectrumEngine(
 
   recorder.connect(adapter);
   adapter.connect(analyser);
-  analyser.connect(muteGain);
+  analyser.connect(workletNode);
+  workletNode.connect(muteGain);
   muteGain.connect(audioContext.destination);
 
   if (options.autoResumeContext && audioContext.state === "suspended") {
@@ -68,6 +114,7 @@ export async function createMicrophoneSpectrumEngine(
     recorder,
     analyser,
     adapter,
+    workletNode,
     muteGain,
   };
 
@@ -99,6 +146,14 @@ export async function stopMicrophoneSpectrumEngine() {
 
   try {
     engine.analyser.disconnect();
+  } catch {}
+
+  try {
+    engine.workletNode.disconnect();
+  } catch {}
+
+  try {
+    engine.muteGain.disconnect();
   } catch {}
 
   try {
