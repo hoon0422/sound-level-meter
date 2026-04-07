@@ -4,6 +4,8 @@ type SpectrumAnalysisConfig = {
   barCount: number;
   minHz: number;
   maxHz: number;
+  minDecibels: number;
+  maxDecibels: number;
   noiseFloorDbfs: number;
   barSmoothingAlpha: number;
 };
@@ -15,12 +17,27 @@ export type SpectrumFrameAnalysis = {
   bars: number[];
 };
 
+const CALIBRATION_PEAK_DBFS = 100;
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
 function hzToBin(hz: number, sampleRate: number, fftSize: number) {
   return Math.floor((hz * fftSize) / sampleRate);
+}
+
+function normalizeDecibel(
+  value: number,
+  minDecibels: number,
+  maxDecibels: number,
+) {
+  if (maxDecibels <= minDecibels) return 0;
+  return clamp(
+    (value - minDecibels) / (maxDecibels - minDecibels),
+    0,
+    1,
+  );
 }
 
 function dbfsFromTimeDomainFloat(data: Float32Array, floor = -100) {
@@ -36,7 +53,7 @@ function dbfsFromTimeDomainFloat(data: Float32Array, floor = -100) {
 }
 
 function getPeakFrequencySmoothed(
-  freqData: Uint8Array,
+  freqData: Float32Array,
   sampleRate: number,
   fftSize: number,
   minHz: number,
@@ -67,12 +84,12 @@ function getPeakFrequencySmoothed(
 
   return {
     peakHz: (bestIndex * sampleRate) / fftSize,
-    peakLevel: bestScore / 255,
+    peakLevel: bestScore,
   };
 }
 
 function buildLogBars(
-  freqData: Uint8Array,
+  freqData: Float32Array,
   sampleRate: number,
   fftSize: number,
   barCount: number,
@@ -80,13 +97,15 @@ function buildLogBars(
   maxHz: number,
 ) {
   const bars: number[] = [];
+  const safeMinHz = Math.max(minHz, sampleRate / fftSize);
+  const safeMaxHz = Math.max(maxHz, safeMinHz);
 
   for (let bar = 0; bar < barCount; bar++) {
     const startRatio = bar / barCount;
     const endRatio = (bar + 1) / barCount;
 
-    const startHz = minHz * Math.pow(maxHz / minHz, startRatio);
-    const endHz = minHz * Math.pow(maxHz / minHz, endRatio);
+    const startHz = safeMinHz * Math.pow(safeMaxHz / safeMinHz, startRatio);
+    const endHz = safeMinHz * Math.pow(safeMaxHz / safeMinHz, endRatio);
 
     const startBin = clamp(
       hzToBin(startHz, sampleRate, fftSize),
@@ -107,7 +126,7 @@ function buildLogBars(
       count++;
     }
 
-    bars.push(count > 0 ? sum / count / 255 : 0);
+    bars.push(count > 0 ? sum / count : 0);
   }
 
   return bars;
@@ -122,16 +141,21 @@ function smoothArray(prev: number[], next: number[], alpha: number) {
 }
 
 export function analyzeSpectrumFrame(
-  freqData: Uint8Array,
+  freqData: Float32Array,
   timeData: Float32Array,
   prevBars: number[],
   config: SpectrumAnalysisConfig,
 ): SpectrumFrameAnalysis {
+  const normalizedFreqData = Float32Array.from(
+    freqData,
+    value => normalizeDecibel(value, config.minDecibels, config.maxDecibels),
+  );
   const dbfs = dbfsFromTimeDomainFloat(timeData, -100);
+  const calibratedDbfs = dbfs + CALIBRATION_PEAK_DBFS;
   const bars = smoothArray(
     prevBars,
     buildLogBars(
-      freqData,
+      normalizedFreqData,
       config.sampleRate,
       config.fftSize,
       config.barCount,
@@ -144,7 +168,7 @@ export function analyzeSpectrumFrame(
   const hasMeaningfulSignal = dbfs > config.noiseFloorDbfs;
   const { peakHz, peakLevel } = hasMeaningfulSignal
     ? getPeakFrequencySmoothed(
-        freqData,
+        normalizedFreqData,
         config.sampleRate,
         config.fftSize,
         config.minHz,
@@ -153,7 +177,7 @@ export function analyzeSpectrumFrame(
     : { peakHz: null, peakLevel: null };
 
   return {
-    dbfs,
+    dbfs: calibratedDbfs,
     peakHz,
     peakLevel,
     bars,

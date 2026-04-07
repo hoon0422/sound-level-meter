@@ -2,6 +2,7 @@ import {
   AnalyserNode,
   AudioContext,
   AudioManager,
+  GainNode,
   AudioNode,
   AudioRecorder,
 } from "react-native-audio-api";
@@ -20,6 +21,7 @@ export type MicrophoneSpectrumEngine = {
   recorder: AudioRecorder;
   analyser: AnalyserNode;
   adapter: AudioNode;
+  muteGain: GainNode;
 };
 
 let microphoneSpectrumEngine: MicrophoneSpectrumEngine | null = null;
@@ -39,15 +41,18 @@ export async function createMicrophoneSpectrumEngine(
   const recorder = new AudioRecorder();
   const analyser = audioContext.createAnalyser();
   const adapter = audioContext.createRecorderAdapter();
+  const muteGain = audioContext.createGain();
 
   analyser.fftSize = options.fftSize;
   analyser.smoothingTimeConstant = options.smoothingTimeConstant;
   analyser.minDecibels = options.minDecibels;
   analyser.maxDecibels = options.maxDecibels;
+  muteGain.gain.value = 0;
 
   recorder.connect(adapter);
   adapter.connect(analyser);
-  analyser.connect(audioContext.destination);
+  analyser.connect(muteGain);
+  muteGain.connect(audioContext.destination);
 
   if (options.autoResumeContext && audioContext.state === "suspended") {
     await audioContext.resume();
@@ -63,6 +68,7 @@ export async function createMicrophoneSpectrumEngine(
     recorder,
     analyser,
     adapter,
+    muteGain,
   };
 
   return microphoneSpectrumEngine;

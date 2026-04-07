@@ -40,11 +40,11 @@ function meterColor(value: number) {
 export default function App() {
   const { start, stop, isRunning, dbfs, peakHz, bars, error } =
     useMicrophoneSpectrum({
-      fftSize: 4096,
+      fftSize: 1024,
       barCount: 32,
-      uiFps: 30,
-      minHz: 80,
-      maxHz: 500,
+      uiFps: 20,
+      minHz: 0,
+      maxHz: 20000,
       noiseFloorDbfs: -65,
       barSmoothingAlpha: 0.2,
       sampleRate: 44100,
