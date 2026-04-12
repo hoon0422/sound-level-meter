@@ -5,7 +5,6 @@ import {
   createIdleMicrophoneState,
 } from "@/audio/MicrophoneController";
 import type { StateCreator } from "zustand";
-import type { SpectrumSlice } from "./createSpectrumSlice";
 
 export type { AudioEngineConfig };
 
@@ -15,12 +14,7 @@ export type MicrophoneSlice = MicrophoneState & {
   disconnect: () => Promise<void>;
 };
 
-export const createMicrophoneSlice: StateCreator<
-  MicrophoneSlice & SpectrumSlice,
-  [],
-  [],
-  MicrophoneSlice
-> = set => {
+export const createMicrophoneSlice: StateCreator<MicrophoneSlice> = set => {
   const mic = MicrophoneController.getInstance();
 
   mic.subscribe(state => set(state));

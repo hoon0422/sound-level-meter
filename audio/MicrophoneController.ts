@@ -1,7 +1,6 @@
 import {
   type AudioEngineConfig,
   type AudioRuntimeMetrics,
-  CALIBRATION_PEAK_DBFS,
   type MicrophoneEngine,
   createMicrophoneEngine,
   disconnectMicrophoneEngine,
@@ -17,10 +16,6 @@ export type MicrophoneState = {
   isStopping: boolean;
   isDisconnecting: boolean;
   elapsedSeconds: number;
-<<<<<<< HEAD
-=======
-  dbfs: number;
->>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
   error: string | null;
 };
 
@@ -44,16 +39,8 @@ export function createIdleMicrophoneState(): MicrophoneState {
     isStopping: false,
     isDisconnecting: false,
     elapsedSeconds: 0,
-<<<<<<< HEAD
-=======
-    dbfs: -100,
->>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
     error: null,
   };
-}
-
-export function calibrateDbfsForDisplay(dbfs: number) {
-  return dbfs + CALIBRATION_PEAK_DBFS;
 }
 
 export class MicrophoneController {
@@ -123,10 +110,6 @@ export class MicrophoneController {
       isStopping: false,
       isDisconnecting: false,
       elapsedSeconds: this.elapsedAccumulator,
-<<<<<<< HEAD
-=======
-      dbfs: calibrateDbfsForDisplay(metrics.dbfs),
->>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
       error: null,
     });
   };

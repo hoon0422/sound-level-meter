@@ -7,7 +7,6 @@ import {
   createIdleSpectrumSnapshot,
 } from "@/audio/spectrum";
 import type { StateCreator } from "zustand";
-import type { MicrophoneSlice } from "./createMicrophoneSlice";
 
 export type { SpectrumDisplayConfig };
 
@@ -16,12 +15,7 @@ export type SpectrumSlice = SpectrumSnapshot & {
   disposeSpectrum: () => void;
 };
 
-export const createSpectrumSlice: StateCreator<
-  MicrophoneSlice & SpectrumSlice,
-  [],
-  [],
-  SpectrumSlice
-> = set => {
+export const createSpectrumSlice: StateCreator<SpectrumSlice> = set => {
   const mic = MicrophoneController.getInstance();
   const spectrum = new SpectrumAnalysisController(mic, DEFAULT_CONFIG);
 
