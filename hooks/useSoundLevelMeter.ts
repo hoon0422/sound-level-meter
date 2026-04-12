@@ -1,4 +1,5 @@
 import { DEFAULT_CONFIG } from "@/audio/constants";
+import { useMicrophoneSpectrumStore } from "@/stores/useMicrophoneSpectrumStore";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Linking } from "react-native";
 import { AudioManager } from "react-native-audio-api";
@@ -42,6 +43,7 @@ const initRecording = async () => {
 
 export function useSoundLevelMeter() {
   const [isPreparingRecording, setIsPreparingRecording] = useState(false);
+  const [isPreparingRecording, setIsPreparingRecording] = useState(false);
   const {
     start,
     stop,
@@ -77,7 +79,20 @@ export function useSoundLevelMeter() {
       if (!canRecord) {
         return;
       }
+    setIsPreparingRecording(true);
 
+    try {
+      const canRecord = await initRecording();
+      if (!canRecord) {
+        return;
+      }
+
+      configureSpectrum(DEFAULT_CONFIG);
+      configureAudioMetrics(DEFAULT_CONFIG);
+      await start(DEFAULT_CONFIG);
+    } finally {
+      setIsPreparingRecording(false);
+    }
       configureSpectrum(DEFAULT_CONFIG);
       configureAudioMetrics(DEFAULT_CONFIG);
       await start(DEFAULT_CONFIG);
@@ -97,7 +112,10 @@ export function useSoundLevelMeter() {
 
   const isBusy =
     isPreparingRecording || isStarting || isStopping || isDisconnecting;
+  const isBusy =
+    isPreparingRecording || isStarting || isStopping || isDisconnecting;
 
+  const buttonTitle = isPreparingRecording || isStarting
   const buttonTitle = isPreparingRecording || isStarting
     ? "Starting..."
     : isStopping

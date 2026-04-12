@@ -14,10 +14,7 @@ export type SpectrumSnapshotListener = (snapshot: SpectrumSnapshot) => void;
 
 export function createIdleSpectrumSnapshot(barCount: number): SpectrumSnapshot {
   return {
-<<<<<<< HEAD
     bars: Array(barCount).fill(-100) as number[],
-=======
-    bars: Array(barCount).fill(0) as number[],
   };
 }
 
