@@ -1,4 +1,4 @@
-import { useMicrophoneSpectrum } from "@/hooks/useMicrophoneSpectrum";
+import { useMicrophoneSpectrumStore } from "@/stores/useMicrophoneSpectrumStore";
 import { memo, useCallback, useEffect } from "react";
 import { Alert, Button, Linking, StyleSheet, Text, View } from "react-native";
 import { AudioManager } from "react-native-audio-api";
@@ -14,23 +14,33 @@ const initRecording = async () => {
   if (await isRecordingInitialized()) {
     return;
   }
-
-  const status = await AudioManager.requestRecordingPermissions();
-  if (status === "Granted") {
-    return true;
+  const permission = await AudioManager.requestRecordingPermissions();
+  if (permission !== "Granted") {
+    Alert.alert("Permission to access microphone was denied", undefined, [
+      { text: "OK" },
+      {
+        text: "Open settings",
+        onPress: () => {
+          Linking.openSettings();
+        },
+      },
+    ]);
+    return false;
   }
 
-  Alert.alert("Permission to access microphone was denied", undefined, [
-    { text: "OK" },
-    {
-      text: "Open settings",
-      onPress: () => {
-        Linking.openSettings();
-      },
-    },
-  ]);
-  return false;
+  AudioManager.setAudioSessionOptions({
+    iosCategory: "playAndRecord",
+    iosMode: "measurement",
+  });
+  const sessionActivated = await AudioManager.setAudioSessionActivity(true);
+  if (!sessionActivated) {
+    Alert.alert("Could not activate audio session.");
+    return false;
+  }
+
+  return true;
 };
+
 function meterColor(value: number) {
   if (value < 0.33) return "#4caf50";
   if (value < 0.66) return "#ff9800";
@@ -39,20 +49,17 @@ function meterColor(value: number) {
 
 export default function App() {
   const { start, stop, isRunning, elapsedSeconds, dbfs, peakHz, bars, error } =
-    useMicrophoneSpectrum({
-      fftSize: 1024,
-      barCount: 32,
-      minHz: 0,
-      maxHz: 20000,
-      noiseFloorDbfs: -65,
-      barSmoothingAlpha: 0.2,
-      sampleRate: 44100,
-      smoothingTimeConstant: 0.3,
-    });
+    useMicrophoneSpectrumStore();
 
   useEffect(() => {
     initRecording();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      void stop();
+    };
+  }, [stop]);
 
   const record = useCallback(async () => {
     if (!(await isRecordingInitialized())) {
@@ -111,7 +118,9 @@ const StatsPanel = memo(function StatsPanel({
       <Text>Elapsed: {elapsedSeconds.toFixed(2)} s</Text>
       <Text>dBFS: {dbfs.toFixed(1)}</Text>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <Text>Peak Frequency: {peakHz != null ? `${peakHz.toFixed(0)} Hz` : "—"}</Text>
+      <Text>
+        Peak Frequency: {peakHz != null ? `${peakHz.toFixed(0)} Hz` : "—"}
+      </Text>
     </View>
   );
 });

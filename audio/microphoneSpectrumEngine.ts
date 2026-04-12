@@ -2,9 +2,9 @@ import {
   AnalyserNode,
   AudioContext,
   AudioManager,
-  GainNode,
   AudioNode,
   AudioRecorder,
+  GainNode,
   WorkletNode,
 } from "react-native-audio-api";
 import { scheduleOnRN } from "react-native-worklets";
@@ -34,10 +34,6 @@ export type MicrophoneSpectrumEngine = {
 };
 
 let microphoneSpectrumEngine: MicrophoneSpectrumEngine | null = null;
-
-export function getMicrophoneSpectrumEngine() {
-  return microphoneSpectrumEngine;
-}
 
 export async function createMicrophoneSpectrumEngine(
   options: CreateMicrophoneSpectrumEngineOptions,
