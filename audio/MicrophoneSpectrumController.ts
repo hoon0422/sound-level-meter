@@ -10,6 +10,7 @@ import {
   analyzeFrequencyFrame,
   calibrateDbfsForDisplay,
 } from "@/audio/spectrumAnalysis";
+import { DEFAULT_CONFIG } from "./constants";
 
 export type MicrophoneSpectrumSnapshot = {
   isRunning: boolean;
@@ -41,20 +42,6 @@ export type MicrophoneSpectrumConfig = {
 export type MicrophoneSpectrumListener = (
   snapshot: MicrophoneSpectrumSnapshot,
 ) => void;
-
-export const DEFAULT_CONFIG: MicrophoneSpectrumConfig = {
-  fftSize: 1024,
-  barCount: 32,
-  minHz: 0,
-  maxHz: 20000,
-  noiseFloorDbfs: -65,
-  barSmoothingAlpha: 0.2,
-  sampleRate: 44100,
-  smoothingTimeConstant: 0.3,
-  minDecibels: -90,
-  maxDecibels: -10,
-  autoResumeContext: true,
-};
 
 export function createIdleSnapshot(
   barCount: number,
