@@ -53,7 +53,6 @@ export class MicrophoneController {
   private running = false;
   private elapsedAccumulator = 0;
   private engine: MicrophoneEngine | null = null;
-  private config: AudioEngineConfig | null = null;
   private stateListeners = new Set<MicrophoneStateListener>();
   private frameListeners = new Set<MicrophoneFrameListener>();
 
@@ -143,8 +142,6 @@ export class MicrophoneController {
   }
 
   async start(config: AudioEngineConfig): Promise<boolean> {
-    this.config = config;
-
     if (this.running) {
       this.stop();
     }
