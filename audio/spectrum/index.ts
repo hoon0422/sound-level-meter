@@ -1,8 +1,5 @@
 export { DEFAULT_SPECTRUM_DISPLAY_CONFIG } from "./constants";
-export {
-  analyzeFrequencyFrame,
-  calibrateDbfsForDisplay,
-} from "./spectrumAnalysis";
+export { analyzeFrequencyFrame } from "./spectrumAnalysis";
 export type { SpectrumFrameAnalysis } from "./spectrumAnalysis";
 export {
   createIdleSpectrumSnapshot,

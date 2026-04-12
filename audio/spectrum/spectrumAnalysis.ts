@@ -17,8 +17,6 @@ export type SpectrumFrameAnalysis = {
   bars: number[];
 };
 
-const CALIBRATION_PEAK_DBFS = 100;
-
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
@@ -122,10 +120,6 @@ function smoothArray(prev: number[], next: number[], alpha: number) {
     const oldValue = prev[i] ?? value;
     return oldValue * (1 - alpha) + value * alpha;
   });
-}
-
-export function calibrateDbfsForDisplay(dbfs: number) {
-  return dbfs + CALIBRATION_PEAK_DBFS;
 }
 
 export function analyzeFrequencyFrame(

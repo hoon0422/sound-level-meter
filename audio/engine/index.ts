@@ -1,4 +1,7 @@
-export { DEFAULT_AUDIO_ENGINE_CONFIG } from "./constants";
+export {
+  CALIBRATION_PEAK_DBFS,
+  DEFAULT_AUDIO_ENGINE_CONFIG,
+} from "./constants";
 export {
   createMicrophoneEngine,
   disconnectMicrophoneEngine,

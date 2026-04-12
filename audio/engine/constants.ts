@@ -8,3 +8,5 @@ export const DEFAULT_AUDIO_ENGINE_CONFIG: AudioEngineConfig = {
   maxDecibels: -10,
   autoResumeContext: true,
 };
+
+export const CALIBRATION_PEAK_DBFS = 100;

@@ -1,13 +1,13 @@
 import {
   type AudioEngineConfig,
   type AudioRuntimeMetrics,
+  CALIBRATION_PEAK_DBFS,
   type MicrophoneEngine,
   createMicrophoneEngine,
   disconnectMicrophoneEngine,
   resumeMicrophoneEngine,
   stopMicrophoneEngine,
 } from "./engine";
-import { calibrateDbfsForDisplay } from "./spectrum";
 
 export type { AudioEngineConfig };
 
@@ -44,6 +44,10 @@ export function createIdleMicrophoneState(): MicrophoneState {
     dbfs: -100,
     error: null,
   };
+}
+
+export function calibrateDbfsForDisplay(dbfs: number) {
+  return dbfs + CALIBRATION_PEAK_DBFS;
 }
 
 export class MicrophoneController {
