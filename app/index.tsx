@@ -47,8 +47,22 @@ function meterColor(value: number) {
 }
 
 export default function App() {
-  const { start, stop, isRunning, elapsedSeconds, dbfs, peakHz, bars, error } =
-    useMicrophoneSpectrumStore();
+  const {
+    start,
+    stop,
+    disconnect,
+    isRunning,
+    isStarting,
+    isStopping,
+    isDisconnecting,
+    elapsedSeconds,
+    dbfs,
+    peakHz,
+    bars,
+    error,
+  } = useMicrophoneSpectrumStore();
+
+  const isBusy = isStarting || isStopping || isDisconnecting;
 
   useEffect(() => {
     initRecording();
@@ -56,9 +70,9 @@ export default function App() {
 
   useEffect(() => {
     return () => {
-      void stop();
+      void disconnect();
     };
-  }, [stop]);
+  }, [disconnect]);
 
   const record = useCallback(async () => {
     const result = await initRecording();
@@ -67,6 +81,14 @@ export default function App() {
     }
     await start();
   }, [start]);
+
+  const buttonTitle = isStarting
+    ? "Starting..."
+    : isStopping
+      ? "Stopping..."
+      : isRunning
+        ? "Stop"
+        : "Record";
 
   return (
     <View style={styles.page}>
@@ -82,10 +104,13 @@ export default function App() {
             <SpectrumBars bars={bars} />
           </View>
         ) : (
-          <Text style={styles.statsText}>Press record</Text>
+          <Text style={styles.statsText}>
+            {isStarting ? "Starting..." : "Press record"}
+          </Text>
         )}
         <Button
-          title={isRunning ? "Stop" : "Record"}
+          title={buttonTitle}
+          disabled={isBusy}
           onPress={() => {
             if (isRunning) {
               stop();

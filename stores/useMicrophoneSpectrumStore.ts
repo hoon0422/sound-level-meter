@@ -13,7 +13,8 @@ type MicrophoneSpectrumState = MicrophoneSpectrumSnapshot & {
   config: MicrophoneSpectrumConfig;
   configure: (options: Partial<MicrophoneSpectrumConfig>) => void;
   start: () => Promise<boolean>;
-  stop: () => Promise<void>;
+  stop: () => void;
+  disconnect: () => Promise<void>;
 };
 
 export const microphoneSpectrumStore = createStore<MicrophoneSpectrumState>()((
@@ -31,6 +32,7 @@ export const microphoneSpectrumStore = createStore<MicrophoneSpectrumState>()((
       set(state => ({ config: { ...state.config, ...options } })),
     start: () => controller.start(get().config),
     stop: () => controller.stop(),
+    disconnect: () => controller.disconnect(),
   };
 });
 
