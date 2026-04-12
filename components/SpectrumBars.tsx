@@ -1,7 +1,7 @@
 import { CALIBRATION_PEAK_DBFS } from "@/audio/engine";
 import { SPECTRUM_BANDS } from "@/audio/spectrum";
-import { memo, useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
+import { memo } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 const BAR_HEIGHT = 180;
 const MIN_DB = 10;
@@ -34,25 +34,6 @@ function meterColorDb(db: number) {
 export const SpectrumBars = memo(function SpectrumBars({
   bars,
 }: SpectrumBarsProps) {
-  const animatedHeights = useRef<Animated.Value[]>([]);
-
-  if (animatedHeights.current.length !== bars.length) {
-    animatedHeights.current = bars.map(
-      rawDbfs => new Animated.Value(dbToHeight(calibrate(rawDbfs))),
-    );
-  }
-
-  useEffect(() => {
-    const animations = bars.map((rawDbfs, i) =>
-      Animated.timing(animatedHeights.current[i], {
-        toValue: dbToHeight(calibrate(rawDbfs)),
-        duration: 80,
-        useNativeDriver: false,
-      }),
-    );
-    Animated.parallel(animations).start();
-  }, [bars]);
-
   return (
     <View style={styles.spectrumContainer}>
       <View style={styles.spectrumChart}>
@@ -73,12 +54,12 @@ export const SpectrumBars = memo(function SpectrumBars({
             {bars.map((rawDbfs, index) => {
               const db = calibrate(rawDbfs);
               return (
-                <Animated.View
+                <View
                   key={SPECTRUM_BANDS[index]?.label ?? String(index)}
                   style={[
                     styles.bar,
                     {
-                      height: animatedHeights.current[index],
+                      height: dbToHeight(db),
                       backgroundColor: meterColorDb(db),
                     },
                   ]}
@@ -109,16 +90,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#333333",
-    borderRadius: 12,
-    padding: 8,
-    shadowColor: "#333333",
-    shadowOffset: { width: 2, height: 1 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
   },
   spectrumChart: {
     flexDirection: "row",
