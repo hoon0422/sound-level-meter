@@ -28,8 +28,6 @@ export type SpectrumFrameAnalysis = {
   bars: number[];
 };
 
-const CALIBRATION_PEAK_DBFS = 100;
-
 >>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));

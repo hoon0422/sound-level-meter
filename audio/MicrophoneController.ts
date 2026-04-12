@@ -1,16 +1,13 @@
 import {
   type AudioEngineConfig,
   type AudioRuntimeMetrics,
+  CALIBRATION_PEAK_DBFS,
   type MicrophoneEngine,
   createMicrophoneEngine,
   disconnectMicrophoneEngine,
   resumeMicrophoneEngine,
   stopMicrophoneEngine,
 } from "./engine";
-<<<<<<< HEAD
-=======
-import { calibrateDbfsForDisplay } from "./spectrum";
->>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 
 export type { AudioEngineConfig };
 
@@ -53,6 +50,10 @@ export function createIdleMicrophoneState(): MicrophoneState {
 >>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
     error: null,
   };
+}
+
+export function calibrateDbfsForDisplay(dbfs: number) {
+  return dbfs + CALIBRATION_PEAK_DBFS;
 }
 
 export class MicrophoneController {
