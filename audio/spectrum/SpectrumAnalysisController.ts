@@ -8,13 +8,24 @@ import { SpectrumDisplayConfig } from "./types";
 
 export type SpectrumSnapshot = {
   bars: number[];
+<<<<<<< HEAD
+=======
+  peakHz: number | null;
+  peakLevel: number | null;
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 };
 
 export type SpectrumSnapshotListener = (snapshot: SpectrumSnapshot) => void;
 
 export function createIdleSpectrumSnapshot(barCount: number): SpectrumSnapshot {
   return {
+<<<<<<< HEAD
     bars: Array(barCount).fill(-100) as number[],
+=======
+    bars: Array(barCount).fill(0) as number[],
+    peakHz: null,
+    peakLevel: null,
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
   };
 }
 
@@ -75,8 +86,17 @@ export class SpectrumAnalysisController {
     );
     this.smoothedBars = analysis.bars;
 
+<<<<<<< HEAD
     this.emit({
       bars: analysis.bars,
+=======
+    const hasMeaningfulSignal = frame.dbfs > this.config.noiseFloorDbfs;
+
+    this.emit({
+      bars: analysis.bars,
+      peakHz: hasMeaningfulSignal ? analysis.peakHz : null,
+      peakLevel: hasMeaningfulSignal ? analysis.peakLevel : null,
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
     });
   };
 

@@ -100,7 +100,11 @@ export async function createMicrophoneEngine(
     throw new Error(startResult.message);
   }
 
+<<<<<<< HEAD
   microphoneEngine = {
+=======
+  return {
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
     audioContext,
     recorder,
     analyser,
@@ -108,8 +112,11 @@ export async function createMicrophoneEngine(
     workletNode,
     muteGain,
   };
+<<<<<<< HEAD
 
   return microphoneEngine;
+=======
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 }
 
 export function resumeMicrophoneEngine() {

@@ -7,6 +7,10 @@ import {
   resumeMicrophoneEngine,
   stopMicrophoneEngine,
 } from "./engine";
+<<<<<<< HEAD
+=======
+import { calibrateDbfsForDisplay } from "./spectrum";
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 
 export type { AudioEngineConfig };
 
@@ -16,6 +20,10 @@ export type MicrophoneState = {
   isStopping: boolean;
   isDisconnecting: boolean;
   elapsedSeconds: number;
+<<<<<<< HEAD
+=======
+  dbfs: number;
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
   error: string | null;
 };
 
@@ -39,6 +47,10 @@ export function createIdleMicrophoneState(): MicrophoneState {
     isStopping: false,
     isDisconnecting: false,
     elapsedSeconds: 0,
+<<<<<<< HEAD
+=======
+    dbfs: -100,
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
     error: null,
   };
 }
@@ -50,6 +62,10 @@ export class MicrophoneController {
   private running = false;
   private elapsedAccumulator = 0;
   private engine: MicrophoneEngine | null = null;
+<<<<<<< HEAD
+=======
+  private config: AudioEngineConfig | null = null;
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
   private stateListeners = new Set<MicrophoneStateListener>();
   private frameListeners = new Set<MicrophoneFrameListener>();
 
@@ -110,6 +126,10 @@ export class MicrophoneController {
       isStopping: false,
       isDisconnecting: false,
       elapsedSeconds: this.elapsedAccumulator,
+<<<<<<< HEAD
+=======
+      dbfs: calibrateDbfsForDisplay(metrics.dbfs),
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
       error: null,
     });
   };
@@ -138,6 +158,11 @@ export class MicrophoneController {
   }
 
   async start(config: AudioEngineConfig): Promise<boolean> {
+<<<<<<< HEAD
+=======
+    this.config = config;
+
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
     if (this.running) {
       this.stop();
     }

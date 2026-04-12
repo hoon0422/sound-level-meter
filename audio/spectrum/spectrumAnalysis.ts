@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 import { SPECTRUM_BANDS } from "./constants";
 import { SpectrumBand } from "./types";
 
+=======
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 type SpectrumAnalysisConfig = {
   sampleRate: number;
   fftSize: number;
@@ -14,9 +17,20 @@ type SpectrumAnalysisConfig = {
 };
 
 export type SpectrumFrameAnalysis = {
+<<<<<<< HEAD
   bars: number[];
 };
 
+=======
+  dbfs: number;
+  peakHz: number | null;
+  peakLevel: number | null;
+  bars: number[];
+};
+
+const CALIBRATION_PEAK_DBFS = 100;
+
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
@@ -25,6 +39,7 @@ function hzToBin(hz: number, sampleRate: number, fftSize: number) {
   return Math.floor((hz * fftSize) / sampleRate);
 }
 
+<<<<<<< HEAD
 function buildBandBars(
   freqData: Float32Array,
   sampleRate: number,
@@ -37,11 +52,83 @@ function buildBandBars(
   for (const band of bands) {
     const startBin = clamp(
       hzToBin(band.lowEdge, sampleRate, fftSize),
+=======
+function normalizeDecibel(
+  value: number,
+  minDecibels: number,
+  maxDecibels: number,
+) {
+  if (maxDecibels <= minDecibels) return 0;
+  return clamp((value - minDecibels) / (maxDecibels - minDecibels), 0, 1);
+}
+
+function getPeakFrequencySmoothed(
+  freqData: Float32Array,
+  sampleRate: number,
+  fftSize: number,
+  minHz: number,
+  maxHz: number,
+) {
+  const start = Math.max(1, Math.floor((minHz * fftSize) / sampleRate));
+  const end = Math.min(
+    freqData.length - 2,
+    Math.floor((maxHz * fftSize) / sampleRate),
+  );
+
+  let bestScore = -1;
+  let bestIndex = -1;
+
+  for (let i = start; i <= end; i++) {
+    const score =
+      freqData[i - 1] * 0.25 + freqData[i] * 0.5 + freqData[i + 1] * 0.25;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = i;
+    }
+  }
+
+  if (bestIndex < 0) {
+    return { peakHz: null, peakLevel: null };
+  }
+
+  return {
+    peakHz: (bestIndex * sampleRate) / fftSize,
+    peakLevel: bestScore,
+  };
+}
+
+function buildLogBars(
+  freqData: Float32Array,
+  sampleRate: number,
+  fftSize: number,
+  barCount: number,
+  minHz: number,
+  maxHz: number,
+) {
+  const bars: number[] = [];
+  const safeMinHz = Math.max(minHz, sampleRate / fftSize);
+  const safeMaxHz = Math.max(maxHz, safeMinHz);
+
+  for (let bar = 0; bar < barCount; bar++) {
+    const startRatio = bar / barCount;
+    const endRatio = (bar + 1) / barCount;
+
+    const startHz = safeMinHz * Math.pow(safeMaxHz / safeMinHz, startRatio);
+    const endHz = safeMinHz * Math.pow(safeMaxHz / safeMinHz, endRatio);
+
+    const startBin = clamp(
+      hzToBin(startHz, sampleRate, fftSize),
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
       0,
       freqData.length - 1,
     );
     const endBin = clamp(
+<<<<<<< HEAD
       hzToBin(band.highEdge, sampleRate, fftSize),
+=======
+      hzToBin(endHz, sampleRate, fftSize),
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
       0,
       freqData.length - 1,
     );
@@ -50,12 +137,20 @@ function buildBandBars(
     let count = 0;
 
     for (let i = startBin; i <= endBin; i++) {
+<<<<<<< HEAD
       const value = freqData[i];
       sum += Number.isFinite(value) ? value : minDecibels;
       count++;
     }
 
     bars.push(count > 0 ? sum / count : minDecibels);
+=======
+      sum += freqData[i];
+      count++;
+    }
+
+    bars.push(count > 0 ? sum / count : 0);
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
   }
 
   return bars;
@@ -69,10 +164,18 @@ function smoothArray(prev: number[], next: number[], alpha: number) {
   });
 }
 
+<<<<<<< HEAD
+=======
+export function calibrateDbfsForDisplay(dbfs: number) {
+  return dbfs + CALIBRATION_PEAK_DBFS;
+}
+
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 export function analyzeFrequencyFrame(
   freqData: Float32Array,
   prevBars: number[],
   config: Omit<SpectrumAnalysisConfig, "noiseFloorDbfs">,
+<<<<<<< HEAD
 ): SpectrumFrameAnalysis {
   const sanitizedPrevBars = prevBars.map(value =>
     Number.isFinite(value) ? value : config.minDecibels,
@@ -85,11 +188,40 @@ export function analyzeFrequencyFrame(
       config.fftSize,
       SPECTRUM_BANDS,
       config.minDecibels,
+=======
+): Omit<SpectrumFrameAnalysis, "dbfs"> {
+  const normalizedFreqData = Float32Array.from(freqData, value =>
+    normalizeDecibel(value, config.minDecibels, config.maxDecibels),
+  );
+  const bars = smoothArray(
+    prevBars,
+    buildLogBars(
+      normalizedFreqData,
+      config.sampleRate,
+      config.fftSize,
+      config.barCount,
+      config.minHz,
+      config.maxHz,
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
     ),
     config.barSmoothingAlpha,
   );
 
+<<<<<<< HEAD
   return {
+=======
+  const { peakHz, peakLevel } = getPeakFrequencySmoothed(
+    normalizedFreqData,
+    config.sampleRate,
+    config.fftSize,
+    config.minHz,
+    config.maxHz,
+  );
+
+  return {
+    peakHz,
+    peakLevel,
+>>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
     bars,
   };
 }
