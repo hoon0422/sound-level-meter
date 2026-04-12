@@ -50,7 +50,8 @@ function buildBandBars(
     let count = 0;
 
     for (let i = startBin; i <= endBin; i++) {
-      sum += freqData[i];
+      const value = freqData[i];
+      sum += Number.isFinite(value) ? value : minDecibels;
       count++;
     }
 
@@ -73,8 +74,11 @@ export function analyzeFrequencyFrame(
   prevBars: number[],
   config: Omit<SpectrumAnalysisConfig, "noiseFloorDbfs">,
 ): SpectrumFrameAnalysis {
+  const sanitizedPrevBars = prevBars.map(value =>
+    Number.isFinite(value) ? value : config.minDecibels,
+  );
   const bars = smoothArray(
-    prevBars,
+    sanitizedPrevBars,
     buildBandBars(
       freqData,
       config.sampleRate,

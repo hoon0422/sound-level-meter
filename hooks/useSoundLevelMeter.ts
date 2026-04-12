@@ -1,6 +1,6 @@
 import { DEFAULT_CONFIG } from "@/audio/constants";
 import { useMicrophoneSpectrumStore } from "@/stores/useMicrophoneSpectrumStore";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, Linking } from "react-native";
 import { AudioManager } from "react-native-audio-api";
 
@@ -41,6 +41,7 @@ const initRecording = async () => {
 };
 
 export function useSoundLevelMeter() {
+  const [isPreparingRecording, setIsPreparingRecording] = useState(false);
   const {
     start,
     stop,
@@ -61,10 +62,6 @@ export function useSoundLevelMeter() {
   } = useMicrophoneSpectrumStore();
 
   useEffect(() => {
-    void initRecording();
-  }, []);
-
-  useEffect(() => {
     return () => {
       disposeSpectrum();
       disposeAudioMetrics();
@@ -73,14 +70,20 @@ export function useSoundLevelMeter() {
   }, [disposeSpectrum, disposeAudioMetrics, disconnect]);
 
   const startRecording = useCallback(async () => {
-    const canRecord = await initRecording();
-    if (!canRecord) {
-      return;
-    }
+    setIsPreparingRecording(true);
 
-    configureSpectrum(DEFAULT_CONFIG);
-    configureAudioMetrics(DEFAULT_CONFIG);
-    await start(DEFAULT_CONFIG);
+    try {
+      const canRecord = await initRecording();
+      if (!canRecord) {
+        return;
+      }
+
+      configureSpectrum(DEFAULT_CONFIG);
+      configureAudioMetrics(DEFAULT_CONFIG);
+      await start(DEFAULT_CONFIG);
+    } finally {
+      setIsPreparingRecording(false);
+    }
   }, [configureSpectrum, configureAudioMetrics, start]);
 
   const toggleRecording = useCallback(() => {
@@ -92,9 +95,10 @@ export function useSoundLevelMeter() {
     void startRecording();
   }, [isRunning, startRecording, stop]);
 
-  const isBusy = isStarting || isStopping || isDisconnecting;
+  const isBusy =
+    isPreparingRecording || isStarting || isStopping || isDisconnecting;
 
-  const buttonTitle = isStarting
+  const buttonTitle = isPreparingRecording || isStarting
     ? "Starting..."
     : isStopping
       ? "Stopping..."

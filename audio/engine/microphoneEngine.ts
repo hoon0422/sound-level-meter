@@ -100,7 +100,7 @@ export async function createMicrophoneEngine(
     throw new Error(startResult.message);
   }
 
-  return {
+  microphoneEngine = {
     audioContext,
     recorder,
     analyser,
@@ -108,6 +108,8 @@ export async function createMicrophoneEngine(
     workletNode,
     muteGain,
   };
+
+  return microphoneEngine;
 }
 
 export function resumeMicrophoneEngine() {
