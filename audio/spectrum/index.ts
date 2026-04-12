@@ -1,4 +1,4 @@
-export { DEFAULT_SPECTRUM_DISPLAY_CONFIG } from "./constants";
+export { DEFAULT_SPECTRUM_DISPLAY_CONFIG, SPECTRUM_BANDS } from "./constants";
 export { analyzeFrequencyFrame } from "./spectrumAnalysis";
 export type { SpectrumFrameAnalysis } from "./spectrumAnalysis";
 export {
@@ -9,4 +9,4 @@ export type {
   SpectrumSnapshot,
   SpectrumSnapshotListener,
 } from "./SpectrumAnalysisController";
-export type { SpectrumDisplayConfig } from "./types";
+export type { SpectrumBand, SpectrumDisplayConfig } from "./types";

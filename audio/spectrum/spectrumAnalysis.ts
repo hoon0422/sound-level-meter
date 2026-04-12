@@ -1,3 +1,6 @@
+import { SPECTRUM_BANDS } from "./constants";
+import { SpectrumBand } from "./types";
+
 type SpectrumAnalysisConfig = {
   sampleRate: number;
   fftSize: number;
@@ -22,41 +25,23 @@ function hzToBin(hz: number, sampleRate: number, fftSize: number) {
   return Math.floor((hz * fftSize) / sampleRate);
 }
 
-function normalizeDecibel(
-  value: number,
-  minDecibels: number,
-  maxDecibels: number,
-) {
-  if (maxDecibels <= minDecibels) return 0;
-  return clamp((value - minDecibels) / (maxDecibels - minDecibels), 0, 1);
-}
-
-function buildLogBars(
+function buildBandBars(
   freqData: Float32Array,
   sampleRate: number,
   fftSize: number,
-  barCount: number,
-  minHz: number,
-  maxHz: number,
+  bands: SpectrumBand[],
+  minDecibels: number,
 ) {
   const bars: number[] = [];
-  const safeMinHz = Math.max(minHz, sampleRate / fftSize);
-  const safeMaxHz = Math.max(maxHz, safeMinHz);
 
-  for (let bar = 0; bar < barCount; bar++) {
-    const startRatio = bar / barCount;
-    const endRatio = (bar + 1) / barCount;
-
-    const startHz = safeMinHz * Math.pow(safeMaxHz / safeMinHz, startRatio);
-    const endHz = safeMinHz * Math.pow(safeMaxHz / safeMinHz, endRatio);
-
+  for (const band of bands) {
     const startBin = clamp(
-      hzToBin(startHz, sampleRate, fftSize),
+      hzToBin(band.lowEdge, sampleRate, fftSize),
       0,
       freqData.length - 1,
     );
     const endBin = clamp(
-      hzToBin(endHz, sampleRate, fftSize),
+      hzToBin(band.highEdge, sampleRate, fftSize),
       0,
       freqData.length - 1,
     );
@@ -69,7 +54,7 @@ function buildLogBars(
       count++;
     }
 
-    bars.push(count > 0 ? sum / count : 0);
+    bars.push(count > 0 ? sum / count : minDecibels);
   }
 
   return bars;
@@ -88,18 +73,14 @@ export function analyzeFrequencyFrame(
   prevBars: number[],
   config: Omit<SpectrumAnalysisConfig, "noiseFloorDbfs">,
 ): SpectrumFrameAnalysis {
-  const normalizedFreqData = Float32Array.from(freqData, value =>
-    normalizeDecibel(value, config.minDecibels, config.maxDecibels),
-  );
   const bars = smoothArray(
     prevBars,
-    buildLogBars(
-      normalizedFreqData,
+    buildBandBars(
+      freqData,
       config.sampleRate,
       config.fftSize,
-      config.barCount,
-      config.minHz,
-      config.maxHz,
+      SPECTRUM_BANDS,
+      config.minDecibels,
     ),
     config.barSmoothingAlpha,
   );
