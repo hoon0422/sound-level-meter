@@ -1,3 +1,4 @@
+import { DEFAULT_CONFIG } from "@/audio/constants";
 import { useMicrophoneSpectrumStore } from "@/stores/useMicrophoneSpectrumStore";
 import { memo, useCallback, useEffect } from "react";
 import { Alert, Button, Linking, StyleSheet, Text, View } from "react-native";
@@ -79,7 +80,7 @@ export default function App() {
     if (!result) {
       return;
     }
-    await start();
+    await start(DEFAULT_CONFIG);
   }, [start]);
 
   const buttonTitle = isStarting
