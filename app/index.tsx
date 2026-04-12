@@ -54,6 +54,8 @@ export default function App() {
     disconnect,
     configureSpectrum,
     disposeSpectrum,
+    configureAudioMetrics,
+    disposeAudioMetrics,
     isRunning,
     isStarting,
     isStopping,
@@ -74,9 +76,10 @@ export default function App() {
   useEffect(() => {
     return () => {
       disposeSpectrum();
+      disposeAudioMetrics();
       void disconnect();
     };
-  }, [disposeSpectrum, disconnect]);
+  }, [disposeSpectrum, disposeAudioMetrics, disconnect]);
 
   const record = useCallback(async () => {
     const result = await initRecording();
@@ -84,8 +87,9 @@ export default function App() {
       return;
     }
     configureSpectrum(DEFAULT_CONFIG);
+    configureAudioMetrics(DEFAULT_CONFIG);
     await start(DEFAULT_CONFIG);
-  }, [configureSpectrum, start]);
+  }, [configureSpectrum, configureAudioMetrics, start]);
 
   const buttonTitle = isStarting
     ? "Starting..."

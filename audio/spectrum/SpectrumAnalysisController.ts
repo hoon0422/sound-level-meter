@@ -8,8 +8,6 @@ import { SpectrumDisplayConfig } from "./types";
 
 export type SpectrumSnapshot = {
   bars: number[];
-  peakHz: number | null;
-  peakLevel: number | null;
 };
 
 export type SpectrumSnapshotListener = (snapshot: SpectrumSnapshot) => void;
@@ -17,8 +15,6 @@ export type SpectrumSnapshotListener = (snapshot: SpectrumSnapshot) => void;
 export function createIdleSpectrumSnapshot(barCount: number): SpectrumSnapshot {
   return {
     bars: Array(barCount).fill(0) as number[],
-    peakHz: null,
-    peakLevel: null,
   };
 }
 
@@ -79,12 +75,8 @@ export class SpectrumAnalysisController {
     );
     this.smoothedBars = analysis.bars;
 
-    const hasMeaningfulSignal = frame.dbfs > this.config.noiseFloorDbfs;
-
     this.emit({
       bars: analysis.bars,
-      peakHz: hasMeaningfulSignal ? analysis.peakHz : null,
-      peakLevel: hasMeaningfulSignal ? analysis.peakLevel : null,
     });
   };
 

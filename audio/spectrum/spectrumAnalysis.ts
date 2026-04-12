@@ -11,9 +11,6 @@ type SpectrumAnalysisConfig = {
 };
 
 export type SpectrumFrameAnalysis = {
-  dbfs: number;
-  peakHz: number | null;
-  peakLevel: number | null;
   bars: number[];
 };
 
@@ -32,42 +29,6 @@ function normalizeDecibel(
 ) {
   if (maxDecibels <= minDecibels) return 0;
   return clamp((value - minDecibels) / (maxDecibels - minDecibels), 0, 1);
-}
-
-function getPeakFrequencySmoothed(
-  freqData: Float32Array,
-  sampleRate: number,
-  fftSize: number,
-  minHz: number,
-  maxHz: number,
-) {
-  const start = Math.max(1, Math.floor((minHz * fftSize) / sampleRate));
-  const end = Math.min(
-    freqData.length - 2,
-    Math.floor((maxHz * fftSize) / sampleRate),
-  );
-
-  let bestScore = -1;
-  let bestIndex = -1;
-
-  for (let i = start; i <= end; i++) {
-    const score =
-      freqData[i - 1] * 0.25 + freqData[i] * 0.5 + freqData[i + 1] * 0.25;
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestIndex = i;
-    }
-  }
-
-  if (bestIndex < 0) {
-    return { peakHz: null, peakLevel: null };
-  }
-
-  return {
-    peakHz: (bestIndex * sampleRate) / fftSize,
-    peakLevel: bestScore,
-  };
 }
 
 function buildLogBars(
@@ -126,7 +87,7 @@ export function analyzeFrequencyFrame(
   freqData: Float32Array,
   prevBars: number[],
   config: Omit<SpectrumAnalysisConfig, "noiseFloorDbfs">,
-): Omit<SpectrumFrameAnalysis, "dbfs"> {
+): SpectrumFrameAnalysis {
   const normalizedFreqData = Float32Array.from(freqData, value =>
     normalizeDecibel(value, config.minDecibels, config.maxDecibels),
   );
@@ -143,17 +104,7 @@ export function analyzeFrequencyFrame(
     config.barSmoothingAlpha,
   );
 
-  const { peakHz, peakLevel } = getPeakFrequencySmoothed(
-    normalizedFreqData,
-    config.sampleRate,
-    config.fftSize,
-    config.minHz,
-    config.maxHz,
-  );
-
   return {
-    peakHz,
-    peakLevel,
     bars,
   };
 }

@@ -1,7 +1,6 @@
 import {
   type AudioEngineConfig,
   type AudioRuntimeMetrics,
-  CALIBRATION_PEAK_DBFS,
   type MicrophoneEngine,
   createMicrophoneEngine,
   disconnectMicrophoneEngine,
@@ -17,7 +16,6 @@ export type MicrophoneState = {
   isStopping: boolean;
   isDisconnecting: boolean;
   elapsedSeconds: number;
-  dbfs: number;
   error: string | null;
 };
 
@@ -41,13 +39,8 @@ export function createIdleMicrophoneState(): MicrophoneState {
     isStopping: false,
     isDisconnecting: false,
     elapsedSeconds: 0,
-    dbfs: -100,
     error: null,
   };
-}
-
-export function calibrateDbfsForDisplay(dbfs: number) {
-  return dbfs + CALIBRATION_PEAK_DBFS;
 }
 
 export class MicrophoneController {
@@ -117,7 +110,6 @@ export class MicrophoneController {
       isStopping: false,
       isDisconnecting: false,
       elapsedSeconds: this.elapsedAccumulator,
-      dbfs: calibrateDbfsForDisplay(metrics.dbfs),
       error: null,
     });
   };
