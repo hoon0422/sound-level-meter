@@ -62,10 +62,6 @@ export class MicrophoneController {
   private running = false;
   private elapsedAccumulator = 0;
   private engine: MicrophoneEngine | null = null;
-<<<<<<< HEAD
-=======
-  private config: AudioEngineConfig | null = null;
->>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
   private stateListeners = new Set<MicrophoneStateListener>();
   private frameListeners = new Set<MicrophoneFrameListener>();
 
@@ -158,11 +154,6 @@ export class MicrophoneController {
   }
 
   async start(config: AudioEngineConfig): Promise<boolean> {
-<<<<<<< HEAD
-=======
-    this.config = config;
-
->>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
     if (this.running) {
       this.stop();
     }
