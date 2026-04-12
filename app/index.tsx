@@ -52,6 +52,8 @@ export default function App() {
     start,
     stop,
     disconnect,
+    configureSpectrum,
+    disposeSpectrum,
     isRunning,
     isStarting,
     isStopping,
@@ -71,17 +73,19 @@ export default function App() {
 
   useEffect(() => {
     return () => {
+      disposeSpectrum();
       void disconnect();
     };
-  }, [disconnect]);
+  }, [disposeSpectrum, disconnect]);
 
   const record = useCallback(async () => {
     const result = await initRecording();
     if (!result) {
       return;
     }
+    configureSpectrum(DEFAULT_CONFIG);
     await start(DEFAULT_CONFIG);
-  }, [start]);
+  }, [configureSpectrum, start]);
 
   const buttonTitle = isStarting
     ? "Starting..."
