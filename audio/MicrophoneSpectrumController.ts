@@ -2,6 +2,8 @@ import {
   AudioRuntimeMetrics,
   MicrophoneSpectrumEngine,
   createMicrophoneSpectrumEngine,
+  disconnectMicrophoneSpectrumEngine,
+  resumeMicrophoneSpectrumEngine,
   stopMicrophoneSpectrumEngine,
 } from "@/audio/microphoneSpectrumEngine";
 import {
@@ -11,6 +13,9 @@ import {
 
 export type MicrophoneSpectrumSnapshot = {
   isRunning: boolean;
+  isStarting: boolean;
+  isStopping: boolean;
+  isDisconnecting: boolean;
   elapsedSeconds: number;
   dbfs: number;
   peakHz: number | null;
@@ -56,6 +61,9 @@ export function createIdleSnapshot(
 ): MicrophoneSpectrumSnapshot {
   return {
     isRunning: false,
+    isStarting: false,
+    isStopping: false,
+    isDisconnecting: false,
     elapsedSeconds: 0,
     dbfs: -100,
     peakHz: null,
@@ -120,6 +128,9 @@ export class MicrophoneSpectrumController {
 
     this.emit({
       isRunning: true,
+      isStarting: false,
+      isStopping: false,
+      isDisconnecting: false,
       elapsedSeconds: this.elapsedAccumulator,
       dbfs: calibrateDbfsForDisplay(metrics.dbfs),
       peakHz: hasMeaningfulSignal ? analysis.peakHz : null,
@@ -129,10 +140,23 @@ export class MicrophoneSpectrumController {
     });
   };
 
-  async stop(): Promise<void> {
+  stop() {
     this.running = false;
+    stopMicrophoneSpectrumEngine();
+    this.smoothedBars = [];
+    this.elapsedAccumulator = 0;
 
-    await stopMicrophoneSpectrumEngine();
+    this.emit(createIdleSnapshot(this.config.barCount));
+  }
+
+  async disconnect(): Promise<void> {
+    this.running = false;
+    this.emit({
+      ...createIdleSnapshot(this.config.barCount),
+      isDisconnecting: true,
+    });
+
+    await disconnectMicrophoneSpectrumEngine();
     this.engine = null;
     this.freqData = null;
     this.smoothedBars = [];
@@ -142,8 +166,27 @@ export class MicrophoneSpectrumController {
   }
 
   async start(config: MicrophoneSpectrumConfig): Promise<boolean> {
-    await this.stop();
     this.config = config;
+
+    if (this.running) {
+      this.stop();
+    }
+
+    if (this.engine) {
+      try {
+        resumeMicrophoneSpectrumEngine();
+        this.smoothedBars = [];
+        this.elapsedAccumulator = 0;
+        this.running = true;
+
+        this.emit({ ...createIdleSnapshot(config.barCount), isRunning: true });
+        return true;
+      } catch {
+        await this.disconnect();
+      }
+    }
+
+    this.emit({ ...createIdleSnapshot(config.barCount), isStarting: true });
 
     try {
       this.engine = await createMicrophoneSpectrumEngine({
@@ -166,7 +209,7 @@ export class MicrophoneSpectrumController {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unknown microphone error";
-      await this.stop();
+      await this.disconnect();
       this.emit({
         ...createIdleSnapshot(config.barCount),
         error: message,

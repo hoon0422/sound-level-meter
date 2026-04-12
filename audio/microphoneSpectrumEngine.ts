@@ -117,14 +117,28 @@ export async function createMicrophoneSpectrumEngine(
   return microphoneSpectrumEngine;
 }
 
-export async function stopMicrophoneSpectrumEngine() {
+export function stopMicrophoneSpectrumEngine() {
+  if (!microphoneSpectrumEngine) return;
+
+  try {
+    microphoneSpectrumEngine.recorder.stop();
+  } catch {}
+}
+
+export function resumeMicrophoneSpectrumEngine() {
+  if (!microphoneSpectrumEngine) return;
+
+  const startResult = microphoneSpectrumEngine.recorder.start();
+  if (startResult.status === "error") {
+    throw new Error(startResult.message);
+  }
+}
+
+export async function disconnectMicrophoneSpectrumEngine() {
   const engine = microphoneSpectrumEngine;
   microphoneSpectrumEngine = null;
 
   if (!engine) {
-    try {
-      await AudioManager.setAudioSessionActivity(false);
-    } catch {}
     return;
   }
 
@@ -152,15 +166,8 @@ export async function stopMicrophoneSpectrumEngine() {
     engine.muteGain.disconnect();
   } catch {}
 
-  try {
-    await engine.audioContext.suspend();
-  } catch {}
-
-  try {
-    await AudioManager.setAudioSessionActivity(false);
-  } catch {}
-
-  try {
-    await engine.audioContext.close();
-  } catch {}
+  await Promise.all([
+    engine.audioContext.close().catch(() => {}),
+    AudioManager.setAudioSessionActivity(false).catch(() => {}),
+  ]);
 }
