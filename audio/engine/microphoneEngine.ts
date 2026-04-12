@@ -8,14 +8,9 @@ import {
   WorkletNode,
 } from "react-native-audio-api";
 import { scheduleOnRN } from "react-native-worklets";
+import { AudioEngineConfig } from "./types";
 
-type CreateMicrophoneSpectrumEngineOptions = {
-  sampleRate: number;
-  fftSize: number;
-  smoothingTimeConstant: number;
-  minDecibels: number;
-  maxDecibels: number;
-  autoResumeContext: boolean;
+type CreateMicrophoneEngineOptions = AudioEngineConfig & {
   onAudioMetrics: (metrics: AudioRuntimeMetrics) => void;
 };
 
@@ -24,7 +19,7 @@ export type AudioRuntimeMetrics = {
   elapsedSeconds: number;
 };
 
-export type MicrophoneSpectrumEngine = {
+export type MicrophoneEngine = {
   audioContext: AudioContext;
   recorder: AudioRecorder;
   analyser: AnalyserNode;
@@ -33,13 +28,13 @@ export type MicrophoneSpectrumEngine = {
   muteGain: GainNode;
 };
 
-let microphoneSpectrumEngine: MicrophoneSpectrumEngine | null = null;
+let microphoneEngine: MicrophoneEngine | null = null;
 
-export async function createMicrophoneSpectrumEngine(
-  options: CreateMicrophoneSpectrumEngineOptions,
-): Promise<MicrophoneSpectrumEngine> {
-  if (microphoneSpectrumEngine) {
-    return microphoneSpectrumEngine;
+export async function createMicrophoneEngine(
+  options: CreateMicrophoneEngineOptions,
+): Promise<MicrophoneEngine> {
+  if (microphoneEngine) {
+    return microphoneEngine;
   }
 
   const audioContext = new AudioContext({ sampleRate: options.sampleRate });
@@ -105,7 +100,7 @@ export async function createMicrophoneSpectrumEngine(
     throw new Error(startResult.message);
   }
 
-  microphoneSpectrumEngine = {
+  return {
     audioContext,
     recorder,
     analyser,
@@ -113,30 +108,28 @@ export async function createMicrophoneSpectrumEngine(
     workletNode,
     muteGain,
   };
-
-  return microphoneSpectrumEngine;
 }
 
-export function stopMicrophoneSpectrumEngine() {
-  if (!microphoneSpectrumEngine) return;
+export function resumeMicrophoneEngine() {
+  if (!microphoneEngine) return;
 
-  try {
-    microphoneSpectrumEngine.recorder.stop();
-  } catch {}
-}
-
-export function resumeMicrophoneSpectrumEngine() {
-  if (!microphoneSpectrumEngine) return;
-
-  const startResult = microphoneSpectrumEngine.recorder.start();
+  const startResult = microphoneEngine.recorder.start();
   if (startResult.status === "error") {
     throw new Error(startResult.message);
   }
 }
 
-export async function disconnectMicrophoneSpectrumEngine() {
-  const engine = microphoneSpectrumEngine;
-  microphoneSpectrumEngine = null;
+export function stopMicrophoneEngine() {
+  if (!microphoneEngine) return;
+
+  try {
+    microphoneEngine.recorder.stop();
+  } catch {}
+}
+
+export async function disconnectMicrophoneEngine() {
+  const engine = microphoneEngine;
+  microphoneEngine = null;
 
   if (!engine) {
     return;

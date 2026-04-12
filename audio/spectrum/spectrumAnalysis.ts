@@ -33,23 +33,7 @@ function normalizeDecibel(
   maxDecibels: number,
 ) {
   if (maxDecibels <= minDecibels) return 0;
-  return clamp(
-    (value - minDecibels) / (maxDecibels - minDecibels),
-    0,
-    1,
-  );
-}
-
-function dbfsFromTimeDomainFloat(data: Float32Array, floor = -100) {
-  let sum = 0;
-  for (let i = 0; i < data.length; i++) {
-    const x = data[i];
-    sum += x * x;
-  }
-
-  const rms = Math.sqrt(sum / data.length);
-  if (rms <= 1e-8) return floor;
-  return Math.max(20 * Math.log10(rms), floor);
+  return clamp((value - minDecibels) / (maxDecibels - minDecibels), 0, 1);
 }
 
 function getPeakFrequencySmoothed(
@@ -149,9 +133,8 @@ export function analyzeFrequencyFrame(
   prevBars: number[],
   config: Omit<SpectrumAnalysisConfig, "noiseFloorDbfs">,
 ): Omit<SpectrumFrameAnalysis, "dbfs"> {
-  const normalizedFreqData = Float32Array.from(
-    freqData,
-    value => normalizeDecibel(value, config.minDecibels, config.maxDecibels),
+  const normalizedFreqData = Float32Array.from(freqData, value =>
+    normalizeDecibel(value, config.minDecibels, config.maxDecibels),
   );
   const bars = smoothArray(
     prevBars,
@@ -178,22 +161,5 @@ export function analyzeFrequencyFrame(
     peakHz,
     peakLevel,
     bars,
-  };
-}
-
-export function analyzeSpectrumFrame(
-  freqData: Float32Array,
-  timeData: Float32Array,
-  prevBars: number[],
-  config: SpectrumAnalysisConfig,
-): SpectrumFrameAnalysis {
-  const dbfs = dbfsFromTimeDomainFloat(timeData, -100);
-  const frequencyAnalysis = analyzeFrequencyFrame(freqData, prevBars, config);
-
-  return {
-    dbfs: calibrateDbfsForDisplay(dbfs),
-    peakHz: dbfs > config.noiseFloorDbfs ? frequencyAnalysis.peakHz : null,
-    peakLevel: dbfs > config.noiseFloorDbfs ? frequencyAnalysis.peakLevel : null,
-    bars: frequencyAnalysis.bars,
   };
 }

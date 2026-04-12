@@ -1,40 +1,58 @@
 import {
-  MicrophoneSpectrumConfig,
-  MicrophoneSpectrumController,
-  MicrophoneSpectrumSnapshot,
-  createIdleSnapshot,
-} from "@/audio/MicrophoneSpectrumController";
-import { DEFAULT_CONFIG } from "@/audio/constants";
+  type AudioEngineConfig,
+  MicrophoneController,
+  type MicrophoneState,
+  createIdleMicrophoneState,
+} from "@/audio/MicrophoneController";
+import {
+  DEFAULT_CONFIG,
+  type MicrophoneSpectrumConfig,
+} from "@/audio/constants";
+import {
+  SpectrumAnalysisController,
+  type SpectrumDisplayConfig,
+  type SpectrumSnapshot,
+  createIdleSpectrumSnapshot,
+} from "@/audio/spectrum";
 import { createStore, useStore } from "zustand";
 
-export type { MicrophoneSpectrumConfig, MicrophoneSpectrumSnapshot };
+export type {
+  AudioEngineConfig,
+  MicrophoneSpectrumConfig,
+  SpectrumDisplayConfig,
+};
+
+export type MicrophoneSpectrumSnapshot = MicrophoneState & SpectrumSnapshot;
 
 type MicrophoneSpectrumState = MicrophoneSpectrumSnapshot & {
-  // config: MicrophoneSpectrumConfig;
-  // configure: (options: Partial<MicrophoneSpectrumConfig>) => void;
   start: (config: MicrophoneSpectrumConfig) => Promise<boolean>;
   stop: () => void;
   disconnect: () => Promise<void>;
 };
 
-export const microphoneSpectrumStore = createStore<MicrophoneSpectrumState>()((
-  set,
-  get,
-) => {
-  const controller = MicrophoneSpectrumController.getInstance();
+export const microphoneSpectrumStore = createStore<MicrophoneSpectrumState>()(
+  set => {
+    const mic = MicrophoneController.getInstance();
+    const spectrum = new SpectrumAnalysisController(mic, DEFAULT_CONFIG);
 
-  controller.subscribe(snapshot => set(snapshot));
+    mic.subscribe(state => set(state));
+    spectrum.subscribe(snapshot => set(snapshot));
 
-  return {
-    ...createIdleSnapshot(DEFAULT_CONFIG.barCount),
-    // config: DEFAULT_CONFIG,
-    // configure: options =>
-    //   set(state => ({ config: { ...state.config, ...options } })),
-    start: (config: MicrophoneSpectrumConfig) => controller.start(config),
-    stop: () => controller.stop(),
-    disconnect: () => controller.disconnect(),
-  };
-});
+    return {
+      ...createIdleMicrophoneState(),
+      ...createIdleSpectrumSnapshot(DEFAULT_CONFIG.barCount),
+      start: (config: MicrophoneSpectrumConfig) => {
+        spectrum.configure(config);
+        return mic.start(config);
+      },
+      stop: () => mic.stop(),
+      disconnect: async () => {
+        spectrum.dispose();
+        await mic.disconnect();
+      },
+    };
+  },
+);
 
 export function useMicrophoneSpectrumStore(): MicrophoneSpectrumState;
 export function useMicrophoneSpectrumStore<T>(
