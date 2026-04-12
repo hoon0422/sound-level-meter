@@ -11,21 +11,20 @@ const isRecordingInitialized = async () => {
 };
 
 const initRecording = async () => {
-  if (await isRecordingInitialized()) {
-    return;
-  }
-  const permission = await AudioManager.requestRecordingPermissions();
-  if (permission !== "Granted") {
-    Alert.alert("Permission to access microphone was denied", undefined, [
-      { text: "OK" },
-      {
-        text: "Open settings",
-        onPress: () => {
-          Linking.openSettings();
+  if (!(await isRecordingInitialized())) {
+    const permission = await AudioManager.requestRecordingPermissions();
+    if (permission !== "Granted") {
+      Alert.alert("Permission to access microphone was denied", undefined, [
+        { text: "OK" },
+        {
+          text: "Open settings",
+          onPress: () => {
+            Linking.openSettings();
+          },
         },
-      },
-    ]);
-    return false;
+      ]);
+      return false;
+    }
   }
 
   AudioManager.setAudioSessionOptions({
@@ -62,11 +61,9 @@ export default function App() {
   }, [stop]);
 
   const record = useCallback(async () => {
-    if (!(await isRecordingInitialized())) {
-      const result = await initRecording();
-      if (!result) {
-        return;
-      }
+    const result = await initRecording();
+    if (!result) {
+      return;
     }
     await start();
   }, [start]);
