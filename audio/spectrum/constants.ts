@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { SpectrumBand, SpectrumDisplayConfig } from "./types";
 
 const SQRT2 = Math.SQRT2;
@@ -49,13 +48,6 @@ export const SPECTRUM_BANDS: SpectrumBand[] = [
 
 export const DEFAULT_SPECTRUM_DISPLAY_CONFIG: SpectrumDisplayConfig = {
   barCount: SPECTRUM_BANDS.length,
-  minHz: 0,
-  maxHz: 22000,
-=======
-import { SpectrumDisplayConfig } from "./types";
-
-export const DEFAULT_SPECTRUM_DISPLAY_CONFIG: SpectrumDisplayConfig = {
-  barCount: 32,
   minHz: 0,
   maxHz: 20000,
 >>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)

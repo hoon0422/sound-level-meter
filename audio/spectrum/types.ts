@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 export type SpectrumBand = {
   center: number;
   label: string;
@@ -6,8 +5,6 @@ export type SpectrumBand = {
   highEdge: number;
 };
 
-=======
->>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 export type SpectrumDisplayConfig = {
   barCount: number;
   minHz: number;
