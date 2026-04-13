@@ -1,7 +1,7 @@
 import { AudioEngineConfig } from "./types";
 
 export const DEFAULT_AUDIO_ENGINE_CONFIG: AudioEngineConfig = {
-  sampleRate: 44100,
+  sampleRate: 48000,
   fftSize: 1024,
   smoothingTimeConstant: 0.3,
   minDecibels: -90,
