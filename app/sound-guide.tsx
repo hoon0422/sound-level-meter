@@ -1,21 +1,22 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import SoundGraph from "@/components/SoundGraph";
+import AnalysisGraph from "@/components/AnalysisGraph";
 import useAudioStore from "@/store/audioStore";
 import { useRecording } from "@/context/RecordingContext";
 
 const OFFSET = 90;
 
-export default function DbTimeScreen() {
+export default function SoundGuideScreen() {
   const { metering, isRecording } = useAudioStore();
   const { startRecording, stopRecording } = useRecording();
 
-  const dbDisplay = `${(metering !== undefined ? metering + OFFSET : 0).toFixed(1)} dB`;
+  const dbDisplay =
+    metering !== undefined ? `${(metering + OFFSET).toFixed(1)} dB` : "— dB";
 
   return (
     <View style={styles.page}>
       <Text style={styles.dbText}>{dbDisplay}</Text>
-      <SoundGraph />
+      <AnalysisGraph />
       <TouchableOpacity
         style={[styles.micButton, isRecording && styles.micButtonRecording]}
         onPress={() => (isRecording ? stopRecording() : startRecording())}
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f7",
   },
   dbText: {
-    fontSize: 52,
+    fontSize: 48,
     fontWeight: "700",
     color: "#000",
   },

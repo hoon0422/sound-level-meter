@@ -1,10 +1,8 @@
 import React from 'react';
-import { useEffect } from 'react';
 import { StyleSheet, View, Dimensions, Text } from 'react-native';
 import Svg, { Polyline, Line, Text as SvgText } from 'react-native-svg';
 import useAudioStore from '../store/audioStore';
 
-const OFFSET = 90;
 const MAX_POINTS = 600; // 10min × 60s × ~1 samples/sec
 
 const GRAPH_WIDTH = Dimensions.get('window').width - 48;
@@ -20,17 +18,7 @@ const Y_LABELS = [0, 25, 50, 75, 100];
 const X_LABELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 export default function SoundGraph() {
-  const { isRecording, metering, addSample, samples, recordingStartTime } = useAudioStore();
-
-  useEffect(() => {
-    if (!isRecording) return;
-    if (metering === undefined || metering === null) return;
-
-    addSample({
-      db: Math.min(DB_MAX, Math.max(DB_MIN, metering + OFFSET)),
-      timestamp: Date.now(),
-    });
-  }, [metering]);
+  const { isRecording, samples, recordingStartTime } = useAudioStore();
 
   const points = samples.slice(-MAX_POINTS);
 

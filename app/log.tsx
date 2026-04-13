@@ -46,10 +46,6 @@ export default function LogScreen() {
 
   return (
     <View style={styles.page}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Log</Text>
-      </View>
-
       {logs.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>No recordings yet</Text>
@@ -73,17 +69,6 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: '#f2f2f7',
-  },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-    backgroundColor: '#f2f2f7',
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000',
   },
   list: {
     padding: 16,

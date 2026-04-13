@@ -1,165 +1,409 @@
+import React, { useState, useMemo } from 'react';
 import {
-  Linking,
-  ScrollView,
-  StyleSheet,
+  View,
   Text,
   TouchableOpacity,
-  View,
+  ScrollView,
+  StyleSheet,
+  Linking,
+  Alert,
+  useWindowDimensions,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import useThemeStore from '@/store/themeStore';
 
-type RootStackParamList = {
-  HowToUse: undefined;
-  Calibration: undefined;
-  SunnyGamesApps: undefined;
-  Credits: undefined;
-  OpenSourceLicenses: undefined;
-};
+const APP_VERSION = '1.0';
 
-type SettingsItem = {
-  label: string;
-  chevron?: boolean;
-  route?: keyof RootStackParamList | null;
-  value?: string;
-  url?: string;
-};
-
-const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
-  {
-    title: 'General',
-    items: [
-      { label: 'How to Use', chevron: true, route: 'HowToUse' },
-      { label: 'Language', value: 'English', route: null },
-      { label: 'Notifications', value: 'Enabled', route: null },
-      { label: 'Theme', value: 'Light', route: null },
-    ],
-  },
-  {
-    title: 'Calibration',
-    items: [
-      { label: 'Calibration', chevron: true, route: 'Calibration' },
-    ],
-  },
-  {
-    title: 'About',
-    items: [
-      { label: 'Instagram', value: 'Link', route: null, url: 'https://www.instagram.com/' },
-      { label: 'X (Twitter)', value: 'Link', route: null, url: 'https://x.com/' },
-      { label: "Sunny's Games and Apps", chevron: true, route: 'SunnyGamesApps' },
-      { label: 'Credits', chevron: true, route: 'Credits' },
-      { label: 'Open Source Licenses', chevron: true, route: 'OpenSourceLicenses' },
-      { label: 'Version', value: 'v1.0', route: null },
-    ],
-  },
+const LANGUAGE_OPTIONS = [
+  { label: 'English', value: 1 },
 ];
 
-export default function SettingsScreen() {
-  const router = useRouter();
+export default function SettingsPage() {
+  const { theme, setTheme } = useThemeStore();
+  const isDark = theme === 'dark';
 
-  const handlePress = (item: SettingsItem) => {
-    if (item.route) router.push(`/settings/${item.route}` as any);
-    else if (item.url) Linking.openURL(item.url);
+  const colors = {
+    primaryBackground: isDark ? '#000' : '#f2f2f7',
+    secondaryBackground: isDark ? '#1c1c1e' : '#fff',
+    text: isDark ? '#fff' : '#000',
+    secondaryText: '#8e8e93',
+    border: isDark ? '#38383a' : '#e0e0e0',
+    link: '#007AFF',
   };
 
+  const updateTheme = (val: 'Dark' | 'Light') => setTheme(val === 'Dark' ? 'dark' : 'light');
+
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const userLanguage = 1;
+  const language = 1;
+
+  const { width: screenWidth } = useWindowDimensions();
+  const isTablet = screenWidth >= 768;
+  const insets = useSafeAreaInsets();
+
+  const handleLinkPress = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch (error: any) {
+      Alert.alert('Could not open link', error.message);
+    }
+  };
+
+  const comingSoon = () => Alert.alert('Coming Soon', 'This feature will be available in a future update.');
+
+  const dynamicStyles = useMemo(() => {
+    const basePadding = isTablet ? 40 : 20;
+    const headerPaddingTop = insets.top + 8;
+    const headerFontSize = isTablet ? 32 : 24;
+    const labelFontSize = isTablet ? 18 : 16;
+    const valueFontSize = isTablet ? 18 : 16;
+    const themeOptionFontSize = isTablet ? 16 : 14;
+    const languageOptionFontSize = isTablet ? 17 : 15;
+    const versionFontSize = isTablet ? 18 : 16;
+    const subLabelFontSize = isTablet ? 14 : 12;
+
+    const sunnyBannerPadding = isTablet ? 20 : Math.min(screenWidth * 0.05, 15);
+    const sunnyBannerGap = isTablet ? 16 : Math.max(screenWidth * 0.02, 8);
+    const sunnyBannerFontSize = isTablet ? 14 : Math.max(screenWidth * 0.035, 11);
+
+    return StyleSheet.create({
+      container: {
+        flex: 1,
+        backgroundColor: colors.primaryBackground,
+      },
+      header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingTop: headerPaddingTop,
+        paddingBottom: isTablet ? 25 : 20,
+        paddingHorizontal: basePadding,
+        backgroundColor: colors.primaryBackground,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+      },
+      headerTitle: {
+        fontSize: headerFontSize,
+        fontWeight: 'bold',
+        color: colors.text,
+        flex: 1,
+      },
+      settingItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: basePadding,
+        paddingVertical: isTablet ? 20 : 16,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+      },
+      selectedItem: {
+        backgroundColor: colors.secondaryBackground,
+      },
+      settingLabel: {
+        fontSize: labelFontSize,
+        color: colors.text,
+      },
+      selectedLabel: {
+        fontWeight: '600',
+      },
+      languageValue: {
+        fontSize: valueFontSize,
+        color: colors.text,
+      },
+      themeContainer: {
+        flexDirection: 'row',
+        backgroundColor: isDark ? '#1e293b' : '#F5F5F5',
+        borderRadius: 8,
+        padding: 4,
+        gap: 4,
+      },
+      themeOption: {
+        paddingHorizontal: isTablet ? 20 : 16,
+        paddingVertical: isTablet ? 10 : 8,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: isDark ? '#334155' : '#E0E0E0',
+      },
+      themeOptionActive: {
+        backgroundColor: isDark ? '#1a1f2e' : '#60a5fa',
+        borderColor: isDark ? '#1a1f2e' : '#60a5fa',
+      },
+      themeOptionText: {
+        fontSize: themeOptionFontSize,
+        color: isDark ? '#94a3b8' : '#000',
+        fontWeight: '500',
+      },
+      themeOptionTextActive: {
+        color: isDark ? '#60a5fa' : '#fff',
+        fontWeight: '600',
+      },
+      linkText: {
+        fontSize: labelFontSize,
+        color: colors.link,
+        fontWeight: '600',
+      },
+      languageList: {
+        backgroundColor: colors.secondaryBackground,
+      },
+      languageOptionItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: isTablet ? 16 : 12,
+        paddingHorizontal: basePadding,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+      },
+      selectedLanguageOption: {
+        backgroundColor: isDark ? '#1e293b' : 'transparent',
+      },
+      languageOptionText: {
+        fontSize: languageOptionFontSize,
+        color: colors.secondaryText,
+      },
+      selectedLanguageText: {
+        color: colors.link,
+        fontWeight: '600',
+      },
+      versionText: {
+        fontSize: versionFontSize,
+        color: colors.secondaryText,
+        fontWeight: '500',
+      },
+      pickerLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        marginBottom: 8,
+      },
+      settingSubLabel: {
+        fontSize: subLabelFontSize,
+        color: colors.secondaryText,
+      },
+      sunnyBanner: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        paddingHorizontal: sunnyBannerPadding,
+        marginTop: 20,
+        height: 70,
+        backgroundColor: '#2d2d2d',
+        minHeight: 70,
+      },
+      sunnyBannerFooterLinks: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: sunnyBannerGap,
+        flexWrap: 'nowrap',
+      },
+      sunnyBannerFooterLink: {
+        fontSize: sunnyBannerFontSize,
+        color: '#ffffff',
+      },
+      sunnyBannerFooterDivider: {
+        width: 1,
+        height: 14,
+        backgroundColor: '#ffffff',
+      },
+    });
+  }, [colors, isDark, isTablet, screenWidth, theme, insets.top]);
+
   return (
-    <View style={styles.page}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
+    <View style={dynamicStyles.container}>
+      {/* Header */}
+      <View style={dynamicStyles.header}>
+        <Ionicons
+          name="settings-outline"
+          size={24}
+          color={colors.text}
+          style={styles.headerIcon}
+        />
+        <Text allowFontScaling={false} style={dynamicStyles.headerTitle}>
+          Settings
+        </Text>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {SETTINGS_SECTIONS.map((section) => (
-          <View key={section.title} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            <View style={styles.sectionCard}>
-              {section.items.map((item, index) => {
-                const isTappable = !!(item.route || item.url);
-                return (
-                  <TouchableOpacity
-                    key={item.label}
-                    style={[
-                      styles.row,
-                      index < section.items.length - 1 && styles.rowBorder,
-                    ]}
-                    activeOpacity={isTappable ? 0.6 : 1}
-                    onPress={() => handlePress(item)}
-                  >
-                    <Text style={styles.rowLabel}>{item.label}</Text>
-                    <Text style={[styles.rowValue, item.url && styles.rowLink]}>
-                      {item.chevron ? '›' : item.value}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+      <ScrollView
+        style={[styles.scrollView, { backgroundColor: colors.primaryBackground }]}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* How to Use */}
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={comingSoon}
+        >
+          <Text style={dynamicStyles.settingLabel}>How To Use</Text>
+          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+        </TouchableOpacity>
+
+        {/* Language */}
+        <View>
+          <TouchableOpacity
+            style={dynamicStyles.settingItem}
+            activeOpacity={0.7}
+            onPress={() => setIsLanguageOpen(!isLanguageOpen)}
+          >
+            <Text style={dynamicStyles.settingLabel}>Language</Text>
+            <View style={styles.languageContainer}>
+              <Text style={dynamicStyles.languageValue}>English</Text>
+              <Ionicons
+                name={isLanguageOpen ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color={colors.secondaryText}
+              />
             </View>
+          </TouchableOpacity>
+
+          {isLanguageOpen && (
+            <View style={dynamicStyles.languageList}>
+              {LANGUAGE_OPTIONS.map(option => (
+                <TouchableOpacity
+                  key={option.label}
+                  style={[
+                    dynamicStyles.languageOptionItem,
+                    language === option.value && dynamicStyles.selectedLanguageOption,
+                  ]}
+                  onPress={() => setIsLanguageOpen(false)}
+                >
+                  <Text
+                    style={[
+                      dynamicStyles.languageOptionText,
+                      userLanguage === option.value && dynamicStyles.selectedLanguageText,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {userLanguage === option.value && (
+                    <Ionicons name="checkmark" size={20} color={colors.link} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Theme */}
+        <View style={dynamicStyles.settingItem}>
+          <Text style={dynamicStyles.settingLabel}>Theme</Text>
+          <View style={dynamicStyles.themeContainer}>
+            <TouchableOpacity
+              style={[dynamicStyles.themeOption, theme === 'dark' && dynamicStyles.themeOptionActive]}
+              onPress={() => updateTheme('Dark')}
+            >
+              <Text style={[dynamicStyles.themeOptionText, theme === 'dark' && dynamicStyles.themeOptionTextActive]}>
+                Dark
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[dynamicStyles.themeOption, theme === 'light' && dynamicStyles.themeOptionActive]}
+              onPress={() => updateTheme('Light')}
+            >
+              <Text style={[dynamicStyles.themeOptionText, theme === 'light' && dynamicStyles.themeOptionTextActive]}>
+                Light
+              </Text>
+            </TouchableOpacity>
           </View>
-        ))}
+        </View>
+
+        {/* Instagram */}
+        <View style={dynamicStyles.settingItem}>
+          <Text style={dynamicStyles.settingLabel}>Instagram</Text>
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() => handleLinkPress('https://www.instagram.com/sunnyinnolab/')}
+          >
+            <Text style={dynamicStyles.linkText}>Link</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* X (Twitter) */}
+        <View style={dynamicStyles.settingItem}>
+          <Text style={dynamicStyles.settingLabel}>X (Twitter)</Text>
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() => handleLinkPress('https://x.com/Sunnyinnolab')}
+          >
+            <Text style={dynamicStyles.linkText}>Link</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Sunny's Games and Apps */}
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={comingSoon}
+        >
+          <Text style={dynamicStyles.settingLabel}>Sunny Games Apps</Text>
+          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+        </TouchableOpacity>
+
+        {/* Credits */}
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={comingSoon}
+        >
+          <Text style={dynamicStyles.settingLabel}>Credits</Text>
+          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+        </TouchableOpacity>
+
+        {/* Open Source Info */}
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={comingSoon}
+        >
+          <Text style={dynamicStyles.settingLabel}>Open Source Info</Text>
+          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+        </TouchableOpacity>
+
+        {/* App Version */}
+        <View style={dynamicStyles.settingItem}>
+          <Text style={dynamicStyles.settingLabel}>App Version</Text>
+          <Text style={dynamicStyles.versionText}>v {APP_VERSION}</Text>
+        </View>
+
+        {/* Sunny banner */}
+        <View style={dynamicStyles.sunnyBanner}>
+          <View style={dynamicStyles.sunnyBannerFooterLinks}>
+            <TouchableOpacity
+              onPress={() => handleLinkPress('https://marmalade-neptune-dbe.notion.site/Terms-Conditions-c18656ce6c6045e590f652bf8291f28b?pvs=74')}
+            >
+              <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>Terms</Text>
+            </TouchableOpacity>
+            <View style={dynamicStyles.sunnyBannerFooterDivider} />
+            <TouchableOpacity
+              onPress={() => handleLinkPress('https://marmalade-neptune-dbe.notion.site/Privacy-Policy-ced8ead72ced4d8791ca4a71a289dd6b')}
+            >
+              <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>Privacy</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    backgroundColor: '#f2f2f7',
+  headerIcon: {
+    marginRight: 12,
   },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-    backgroundColor: '#f2f2f7',
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  scroll: {
+  scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
-  section: {
-    marginBottom: 32,
-    paddingHorizontal: 16,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6b6b6b',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-    paddingHorizontal: 4,
-  },
-  sectionCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  row: {
+  languageContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 8,
+  },
+  linkButton: {
     paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  rowBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e0e0e0',
-  },
-  rowLabel: {
-    fontSize: 16,
-    color: '#000',
-  },
-  rowValue: {
-    fontSize: 16,
-    color: '#8e8e93',
-  },
-  rowLink: {
-    color: '#007aff',
-    fontWeight: '500',
+    paddingVertical: 8,
   },
 });
+

@@ -1,21 +1,24 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import SoundGraph from "@/components/SoundGraph";
 import useAudioStore from "@/store/audioStore";
 import { useRecording } from "@/context/RecordingContext";
 
 const OFFSET = 90;
 
-export default function DbTimeScreen() {
+export default function DbFreqScreen() {
   const { metering, isRecording } = useAudioStore();
   const { startRecording, stopRecording } = useRecording();
 
-  const dbDisplay = `${(metering !== undefined ? metering + OFFSET : 0).toFixed(1)} dB`;
+  const dbDisplay =
+    metering !== undefined ? `${(metering + OFFSET).toFixed(1)} dB` : "— dB";
 
   return (
     <View style={styles.page}>
       <Text style={styles.dbText}>{dbDisplay}</Text>
-      <SoundGraph />
+      <View style={styles.comingSoonBox}>
+        <Text style={styles.comingSoonTitle}>dB/Frequency</Text>
+        <Text style={styles.comingSoonSubtitle}>Coming Soon</Text>
+      </View>
       <TouchableOpacity
         style={[styles.micButton, isRecording && styles.micButtonRecording]}
         onPress={() => (isRecording ? stopRecording() : startRecording())}
@@ -37,9 +40,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f7",
   },
   dbText: {
-    fontSize: 52,
+    fontSize: 48,
     fontWeight: "700",
     color: "#000",
+  },
+  comingSoonBox: {
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 40,
+  },
+  comingSoonTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#000",
+  },
+  comingSoonSubtitle: {
+    fontSize: 15,
+    color: "#8e8e93",
   },
   micButton: {
     width: 72,
