@@ -1,0 +1,86 @@
+import {
+  type MicrophoneAudioFrame,
+  type MicrophoneController,
+  type MicrophoneState,
+} from "../MicrophoneController";
+import {
+  type AudioMetricsSnapshot,
+  analyzePeakFrequency,
+  calibrateDbfsForDisplay,
+} from "./audioMetricsAnalysis";
+import { AudioMetricsDisplayConfig } from "./types";
+
+export type AudioMetricsSnapshotListener = (
+  snapshot: AudioMetricsSnapshot,
+) => void;
+
+export function createIdleAudioMetricsSnapshot(): AudioMetricsSnapshot {
+  return {
+    dbfs: -100,
+    peakHz: null,
+    peakLevel: null,
+  };
+}
+
+export class AudioMetricsController {
+  private config: AudioMetricsDisplayConfig;
+  private listeners = new Set<AudioMetricsSnapshotListener>();
+  private unsubscribeFrame: (() => void) | null = null;
+  private unsubscribeState: (() => void) | null = null;
+
+  constructor(mic: MicrophoneController, config: AudioMetricsDisplayConfig) {
+    this.config = config;
+
+    this.unsubscribeFrame = mic.onFrame(this.handleFrame);
+    this.unsubscribeState = mic.subscribe(this.handleMicState);
+  }
+
+  subscribe(listener: AudioMetricsSnapshotListener): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  configure(config: AudioMetricsDisplayConfig) {
+    this.config = config;
+  }
+
+  dispose() {
+    this.unsubscribeFrame?.();
+    this.unsubscribeState?.();
+    this.unsubscribeFrame = null;
+    this.unsubscribeState = null;
+    this.listeners.clear();
+  }
+
+  private emit(snapshot: AudioMetricsSnapshot) {
+    for (const listener of this.listeners) {
+      listener(snapshot);
+    }
+  }
+
+  private handleFrame = (frame: MicrophoneAudioFrame) => {
+    const { peakHz, peakLevel } = analyzePeakFrequency(
+      frame.frequencyData,
+      frame.sampleRate,
+      frame.fftSize,
+      frame.minDecibels,
+      frame.maxDecibels,
+      this.config.minHz,
+      this.config.maxHz,
+    );
+
+    this.emit({
+      dbfs: calibrateDbfsForDisplay(frame.dbfs),
+      peakHz,
+      peakLevel,
+    });
+  };
+
+  private handleMicState = (state: MicrophoneState) => {
+    if (!state.isRunning && !state.isStarting && !state.isDisconnecting) {
+      this.emit(createIdleAudioMetricsSnapshot());
+    }
+  };
+}
