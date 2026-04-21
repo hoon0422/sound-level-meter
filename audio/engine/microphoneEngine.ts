@@ -1,0 +1,168 @@
+import {
+  AnalyserNode,
+  AudioContext,
+  AudioManager,
+  AudioNode,
+  AudioRecorder,
+  GainNode,
+  WorkletNode,
+} from "react-native-audio-api";
+import { scheduleOnRN } from "react-native-worklets";
+import { AudioEngineConfig } from "./types";
+
+type CreateMicrophoneEngineOptions = AudioEngineConfig & {
+  onAudioMetrics: (metrics: AudioRuntimeMetrics) => void;
+};
+
+export type AudioRuntimeMetrics = {
+  dbfs: number;
+  elapsedSeconds: number;
+};
+
+export type MicrophoneEngine = {
+  audioContext: AudioContext;
+  recorder: AudioRecorder;
+  analyser: AnalyserNode;
+  adapter: AudioNode;
+  workletNode: WorkletNode;
+  muteGain: GainNode;
+};
+
+let microphoneEngine: MicrophoneEngine | null = null;
+
+export async function createMicrophoneEngine(
+  options: CreateMicrophoneEngineOptions,
+): Promise<MicrophoneEngine> {
+  if (microphoneEngine) {
+    return microphoneEngine;
+  }
+
+  const audioContext = new AudioContext({ sampleRate: options.sampleRate });
+  const recorder = new AudioRecorder();
+  const analyser = audioContext.createAnalyser();
+  const adapter = audioContext.createRecorderAdapter();
+  const workletNode = audioContext.createWorkletNode(
+    (audioData, inputChannelCount) => {
+      "worklet";
+
+      const channelCount = Math.max(inputChannelCount, 1);
+      const frameCount = audioData[0]?.length ?? 0;
+      if (frameCount === 0) {
+        return;
+      }
+
+      let sum = 0;
+      for (let channel = 0; channel < channelCount; channel++) {
+        const samples = audioData[channel];
+        if (!samples) {
+          continue;
+        }
+
+        for (let i = 0; i < samples.length; i++) {
+          const sample = samples[i];
+          sum += sample * sample;
+        }
+      }
+
+      const rms = Math.sqrt(sum / (frameCount * channelCount));
+      const dbfs = rms <= 1e-8 ? -100 : Math.max(20 * Math.log10(rms), -100);
+      const elapsedSeconds = frameCount / options.sampleRate;
+
+      scheduleOnRN(options.onAudioMetrics, {
+        dbfs,
+        elapsedSeconds,
+      });
+    },
+    options.fftSize,
+    1,
+    "AudioRuntime",
+  );
+  const muteGain = audioContext.createGain();
+
+  analyser.fftSize = options.fftSize;
+  analyser.smoothingTimeConstant = options.smoothingTimeConstant;
+  analyser.minDecibels = options.minDecibels;
+  analyser.maxDecibels = options.maxDecibels;
+  muteGain.gain.value = 0;
+
+  recorder.connect(adapter);
+  adapter.connect(analyser);
+  analyser.connect(workletNode);
+  workletNode.connect(muteGain);
+  muteGain.connect(audioContext.destination);
+
+  if (options.autoResumeContext && audioContext.state === "suspended") {
+    await audioContext.resume();
+  }
+
+  const startResult = recorder.start();
+  if (startResult.status === "error") {
+    throw new Error(startResult.message);
+  }
+
+  microphoneEngine = {
+    audioContext,
+    recorder,
+    analyser,
+    adapter,
+    workletNode,
+    muteGain,
+  };
+
+  return microphoneEngine;
+}
+
+export function resumeMicrophoneEngine() {
+  if (!microphoneEngine) return;
+
+  const startResult = microphoneEngine.recorder.start();
+  if (startResult.status === "error") {
+    throw new Error(startResult.message);
+  }
+}
+
+export function stopMicrophoneEngine() {
+  if (!microphoneEngine) return;
+
+  try {
+    microphoneEngine.recorder.stop();
+  } catch {}
+}
+
+export async function disconnectMicrophoneEngine() {
+  const engine = microphoneEngine;
+  microphoneEngine = null;
+
+  if (!engine) {
+    return;
+  }
+
+  try {
+    engine.recorder.stop();
+  } catch {}
+
+  try {
+    engine.recorder.disconnect();
+  } catch {}
+
+  try {
+    engine.adapter.disconnect();
+  } catch {}
+
+  try {
+    engine.analyser.disconnect();
+  } catch {}
+
+  try {
+    engine.workletNode.disconnect();
+  } catch {}
+
+  try {
+    engine.muteGain.disconnect();
+  } catch {}
+
+  await Promise.all([
+    engine.audioContext.close().catch(() => {}),
+    AudioManager.setAudioSessionActivity(false).catch(() => {}),
+  ]);
+}

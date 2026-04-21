@@ -64,10 +64,6 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
   const recorderState = useAudioRecorderState(audioRecorder);
 
   useEffect(() => {
-    requestPermission();
-  }, []);
-
-  useEffect(() => {
     setIsRecording(recorderState.isRecording);
     setMetering(recorderState.metering);
   }, [recorderState.isRecording, recorderState.metering]);

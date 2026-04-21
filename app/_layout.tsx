@@ -10,7 +10,8 @@ function SettingsButton() {
       onPress={() => router.push("/settings")}
       style={{ paddingRight: 16 }}
     >
-      <Ionicons name="settings-outline" size={22} color="#000" />
+      <Ionicons name="settings-outline" size={22} color="#4A4A4A
+      " />
     </TouchableOpacity>
   );
 }
