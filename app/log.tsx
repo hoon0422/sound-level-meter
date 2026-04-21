@@ -68,7 +68,7 @@ export default function LogScreen() {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: '#FEFAEE',
   },
   list: {
     padding: 16,
@@ -78,6 +78,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#333333',
+    shadowColor: '#333333',
+    shadowOffset: { width: 2, height: 1 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',

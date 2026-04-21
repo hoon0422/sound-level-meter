@@ -23,13 +23,15 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: true,
           headerTitle: "",
+          headerStyle: { backgroundColor: "#FEFAEE" },
+          headerShadowVisible: false,
           headerLeft: () => (
-            <Text style={{ fontSize: 18, fontWeight: "bold", marginLeft: 16 }}>
+            <Text style={{ fontSize: 22, fontWeight: "bold", marginLeft: 16 }}>
               DECIBELLA
             </Text>
           ),
           headerRight: () => <SettingsButton />,
-          tabBarActiveTintColor: "#007AFF",
+          tabBarActiveTintColor: "#F0923A",
         }}
       >
         <Tabs.Screen

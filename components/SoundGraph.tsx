@@ -134,6 +134,13 @@ const styles = StyleSheet.create({
     padding: 8,
     marginHorizontal: 16,
     width: CONTAINER_W,
+    borderWidth: 1,
+    borderColor: '#333333',
+    shadowColor: '#333333',
+    shadowOffset: { width: 2, height: 1 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
   },
   yAxisLabel: {
     position: 'absolute',

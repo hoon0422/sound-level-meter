@@ -24,12 +24,12 @@ export default function SettingsPage() {
   const isDark = theme === 'dark';
 
   const colors = {
-    primaryBackground: isDark ? '#000' : '#f2f2f7',
+    primaryBackground: isDark ? '#000' : '#FEFAEE',
     secondaryBackground: isDark ? '#1c1c1e' : '#fff',
     text: isDark ? '#fff' : '#000',
     secondaryText: '#8e8e93',
     border: isDark ? '#38383a' : '#e0e0e0',
-    link: '#007AFF',
+    link: '#F0923A',
   };
 
   const updateTheme = (val: 'Dark' | 'Light') => setTheme(val === 'Dark' ? 'dark' : 'light');
@@ -126,8 +126,8 @@ export default function SettingsPage() {
         borderColor: isDark ? '#334155' : '#E0E0E0',
       },
       themeOptionActive: {
-        backgroundColor: isDark ? '#1a1f2e' : '#60a5fa',
-        borderColor: isDark ? '#1a1f2e' : '#60a5fa',
+        backgroundColor: isDark ? '#1a1f2e' : '#F0923A',
+        borderColor: isDark ? '#1a1f2e' : '#F0923A',
       },
       themeOptionText: {
         fontSize: themeOptionFontSize,
