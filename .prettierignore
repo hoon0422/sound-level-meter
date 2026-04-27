@@ -1,0 +1,17 @@
+# Build artifacts
+android/
+ios/
+build/
+dist/
+
+# Dependencies
+node_modules/
+.expo/
+
+# Miscellaneous
+coverage/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
