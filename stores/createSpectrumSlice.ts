@@ -1,12 +1,12 @@
-import { MicrophoneController } from "@/audio/MicrophoneController";
-import { DEFAULT_CONFIG } from "@/audio/constants";
+import { MicrophoneController } from '@/audio/MicrophoneController';
+import { DEFAULT_CONFIG } from '@/audio/constants';
 import {
   SpectrumAnalysisController,
   type SpectrumDisplayConfig,
   type SpectrumSnapshot,
   createIdleSpectrumSnapshot,
-} from "@/audio/spectrum";
-import type { StateCreator } from "zustand";
+} from '@/audio/spectrum';
+import type { StateCreator } from 'zustand';
 
 export type { SpectrumDisplayConfig };
 
@@ -23,8 +23,7 @@ export const createSpectrumSlice: StateCreator<SpectrumSlice> = set => {
 
   return {
     ...createIdleSpectrumSnapshot(DEFAULT_CONFIG.barCount),
-    configureSpectrum: (config: SpectrumDisplayConfig) =>
-      spectrum.configure(config),
+    configureSpectrum: (config: SpectrumDisplayConfig) => spectrum.configure(config),
     disposeSpectrum: () => spectrum.dispose(),
   };
 };

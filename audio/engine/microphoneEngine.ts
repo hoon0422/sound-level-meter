@@ -6,9 +6,9 @@ import {
   AudioRecorder,
   GainNode,
   WorkletNode,
-} from "react-native-audio-api";
-import { scheduleOnRN } from "react-native-worklets";
-import { AudioEngineConfig } from "./types";
+} from 'react-native-audio-api';
+import { scheduleOnRN } from 'react-native-worklets';
+import { AudioEngineConfig } from './types';
 
 type CreateMicrophoneEngineOptions = AudioEngineConfig & {
   onAudioMetrics: (metrics: AudioRuntimeMetrics) => void;
@@ -30,9 +30,7 @@ export type MicrophoneEngine = {
 
 let microphoneEngine: MicrophoneEngine | null = null;
 
-export async function createMicrophoneEngine(
-  options: CreateMicrophoneEngineOptions,
-): Promise<MicrophoneEngine> {
+export async function createMicrophoneEngine(options: CreateMicrophoneEngineOptions): Promise<MicrophoneEngine> {
   if (microphoneEngine) {
     return microphoneEngine;
   }
@@ -43,7 +41,7 @@ export async function createMicrophoneEngine(
   const adapter = audioContext.createRecorderAdapter();
   const workletNode = audioContext.createWorkletNode(
     (audioData, inputChannelCount) => {
-      "worklet";
+      'worklet';
 
       const channelCount = Math.max(inputChannelCount, 1);
       const frameCount = audioData[0]?.length ?? 0;
@@ -75,7 +73,7 @@ export async function createMicrophoneEngine(
     },
     options.fftSize,
     1,
-    "AudioRuntime",
+    'AudioRuntime'
   );
   const muteGain = audioContext.createGain();
 
@@ -91,12 +89,12 @@ export async function createMicrophoneEngine(
   workletNode.connect(muteGain);
   muteGain.connect(audioContext.destination);
 
-  if (options.autoResumeContext && audioContext.state === "suspended") {
+  if (options.autoResumeContext && audioContext.state === 'suspended') {
     await audioContext.resume();
   }
 
   const startResult = recorder.start();
-  if (startResult.status === "error") {
+  if (startResult.status === 'error') {
     throw new Error(startResult.message);
   }
 
@@ -116,7 +114,7 @@ export function resumeMicrophoneEngine() {
   if (!microphoneEngine) return;
 
   const startResult = microphoneEngine.recorder.start();
-  if (startResult.status === "error") {
+  if (startResult.status === 'error') {
     throw new Error(startResult.message);
   }
 }

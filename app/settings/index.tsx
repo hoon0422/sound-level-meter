@@ -15,9 +15,7 @@ import useThemeStore from '@/store/themeStore';
 
 const APP_VERSION = '1.0';
 
-const LANGUAGE_OPTIONS = [
-  { label: 'English', value: 1 },
-];
+const LANGUAGE_OPTIONS = [{ label: 'English', value: 1 }];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useThemeStore();
@@ -213,12 +211,7 @@ export default function SettingsPage() {
     <View style={dynamicStyles.container}>
       {/* Header */}
       <View style={dynamicStyles.header}>
-        <Ionicons
-          name="settings-outline"
-          size={24}
-          color={colors.text}
-          style={styles.headerIcon}
-        />
+        <Ionicons name="settings-outline" size={24} color={colors.text} style={styles.headerIcon} />
         <Text allowFontScaling={false} style={dynamicStyles.headerTitle}>
           Settings
         </Text>
@@ -229,11 +222,7 @@ export default function SettingsPage() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* How to Use */}
-        <TouchableOpacity
-          style={dynamicStyles.settingItem}
-          activeOpacity={0.7}
-          onPress={comingSoon}
-        >
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
           <Text style={dynamicStyles.settingLabel}>How To Use</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
         </TouchableOpacity>
@@ -248,11 +237,7 @@ export default function SettingsPage() {
             <Text style={dynamicStyles.settingLabel}>Language</Text>
             <View style={styles.languageContainer}>
               <Text style={dynamicStyles.languageValue}>English</Text>
-              <Ionicons
-                name={isLanguageOpen ? 'chevron-up' : 'chevron-down'}
-                size={20}
-                color={colors.secondaryText}
-              />
+              <Ionicons name={isLanguageOpen ? 'chevron-up' : 'chevron-down'} size={20} color={colors.secondaryText} />
             </View>
           </TouchableOpacity>
 
@@ -275,9 +260,7 @@ export default function SettingsPage() {
                   >
                     {option.label}
                   </Text>
-                  {userLanguage === option.value && (
-                    <Ionicons name="checkmark" size={20} color={colors.link} />
-                  )}
+                  {userLanguage === option.value && <Ionicons name="checkmark" size={20} color={colors.link} />}
                 </TouchableOpacity>
               ))}
             </View>
@@ -321,40 +304,25 @@ export default function SettingsPage() {
         {/* X (Twitter) */}
         <View style={dynamicStyles.settingItem}>
           <Text style={dynamicStyles.settingLabel}>X (Twitter)</Text>
-          <TouchableOpacity
-            style={styles.linkButton}
-            onPress={() => handleLinkPress('https://x.com/Sunnyinnolab')}
-          >
+          <TouchableOpacity style={styles.linkButton} onPress={() => handleLinkPress('https://x.com/Sunnyinnolab')}>
             <Text style={dynamicStyles.linkText}>Link</Text>
           </TouchableOpacity>
         </View>
 
         {/* Sunny's Games and Apps */}
-        <TouchableOpacity
-          style={dynamicStyles.settingItem}
-          activeOpacity={0.7}
-          onPress={comingSoon}
-        >
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
           <Text style={dynamicStyles.settingLabel}>Sunny Games Apps</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
         </TouchableOpacity>
 
         {/* Credits */}
-        <TouchableOpacity
-          style={dynamicStyles.settingItem}
-          activeOpacity={0.7}
-          onPress={comingSoon}
-        >
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
           <Text style={dynamicStyles.settingLabel}>Credits</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
         </TouchableOpacity>
 
         {/* Open Source Info */}
-        <TouchableOpacity
-          style={dynamicStyles.settingItem}
-          activeOpacity={0.7}
-          onPress={comingSoon}
-        >
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
           <Text style={dynamicStyles.settingLabel}>Open Source Info</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
         </TouchableOpacity>
@@ -369,15 +337,27 @@ export default function SettingsPage() {
         <View style={dynamicStyles.sunnyBanner}>
           <View style={dynamicStyles.sunnyBannerFooterLinks}>
             <TouchableOpacity
-              onPress={() => handleLinkPress('https://marmalade-neptune-dbe.notion.site/Terms-Conditions-c18656ce6c6045e590f652bf8291f28b?pvs=74')}
+              onPress={() =>
+                handleLinkPress(
+                  'https://marmalade-neptune-dbe.notion.site/Terms-Conditions-c18656ce6c6045e590f652bf8291f28b?pvs=74'
+                )
+              }
             >
-              <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>Terms</Text>
+              <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>
+                Terms
+              </Text>
             </TouchableOpacity>
             <View style={dynamicStyles.sunnyBannerFooterDivider} />
             <TouchableOpacity
-              onPress={() => handleLinkPress('https://marmalade-neptune-dbe.notion.site/Privacy-Policy-ced8ead72ced4d8791ca4a71a289dd6b')}
+              onPress={() =>
+                handleLinkPress(
+                  'https://marmalade-neptune-dbe.notion.site/Privacy-Policy-ced8ead72ced4d8791ca4a71a289dd6b'
+                )
+              }
             >
-              <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>Privacy</Text>
+              <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>
+                Privacy
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -406,4 +386,3 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
 });
-

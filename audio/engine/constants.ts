@@ -1,4 +1,4 @@
-import { AudioEngineConfig } from "./types";
+import { AudioEngineConfig } from './types';
 
 export const DEFAULT_AUDIO_ENGINE_CONFIG: AudioEngineConfig = {
   sampleRate: 48000,

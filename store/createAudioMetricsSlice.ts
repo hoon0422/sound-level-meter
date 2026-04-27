@@ -1,12 +1,12 @@
-import { MicrophoneController } from "@/audio/MicrophoneController";
-import { DEFAULT_CONFIG } from "@/audio/constants";
+import { MicrophoneController } from '@/audio/MicrophoneController';
+import { DEFAULT_CONFIG } from '@/audio/constants';
 import {
   AudioMetricsController,
   type AudioMetricsDisplayConfig,
   type AudioMetricsSnapshot,
   createIdleAudioMetricsSnapshot,
-} from "@/audio/metrics";
-import type { StateCreator } from "zustand";
+} from '@/audio/metrics';
+import type { StateCreator } from 'zustand';
 
 export type { AudioMetricsDisplayConfig };
 
@@ -23,8 +23,7 @@ export const createAudioMetricsSlice: StateCreator<AudioMetricsSlice> = set => {
 
   return {
     ...createIdleAudioMetricsSnapshot(),
-    configureAudioMetrics: (config: AudioMetricsDisplayConfig) =>
-      metrics.configure(config),
+    configureAudioMetrics: (config: AudioMetricsDisplayConfig) => metrics.configure(config),
     disposeAudioMetrics: () => metrics.dispose(),
   };
 };

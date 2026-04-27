@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import useLogsStore, { RecordingLog } from '@/store/logsStore';
 
 export default function LogScreen() {
@@ -15,7 +9,9 @@ export default function LogScreen() {
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardIndex}>#{logs.length - index}</Text>
-        <Text style={styles.cardDate}>{item.date} · {item.time}</Text>
+        <Text style={styles.cardDate}>
+          {item.date} · {item.time}
+        </Text>
       </View>
 
       <View style={styles.divider} />
@@ -49,14 +45,12 @@ export default function LogScreen() {
       {logs.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>No recordings yet</Text>
-          <Text style={styles.emptySubText}>
-            Start recording to see your history here
-          </Text>
+          <Text style={styles.emptySubText}>Start recording to see your history here</Text>
         </View>
       ) : (
         <FlatList
           data={logs}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
         />

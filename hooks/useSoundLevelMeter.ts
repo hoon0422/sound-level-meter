@@ -1,23 +1,23 @@
-import { DEFAULT_CONFIG } from "@/audio/constants";
-import { useMicrophoneSpectrumStore } from "@/stores/useMicrophoneSpectrumStore";
-import useLogsStore from "@/store/logsStore";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Linking } from "react-native";
-import { AudioManager } from "react-native-audio-api";
+import { DEFAULT_CONFIG } from '@/audio/constants';
+import { useMicrophoneSpectrumStore } from '@/stores/useMicrophoneSpectrumStore';
+import useLogsStore from '@/store/logsStore';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Linking } from 'react-native';
+import { AudioManager } from 'react-native-audio-api';
 
 const isRecordingInitialized = async () => {
   const status = await AudioManager.checkRecordingPermissions();
-  return status === "Granted";
+  return status === 'Granted';
 };
 
 const initRecording = async () => {
   if (!(await isRecordingInitialized())) {
     const permission = await AudioManager.requestRecordingPermissions();
-    if (permission !== "Granted") {
-      Alert.alert("Permission to access microphone was denied", undefined, [
-        { text: "OK" },
+    if (permission !== 'Granted') {
+      Alert.alert('Permission to access microphone was denied', undefined, [
+        { text: 'OK' },
         {
-          text: "Open settings",
+          text: 'Open settings',
           onPress: () => {
             Linking.openSettings();
           },
@@ -28,13 +28,13 @@ const initRecording = async () => {
   }
 
   AudioManager.setAudioSessionOptions({
-    iosCategory: "playAndRecord",
-    iosMode: "measurement",
+    iosCategory: 'playAndRecord',
+    iosMode: 'measurement',
   });
 
   const sessionActivated = await AudioManager.setAudioSessionActivity(true);
   if (!sessionActivated) {
-    Alert.alert("Could not activate audio session.");
+    Alert.alert('Could not activate audio session.');
     return false;
   }
 
@@ -88,18 +88,15 @@ export function useSoundLevelMeter() {
         const durationSec = Math.floor((endMs - startMs) / 1000);
         const durationMin = Math.floor(durationSec / 60);
         const durationRemSec = durationSec % 60;
-        const durationStr =
-          durationMin > 0
-            ? `${durationMin}m ${durationRemSec}s`
-            : `${durationRemSec}s`;
-        const dbValues = samples.map((s) => s.db);
+        const durationStr = durationMin > 0 ? `${durationMin}m ${durationRemSec}s` : `${durationRemSec}s`;
+        const dbValues = samples.map(s => s.db);
         const maxDb = Math.max(...dbValues);
         const minDb = Math.min(...dbValues);
         const avgDb = dbValues.reduce((a, b) => a + b, 0) / dbValues.length;
         addLog({
           id: `${now.getTime()}`,
           date: now.toLocaleDateString(),
-          time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           duration: durationStr,
           maxDb: parseFloat(maxDb.toFixed(1)),
           minDb: parseFloat(minDb.toFixed(1)),
@@ -146,16 +143,10 @@ export function useSoundLevelMeter() {
     void startRecording();
   }, [isRunning, startRecording, stop]);
 
-  const isBusy =
-    isPreparingRecording || isStarting || isStopping || isDisconnecting;
+  const isBusy = isPreparingRecording || isStarting || isStopping || isDisconnecting;
 
-  const buttonTitle = isPreparingRecording || isStarting
-    ? "Starting..."
-    : isStopping
-      ? "Stopping..."
-      : isRunning
-        ? "Stop"
-        : "Record";
+  const buttonTitle =
+    isPreparingRecording || isStarting ? 'Starting...' : isStopping ? 'Stopping...' : isRunning ? 'Stop' : 'Record';
 
   return {
     bars,

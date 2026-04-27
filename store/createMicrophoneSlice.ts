@@ -3,8 +3,8 @@ import {
   MicrophoneController,
   type MicrophoneState,
   createIdleMicrophoneState,
-} from "@/audio/MicrophoneController";
-import type { StateCreator } from "zustand";
+} from '@/audio/MicrophoneController';
+import type { StateCreator } from 'zustand';
 
 export type { AudioEngineConfig };
 

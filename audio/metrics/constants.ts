@@ -1,4 +1,4 @@
-import { AudioMetricsDisplayConfig } from "./types";
+import { AudioMetricsDisplayConfig } from './types';
 
 export const DEFAULT_AUDIO_METRICS_DISPLAY_CONFIG: AudioMetricsDisplayConfig = {
   minHz: 0,

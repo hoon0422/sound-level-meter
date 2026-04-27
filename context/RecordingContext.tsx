@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect } from "react";
-import { Alert, Linking } from "react-native";
+import React, { createContext, useContext, useEffect } from 'react';
+import { Alert, Linking } from 'react-native';
 import {
   AudioModule,
   RecordingOptions,
@@ -7,8 +7,8 @@ import {
   setAudioModeAsync,
   useAudioRecorder,
   useAudioRecorderState,
-} from "expo-audio";
-import useAudioStore from "@/store/audioStore";
+} from 'expo-audio';
+import useAudioStore from '@/store/audioStore';
 
 const OFFSET = 90;
 const DB_MIN = 0;
@@ -28,9 +28,9 @@ const requestPermission = async () => {
   if (await isPermissionGranted()) return true;
   const status = await AudioModule.requestRecordingPermissionsAsync();
   if (!status.granted) {
-    Alert.alert("Permission to access microphone was denied", undefined, [
-      { text: "OK" },
-      { text: "Open settings", onPress: () => Linking.openSettings() },
+    Alert.alert('Permission to access microphone was denied', undefined, [
+      { text: 'OK' },
+      { text: 'Open settings', onPress: () => Linking.openSettings() },
     ]);
     return false;
   }
@@ -57,8 +57,7 @@ export function useRecording() {
 }
 
 export function RecordingProvider({ children }: { children: React.ReactNode }) {
-  const { setIsRecording, setMetering, clearSamples, setRecordingStartTime, addLog, addSample } =
-    useAudioStore();
+  const { setIsRecording, setMetering, clearSamples, setRecordingStartTime, addLog, addSample } = useAudioStore();
 
   const audioRecorder = useAudioRecorder(MeteringRecordingOptions);
   const recorderState = useAudioRecorderState(audioRecorder);
@@ -107,10 +106,9 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
     const durationSec = Math.floor(durationMs / 1000);
     const durationMin = Math.floor(durationSec / 60);
     const durationRemSec = durationSec % 60;
-    const durationStr =
-      durationMin > 0 ? `${durationMin}m ${durationRemSec}s` : `${durationRemSec}s`;
+    const durationStr = durationMin > 0 ? `${durationMin}m ${durationRemSec}s` : `${durationRemSec}s`;
 
-    const dbValues = samples.map((s) => s.db);
+    const dbValues = samples.map(s => s.db);
     const maxDb = Math.max(...dbValues);
     const minDb = Math.min(...dbValues);
     const avgDb = dbValues.reduce((a, b) => a + b, 0) / dbValues.length;
@@ -118,7 +116,7 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
     addLog({
       id: `${now.getTime()}`,
       date: now.toLocaleDateString(),
-      time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       duration: durationStr,
       maxDb: parseFloat(maxDb.toFixed(1)),
       minDb: parseFloat(minDb.toFixed(1)),
@@ -126,9 +124,5 @@ export function RecordingProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  return (
-    <RecordingContext.Provider value={{ startRecording, stopRecording }}>
-      {children}
-    </RecordingContext.Provider>
-  );
+  return <RecordingContext.Provider value={{ startRecording, stopRecording }}>{children}</RecordingContext.Provider>;
 }

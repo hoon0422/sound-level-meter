@@ -1,5 +1,5 @@
-import { SPECTRUM_BANDS } from "./constants";
-import { SpectrumBand } from "./types";
+import { SPECTRUM_BANDS } from './constants';
+import { SpectrumBand } from './types';
 
 type SpectrumAnalysisConfig = {
   sampleRate: number;
@@ -30,21 +30,13 @@ function buildBandBars(
   sampleRate: number,
   fftSize: number,
   bands: SpectrumBand[],
-  minDecibels: number,
+  minDecibels: number
 ) {
   const bars: number[] = [];
 
   for (const band of bands) {
-    const startBin = clamp(
-      hzToBin(band.lowEdge, sampleRate, fftSize),
-      0,
-      freqData.length - 1,
-    );
-    const endBin = clamp(
-      hzToBin(band.highEdge, sampleRate, fftSize),
-      0,
-      freqData.length - 1,
-    );
+    const startBin = clamp(hzToBin(band.lowEdge, sampleRate, fftSize), 0, freqData.length - 1);
+    const endBin = clamp(hzToBin(band.highEdge, sampleRate, fftSize), 0, freqData.length - 1);
 
     let sum = 0;
     let count = 0;
@@ -72,21 +64,13 @@ function smoothArray(prev: number[], next: number[], alpha: number) {
 export function analyzeFrequencyFrame(
   freqData: Float32Array,
   prevBars: number[],
-  config: Omit<SpectrumAnalysisConfig, "noiseFloorDbfs">,
+  config: Omit<SpectrumAnalysisConfig, 'noiseFloorDbfs'>
 ): SpectrumFrameAnalysis {
-  const sanitizedPrevBars = prevBars.map(value =>
-    Number.isFinite(value) ? value : config.minDecibels,
-  );
+  const sanitizedPrevBars = prevBars.map(value => (Number.isFinite(value) ? value : config.minDecibels));
   const bars = smoothArray(
     sanitizedPrevBars,
-    buildBandBars(
-      freqData,
-      config.sampleRate,
-      config.fftSize,
-      SPECTRUM_BANDS,
-      config.minDecibels,
-    ),
-    config.barSmoothingAlpha,
+    buildBandBars(freqData, config.sampleRate, config.fftSize, SPECTRUM_BANDS, config.minDecibels),
+    config.barSmoothingAlpha
   );
 
   return {

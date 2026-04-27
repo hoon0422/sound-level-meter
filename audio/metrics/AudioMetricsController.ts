@@ -1,18 +1,8 @@
-import {
-  type MicrophoneAudioFrame,
-  type MicrophoneController,
-  type MicrophoneState,
-} from "../MicrophoneController";
-import {
-  type AudioMetricsSnapshot,
-  analyzePeakFrequency,
-  calibrateDbfsForDisplay,
-} from "./audioMetricsAnalysis";
-import { AudioMetricsDisplayConfig } from "./types";
+import { type MicrophoneAudioFrame, type MicrophoneController, type MicrophoneState } from '../MicrophoneController';
+import { type AudioMetricsSnapshot, analyzePeakFrequency, calibrateDbfsForDisplay } from './audioMetricsAnalysis';
+import { AudioMetricsDisplayConfig } from './types';
 
-export type AudioMetricsSnapshotListener = (
-  snapshot: AudioMetricsSnapshot,
-) => void;
+export type AudioMetricsSnapshotListener = (snapshot: AudioMetricsSnapshot) => void;
 
 export function createIdleAudioMetricsSnapshot(): AudioMetricsSnapshot {
   return {
@@ -68,7 +58,7 @@ export class AudioMetricsController {
       frame.minDecibels,
       frame.maxDecibels,
       this.config.minHz,
-      this.config.maxHz,
+      this.config.maxHz
     );
 
     this.emit({

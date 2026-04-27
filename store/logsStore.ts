@@ -16,9 +16,9 @@ type LogsStore = {
   clearLogs: () => void;
 };
 
-const useLogsStore = create<LogsStore>((set) => ({
+const useLogsStore = create<LogsStore>(set => ({
   logs: [],
-  addLog: (log) => set((state) => ({ logs: [log, ...state.logs] })),
+  addLog: log => set(state => ({ logs: [log, ...state.logs] })),
   clearLogs: () => set({ logs: [] }),
 }));
 

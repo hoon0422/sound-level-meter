@@ -1,10 +1,6 @@
-import {
-  type MicrophoneAudioFrame,
-  type MicrophoneController,
-  type MicrophoneState,
-} from "../MicrophoneController";
-import { analyzeFrequencyFrame } from "./spectrumAnalysis";
-import { SpectrumDisplayConfig } from "./types";
+import { type MicrophoneAudioFrame, type MicrophoneController, type MicrophoneState } from '../MicrophoneController';
+import { analyzeFrequencyFrame } from './spectrumAnalysis';
+import { SpectrumDisplayConfig } from './types';
 
 export type SpectrumSnapshot = {
   bars: number[];
@@ -59,20 +55,16 @@ export class SpectrumAnalysisController {
   }
 
   private handleFrame = (frame: MicrophoneAudioFrame) => {
-    const analysis = analyzeFrequencyFrame(
-      frame.frequencyData,
-      this.smoothedBars,
-      {
-        sampleRate: frame.sampleRate,
-        fftSize: frame.fftSize,
-        barCount: this.config.barCount,
-        minHz: this.config.minHz,
-        maxHz: this.config.maxHz,
-        minDecibels: frame.minDecibels,
-        maxDecibels: frame.maxDecibels,
-        barSmoothingAlpha: this.config.barSmoothingAlpha,
-      },
-    );
+    const analysis = analyzeFrequencyFrame(frame.frequencyData, this.smoothedBars, {
+      sampleRate: frame.sampleRate,
+      fftSize: frame.fftSize,
+      barCount: this.config.barCount,
+      minHz: this.config.minHz,
+      maxHz: this.config.maxHz,
+      minDecibels: frame.minDecibels,
+      maxDecibels: frame.maxDecibels,
+      barSmoothingAlpha: this.config.barSmoothingAlpha,
+    });
     this.smoothedBars = analysis.bars;
 
     this.emit({

@@ -81,8 +81,7 @@ export default function SoundGraph() {
 
   const samples = samplesRef.current;
   const startMs = startTimeRef.current ?? samples[0]?.timestamp ?? Date.now();
-  const totalElapsed =
-    samples.length > 0 ? (samples[samples.length - 1].timestamp - startMs) / 1000 : 0;
+  const totalElapsed = samples.length > 0 ? (samples[samples.length - 1].timestamp - startMs) / 1000 : 0;
   const innerW = Math.max(CHART_W, totalElapsed * PX_PER_SEC);
 
   // Downsample for display: keep at most one point per MIN_PX_SPACING px
@@ -125,7 +124,7 @@ export default function SoundGraph() {
       <View style={styles.graphRow}>
         {/* Fixed Y-axis */}
         <View style={{ width: Y_AXIS_W, height: GRAPH_H }}>
-          {Y_LABELS.map((db) => (
+          {Y_LABELS.map(db => (
             <Text key={`y-${db}`} style={[styles.yLabelText, { top: dbToTop(db) - 6 }]}>
               {db}
             </Text>
@@ -142,24 +141,15 @@ export default function SoundGraph() {
         >
           <View style={{ width: innerW, height: GRAPH_H }}>
             {/* Grid lines */}
-            {GRID_DBS.map((db) => (
-              <View
-                key={`grid-${db}`}
-                style={[styles.gridLine, { top: dbToTop(db), width: innerW }]}
-              />
+            {GRID_DBS.map(db => (
+              <View key={`grid-${db}`} style={[styles.gridLine, { top: dbToTop(db), width: innerW }]} />
             ))}
             {/* Baseline */}
             <View style={[styles.baseline, { width: innerW }]} />
 
             {/* Line segments */}
             {displayPoints.slice(1).map((pt, i) => (
-              <LineSegment
-                key={`seg-${i}`}
-                x1={displayPoints[i].x}
-                y1={displayPoints[i].y}
-                x2={pt.x}
-                y2={pt.y}
-              />
+              <LineSegment key={`seg-${i}`} x1={displayPoints[i].x} y1={displayPoints[i].y} x2={pt.x} y2={pt.y} />
             ))}
 
             {/* Current point dot */}

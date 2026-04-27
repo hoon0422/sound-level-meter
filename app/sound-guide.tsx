@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import AnalysisGraph from "@/components/AnalysisGraph";
-import { useSoundLevelMeter } from "@/hooks/useSoundLevelMeter";
+import { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import AnalysisGraph from '@/components/AnalysisGraph';
+import { useSoundLevelMeter } from '@/hooks/useSoundLevelMeter';
 
 const DISPLAY_INTERVAL_MS = 300;
 
@@ -19,7 +19,7 @@ export default function SoundGuideScreen() {
     }
   }, [dbfs]);
 
-  const dbDisplay = isRunning ? `${displayDb.toFixed(1)} dB` : "— dB";
+  const dbDisplay = isRunning ? `${displayDb.toFixed(1)} dB` : '— dB';
 
   return (
     <View style={styles.page}>
@@ -31,7 +31,7 @@ export default function SoundGuideScreen() {
         disabled={isBusy}
         activeOpacity={0.8}
       >
-        <Ionicons name={isRunning ? "stop" : "mic"} size={32} color="#fff" />
+        <Ionicons name={isRunning ? 'stop' : 'mic'} size={32} color="#fff" />
       </TouchableOpacity>
     </View>
   );
@@ -40,33 +40,33 @@ export default function SoundGuideScreen() {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 16,
     paddingVertical: 24,
-    backgroundColor: "#FEFAEE",
+    backgroundColor: '#FEFAEE',
   },
   dbText: {
     fontSize: 48,
-    fontWeight: "700",
-    color: "#000",
+    fontWeight: '700',
+    color: '#000',
   },
   micButton: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: "#FF8C00",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#FF8C00',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: "#333333",
-    shadowColor: "#333333",
+    borderColor: '#333333',
+    shadowColor: '#333333',
     shadowOffset: { width: 2, height: 1 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 3,
   },
   micButtonRecording: {
-    backgroundColor: "#cc3300",
+    backgroundColor: '#cc3300',
   },
 });

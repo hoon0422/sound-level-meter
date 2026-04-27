@@ -6,7 +6,7 @@ import {
   disconnectMicrophoneEngine,
   resumeMicrophoneEngine,
   stopMicrophoneEngine,
-} from "./engine";
+} from './engine';
 
 export type { AudioEngineConfig };
 
@@ -184,8 +184,7 @@ export class MicrophoneController {
       });
       return true;
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown error occurred";
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
       this.emitState({
         ...createIdleMicrophoneState(),
         error: message,

@@ -15,7 +15,7 @@ const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
       theme: (Appearance.getColorScheme() as Theme) ?? 'light',
-      setTheme: (theme) => set({ theme }),
+      setTheme: theme => set({ theme }),
       toggleTheme: () => set({ theme: get().theme === 'light' ? 'dark' : 'light' }),
     }),
     {

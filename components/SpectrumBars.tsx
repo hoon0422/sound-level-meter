@@ -1,7 +1,7 @@
-import { CALIBRATION_PEAK_DBFS } from "@/audio/engine";
-import { SPECTRUM_BANDS } from "@/audio/spectrum";
-import { memo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { CALIBRATION_PEAK_DBFS } from '@/audio/engine';
+import { SPECTRUM_BANDS } from '@/audio/spectrum';
+import { memo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 const BAR_HEIGHT = 180;
 const MIN_DB = 10;
@@ -26,14 +26,12 @@ function dbToHeight(db: number) {
 }
 
 function meterColorDb(db: number) {
-  if (db < 40) return "#4caf50";
-  if (db < 70) return "#ff9800";
-  return "#f44336";
+  if (db < 40) return '#4caf50';
+  if (db < 70) return '#ff9800';
+  return '#f44336';
 }
 
-export const SpectrumBars = memo(function SpectrumBars({
-  bars,
-}: SpectrumBarsProps) {
+export const SpectrumBars = memo(function SpectrumBars({ bars }: SpectrumBarsProps) {
   return (
     <View style={styles.spectrumContainer}>
       <View style={styles.spectrumChart}>
@@ -86,48 +84,48 @@ export const SpectrumBars = memo(function SpectrumBars({
 
 const styles = StyleSheet.create({
   spectrumContainer: {
-    width: "90%",
-    alignItems: "center",
-    justifyContent: "center",
+    width: '90%',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 4,
   },
   spectrumChart: {
-    flexDirection: "row",
-    width: "100%",
+    flexDirection: 'row',
+    width: '100%',
   },
   dbAxis: {
     width: 30,
     height: BAR_HEIGHT,
-    position: "relative",
+    position: 'relative',
   },
   dbAxisSpacer: {
     width: 30,
   },
   dbLabel: {
-    position: "absolute",
+    position: 'absolute',
     right: 4,
     fontSize: 9,
-    color: "#999",
+    color: '#999',
   },
   chartArea: {
     flex: 1,
     height: BAR_HEIGHT,
-    position: "relative",
+    position: 'relative',
     borderLeftWidth: 1,
     borderBottomWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
   },
   gridLine: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: '#e0e0e0',
   },
   barsRow: {
     height: BAR_HEIGHT,
-    flexDirection: "row",
-    alignItems: "flex-end",
+    flexDirection: 'row',
+    alignItems: 'flex-end',
     gap: 4,
     paddingHorizontal: 4,
   },
@@ -136,18 +134,18 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   freqLabelsRow: {
-    flexDirection: "row",
-    width: "100%",
+    flexDirection: 'row',
+    width: '100%',
   },
   freqLabelsInner: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 4,
   },
   freqLabel: {
     flex: 1,
     fontSize: 9,
-    color: "#999",
-    textAlign: "center",
+    color: '#999',
+    textAlign: 'center',
   },
 });
