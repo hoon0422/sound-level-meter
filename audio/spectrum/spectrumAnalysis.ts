@@ -17,7 +17,6 @@ export type SpectrumFrameAnalysis = {
   bars: number[];
 };
 
->>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
@@ -70,13 +69,6 @@ function smoothArray(prev: number[], next: number[], alpha: number) {
   });
 }
 
-<<<<<<< HEAD
-=======
-export function calibrateDbfsForDisplay(dbfs: number) {
-  return dbfs + CALIBRATION_PEAK_DBFS;
-}
-
->>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
 export function analyzeFrequencyFrame(
   freqData: Float32Array,
   prevBars: number[],

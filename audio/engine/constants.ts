@@ -8,8 +8,5 @@ export const DEFAULT_AUDIO_ENGINE_CONFIG: AudioEngineConfig = {
   maxDecibels: -10,
   autoResumeContext: true,
 };
-<<<<<<< HEAD
 
 export const CALIBRATION_PEAK_DBFS = 100;
-=======
->>>>>>> 51a2880 (feat: restructure audio processing with new microphone and spectrum analysis controllers, integrating zustand for state management)
