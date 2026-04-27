@@ -1,53 +1,120 @@
 import React, { useRef, useEffect } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Svg, { Line, Polyline, Text as SvgText } from 'react-native-svg';
-import useAudioStore from '../store/audioStore';
+import { useMicrophoneSpectrumStore } from '@/stores/useMicrophoneSpectrumStore';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CONTAINER_W = SCREEN_W - 48;
-const GRAPH_HEIGHT = 200;
-const PAD = { top: 15, bottom: 25, left: 24, right: 8 };
-const INNER_H = GRAPH_HEIGHT - PAD.top - PAD.bottom;
-
-// 10 seconds fills the visible scroll area
-const SCROLL_W = CONTAINER_W - PAD.left; // scrollable inner width for 10s
-const PX_PER_SEC = SCROLL_W / 10;
+const INNER_H = 160;
+const X_AXIS_H = 20;
+const GRAPH_H = INNER_H + X_AXIS_H;
+const Y_AXIS_W = 28;
+const CHART_W = CONTAINER_W - Y_AXIS_W - 16;
+const PX_PER_SEC = 30;
+const MIN_PX_SPACING = 6; // downsample: ~5 pts/sec max
 
 const DB_MIN = 0;
 const DB_MAX = 100;
-const Y_LABELS = [0, 25, 50, 75, 100];
+const Y_LABELS = [100, 75, 50, 25, 0];
+const GRID_DBS = [25, 50, 75, 100];
+
+type Sample = { db: number; timestamp: number };
+type DisplayPoint = { x: number; y: number };
+
+function dbToY(db: number) {
+  return INNER_H - ((db - DB_MIN) / (DB_MAX - DB_MIN)) * INNER_H;
+}
+
+function dbToTop(db: number) {
+  return ((DB_MAX - db) / (DB_MAX - DB_MIN)) * INNER_H;
+}
+
+function LineSegment({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length = Math.sqrt(dx * dx + dy * dy);
+  if (length < 0.5) return null;
+  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        left: (x1 + x2) / 2 - length / 2,
+        top: (y1 + y2) / 2 - 0.75,
+        width: length,
+        height: 1.5,
+        backgroundColor: '#007aff',
+        transform: [{ rotate: `${angle}deg` }],
+      }}
+    />
+  );
+}
 
 export default function SoundGraph() {
-  const { isRecording, samples, recordingStartTime } = useAudioStore();
+  const { dbfs, isRunning } = useMicrophoneSpectrumStore();
   const scrollRef = useRef<ScrollView>(null);
+  const samplesRef = useRef<Sample[]>([]);
+  const startTimeRef = useRef<number | null>(null);
+  const prevIsRunningRef = useRef(false);
 
-  const START_MS = recordingStartTime ?? samples[0]?.timestamp ?? Date.now();
-
-  const totalSec = samples.length > 0
-    ? (samples[samples.length - 1].timestamp - START_MS) / 1000
-    : 0;
-
-  // SVG grows past 10s; minimum fills the visible area
-  const svgW = Math.max(SCROLL_W + PAD.right, totalSec * PX_PER_SEC + PAD.right);
-
-  // X-axis tick every second, label every 5s
-  const tickCount = Math.max(10, Math.ceil(totalSec));
-  const xTicks = Array.from({ length: tickCount + 1 }, (_, i) => i);
-
-  const polylinePoints = samples
-    .map((s) => {
-      const x = ((s.timestamp - START_MS) / 1000) * PX_PER_SEC;
-      const y = PAD.top + INNER_H - ((s.db - DB_MIN) / (DB_MAX - DB_MIN)) * INNER_H;
-      return `${x},${y}`;
-    })
-    .join(' ');
-
-  // Auto-scroll to latest while recording
   useEffect(() => {
-    if (isRecording) {
+    if (isRunning && !prevIsRunningRef.current) {
+      samplesRef.current = [];
+      startTimeRef.current = Date.now();
+    } else if (!isRunning && prevIsRunningRef.current) {
+      samplesRef.current = [];
+      startTimeRef.current = null;
+    }
+    prevIsRunningRef.current = isRunning;
+  }, [isRunning]);
+
+  useEffect(() => {
+    if (isRunning && dbfs > 0) {
+      samplesRef.current.push({ db: dbfs, timestamp: Date.now() });
+    }
+  }, [dbfs, isRunning]);
+
+  useEffect(() => {
+    if (isRunning) {
       scrollRef.current?.scrollToEnd({ animated: false });
     }
-  }, [samples.length, isRecording]);
+  }, [dbfs, isRunning]);
+
+  const samples = samplesRef.current;
+  const startMs = startTimeRef.current ?? samples[0]?.timestamp ?? Date.now();
+  const totalElapsed =
+    samples.length > 0 ? (samples[samples.length - 1].timestamp - startMs) / 1000 : 0;
+  const innerW = Math.max(CHART_W, totalElapsed * PX_PER_SEC);
+
+  // Downsample for display: keep at most one point per MIN_PX_SPACING px
+  const displayPoints: DisplayPoint[] = [];
+  let lastX = -Infinity;
+  for (const s of samples) {
+    const x = ((s.timestamp - startMs) / 1000) * PX_PER_SEC;
+    if (x - lastX >= MIN_PX_SPACING) {
+      displayPoints.push({ x, y: dbToY(s.db) });
+      lastX = x;
+    }
+  }
+  // Always include the last sample
+  if (samples.length > 0) {
+    const last = samples[samples.length - 1];
+    const lastX2 = ((last.timestamp - startMs) / 1000) * PX_PER_SEC;
+    const prev = displayPoints[displayPoints.length - 1];
+    if (!prev || lastX2 - prev.x > 1) {
+      displayPoints.push({ x: lastX2, y: dbToY(last.db) });
+    }
+  }
+
+  // Time labels every 5 seconds
+  const timeLabels: { x: number; label: string }[] = [];
+  let nextSec = 0;
+  for (const s of samples) {
+    const elapsed = (s.timestamp - startMs) / 1000;
+    if (elapsed >= nextSec) {
+      timeLabels.push({ x: ((s.timestamp - startMs) / 1000) * PX_PER_SEC, label: `${nextSec}s` });
+      nextSec += 5;
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -56,69 +123,67 @@ export default function SoundGraph() {
       </View>
 
       <View style={styles.graphRow}>
-        {/* Fixed Y-axis labels */}
-        <Svg width={PAD.left} height={GRAPH_HEIGHT} style={styles.yAxisSvg}>
-          {Y_LABELS.map((db) => {
-            const y = PAD.top + INNER_H - ((db - DB_MIN) / (DB_MAX - DB_MIN)) * INNER_H;
-            return (
-              <SvgText key={db} x={PAD.left - 3} y={y + 4} fontSize={8} fill="#8e8e93" textAnchor="end">
-                {db}
-              </SvgText>
-            );
-          })}
-        </Svg>
+        {/* Fixed Y-axis */}
+        <View style={{ width: Y_AXIS_W, height: GRAPH_H }}>
+          {Y_LABELS.map((db) => (
+            <Text key={`y-${db}`} style={[styles.yLabelText, { top: dbToTop(db) - 6 }]}>
+              {db}
+            </Text>
+          ))}
+        </View>
 
-        {/* Scrollable graph */}
+        {/* Scrollable chart */}
         <ScrollView
           ref={scrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{ flex: 1 }}
           scrollEventThrottle={16}
+          style={{ flex: 1 }}
         >
-          <Svg width={svgW} height={GRAPH_HEIGHT}>
-            {/* Y-axis grid lines */}
-            {Y_LABELS.map((db) => {
-              const y = PAD.top + INNER_H - ((db - DB_MIN) / (DB_MAX - DB_MIN)) * INNER_H;
-              return (
-                <Line key={db} x1={0} y1={y} x2={svgW} y2={y} stroke="#e0e0e0" strokeWidth={1} />
-              );
-            })}
+          <View style={{ width: innerW, height: GRAPH_H }}>
+            {/* Grid lines */}
+            {GRID_DBS.map((db) => (
+              <View
+                key={`grid-${db}`}
+                style={[styles.gridLine, { top: dbToTop(db), width: innerW }]}
+              />
+            ))}
+            {/* Baseline */}
+            <View style={[styles.baseline, { width: innerW }]} />
 
-            {/* X-axis baseline */}
-            <Line x1={0} y1={PAD.top + INNER_H} x2={svgW} y2={PAD.top + INNER_H} stroke="#ccc" strokeWidth={1} />
+            {/* Line segments */}
+            {displayPoints.slice(1).map((pt, i) => (
+              <LineSegment
+                key={`seg-${i}`}
+                x1={displayPoints[i].x}
+                y1={displayPoints[i].y}
+                x2={pt.x}
+                y2={pt.y}
+              />
+            ))}
 
-            {/* X-axis ticks + labels */}
-            {xTicks.map((sec) => {
-              const x = sec * PX_PER_SEC;
-              return (
-                <React.Fragment key={sec}>
-                  <Line
-                    x1={x} y1={PAD.top + INNER_H}
-                    x2={x} y2={PAD.top + INNER_H + 4}
-                    stroke="#ccc" strokeWidth={1}
-                  />
-                  {sec % 5 === 0 && (
-                    <SvgText x={x} y={GRAPH_HEIGHT - 4} fontSize={8} fill="#8e8e93" textAnchor="middle">
-                      {sec}s
-                    </SvgText>
-                  )}
-                </React.Fragment>
-              );
-            })}
-
-            {/* Data line */}
-            {samples.length > 1 && (
-              <Polyline
-                points={polylinePoints}
-                fill="none"
-                stroke={isRecording ? '#007aff' : '#8e8e93'}
-                strokeWidth={1.5}
-                strokeLinejoin="round"
-                strokeLinecap="round"
+            {/* Current point dot */}
+            {displayPoints.length > 0 && (
+              <View
+                style={{
+                  position: 'absolute',
+                  left: displayPoints[displayPoints.length - 1].x - 3,
+                  top: displayPoints[displayPoints.length - 1].y - 3,
+                  width: 6,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: isRunning ? '#007aff' : '#8e8e93',
+                }}
               />
             )}
-          </Svg>
+
+            {/* X-axis labels */}
+            {timeLabels.map(({ x, label }) => (
+              <Text key={`lbl-${label}`} style={[styles.xLabel, { left: x }]}>
+                {label}
+              </Text>
+            ))}
+          </View>
         </ScrollView>
       </View>
 
@@ -155,8 +220,31 @@ const styles = StyleSheet.create({
   graphRow: {
     flexDirection: 'row',
   },
-  yAxisSvg: {
-    flexShrink: 0,
+  yLabelText: {
+    position: 'absolute',
+    right: 4,
+    fontSize: 8,
+    color: '#8e8e93',
+    textAlign: 'right',
+  },
+  gridLine: {
+    position: 'absolute',
+    left: 0,
+    height: 1,
+    backgroundColor: '#e0e0e0',
+  },
+  baseline: {
+    position: 'absolute',
+    top: INNER_H,
+    left: 0,
+    height: 1,
+    backgroundColor: '#ccc',
+  },
+  xLabel: {
+    position: 'absolute',
+    top: INNER_H + 4,
+    fontSize: 8,
+    color: '#8e8e93',
   },
   xAxisLabel: {
     fontSize: 9,

@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, Dimensions, Text } from 'react-native';
-import useAudioStore from '../store/audioStore';
+import { useMicrophoneSpectrumStore } from '@/stores/useMicrophoneSpectrumStore';
 
-const OFFSET = 90;
+const DISPLAY_INTERVAL_MS = 300;
 
 const RANGES = [
   { min: 0,   max: 20,  label: "Barely audible", display: "<20" },
@@ -18,12 +18,19 @@ const RANGES = [
 ];
 
 export default function AnalysisGraph() {
-  const { metering } = useAudioStore();
+  const { dbfs, isRunning } = useMicrophoneSpectrumStore();
+  const [displayDb, setDisplayDb] = useState(0);
+  const lastUpdateRef = useRef(0);
 
-  // Calculate current dB level
-  const currentDb = metering !== undefined 
-    ? Math.min(150, Math.max(0, metering + OFFSET)) 
-    : null;
+  useEffect(() => {
+    const now = Date.now();
+    if (now - lastUpdateRef.current >= DISPLAY_INTERVAL_MS) {
+      setDisplayDb(dbfs);
+      lastUpdateRef.current = now;
+    }
+  }, [dbfs]);
+
+  const currentDb = isRunning ? Math.min(150, Math.max(0, displayDb)) : null;
 
   return (
     <View style={styles.container}>

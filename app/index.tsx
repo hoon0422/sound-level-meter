@@ -53,6 +53,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingBlock: 40,
     paddingInline: 20,
+    backgroundColor: "#FEFAEE",
   },
   container: {
     flex: 1,

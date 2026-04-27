@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import AnalysisGraph from "@/components/AnalysisGraph";
+import SoundGraph from "@/components/SoundGraph";
 import { useSoundLevelMeter } from "@/hooks/useSoundLevelMeter";
 
 const DISPLAY_INTERVAL_MS = 300;
 
-export default function SoundGuideScreen() {
-  const { dbfs, isRunning, isBusy, toggleRecording } = useSoundLevelMeter();
+export default function DbTimeScreen() {
+  const { dbfs, isBusy, isRunning, toggleRecording } = useSoundLevelMeter();
   const [displayDb, setDisplayDb] = useState(0);
   const lastUpdateRef = useRef(0);
 
@@ -24,7 +24,7 @@ export default function SoundGuideScreen() {
   return (
     <View style={styles.page}>
       <Text style={styles.dbText}>{dbDisplay}</Text>
-      <AnalysisGraph />
+      <SoundGraph />
       <TouchableOpacity
         style={[styles.micButton, isRunning && styles.micButtonRecording]}
         onPress={toggleRecording}
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FEFAEE",
   },
   dbText: {
-    fontSize: 48,
+    fontSize: 52,
     fontWeight: "700",
     color: "#000",
   },
@@ -58,13 +58,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF8C00",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#333333",
-    shadowColor: "#333333",
-    shadowOffset: { width: 2, height: 1 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
+    shadowColor: "#FF8C00",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
   },
   micButtonRecording: {
     backgroundColor: "#cc3300",

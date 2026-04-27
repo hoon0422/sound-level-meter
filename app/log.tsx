@@ -6,10 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
-import useAudioStore, { RecordingLog } from '../store/audioStore';
+import useLogsStore, { RecordingLog } from '@/store/logsStore';
 
 export default function LogScreen() {
-  const { logs, clearLogs } = useAudioStore();
+  const { logs, clearLogs } = useLogsStore();
 
   const renderItem = ({ item, index }: { item: RecordingLog; index: number }) => (
     <View style={styles.card}>

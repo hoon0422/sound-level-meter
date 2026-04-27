@@ -1,7 +1,6 @@
 import { Tabs, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity } from "react-native";
-import { RecordingProvider } from "@/context/RecordingContext";
 
 function SettingsButton() {
   const router = useRouter();
@@ -18,8 +17,7 @@ function SettingsButton() {
 
 export default function RootLayout() {
   return (
-    <RecordingProvider>
-      <Tabs
+    <Tabs
         screenOptions={{
           headerShown: true,
           headerTitle: "",
@@ -35,7 +33,7 @@ export default function RootLayout() {
         }}
       >
         <Tabs.Screen
-          name="index"
+          name="db-time"
           options={{
             title: "dB/Time",
             tabBarIcon: ({ color, size }) => (
@@ -44,7 +42,7 @@ export default function RootLayout() {
           }}
         />
         <Tabs.Screen
-          name="db-freq"
+          name="index"
           options={{
             title: "dB/Freq",
             tabBarIcon: ({ color, size }) => (
@@ -73,6 +71,5 @@ export default function RootLayout() {
         <Tabs.Screen name="record" options={{ href: null }} />
         <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />
       </Tabs>
-    </RecordingProvider>
   );
 }
