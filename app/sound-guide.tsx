@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AnalysisGraph from '@/components/AnalysisGraph';
 import { useSoundLevelMeter } from '@/hooks/useSoundLevelMeter';
@@ -33,7 +33,11 @@ export default function SoundGuideScreen() {
         disabled={isBusy}
         activeOpacity={0.8}
       >
-        <Ionicons name={isRunning ? 'stop' : 'mic'} size={32} color="#fff" />
+        {isRunning ? (
+          <Ionicons name="stop" size={32} color="#fff" />
+        ) : (
+          <Image source={require('./assets/icons/mic.png')} style={{ height: 38, width: 120 }} resizeMode="contain" />
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -52,9 +56,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   micButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#FF8C00',
     alignItems: 'center',
     justifyContent: 'center',

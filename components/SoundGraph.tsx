@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useMicrophoneSpectrumStore } from '@/stores/useMicrophoneSpectrumStore';
+import { useTheme } from '@/context/ThemeContext';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CONTAINER_W = SCREEN_W - 48;
@@ -13,9 +14,9 @@ const PX_PER_SEC = 30;
 const MIN_PX_SPACING = 6; // downsample: ~5 pts/sec max
 
 const DB_MIN = 0;
-const DB_MAX = 100;
-const Y_LABELS = [100, 75, 50, 25, 0];
-const GRID_DBS = [25, 50, 75, 100];
+const DB_MAX = 120;
+const Y_LABELS = [120, 100, 80, 60, 40, 20, 0];
+const GRID_DBS = [20, 40, 60, 80, 100, 120];
 
 type Sample = { db: number; timestamp: number };
 type DisplayPoint = { x: number; y: number };
@@ -29,6 +30,7 @@ function dbToTop(db: number) {
 }
 
 function LineSegment({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
+  const { colors } = useTheme();
   const dx = x2 - x1;
   const dy = y2 - y1;
   const length = Math.sqrt(dx * dx + dy * dy);
@@ -42,7 +44,7 @@ function LineSegment({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y
         top: (y1 + y2) / 2 - 0.75,
         width: length,
         height: 1.5,
-        backgroundColor: '#007aff',
+        backgroundColor: colors.primary,
         transform: [{ rotate: `${angle}deg` }],
       }}
     />
@@ -50,6 +52,7 @@ function LineSegment({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y
 }
 
 export default function SoundGraph() {
+  const { colors } = useTheme();
   const { dbfs, isRunning } = useMicrophoneSpectrumStore();
   const scrollRef = useRef<ScrollView>(null);
   const samplesRef = useRef<Sample[]>([]);
@@ -162,7 +165,7 @@ export default function SoundGraph() {
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  backgroundColor: isRunning ? '#007aff' : '#8e8e93',
+                  backgroundColor: isRunning ? colors.primary : '#8e8e93',
                 }}
               />
             )}
@@ -176,8 +179,6 @@ export default function SoundGraph() {
           </View>
         </ScrollView>
       </View>
-
-      <Text style={styles.xAxisLabel}>Time (s)</Text>
     </View>
   );
 }
@@ -198,6 +199,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   yAxisLabel: {
+    fontSize: 10,
     position: 'absolute',
     top: 8,
     left: 8,
@@ -213,8 +215,8 @@ const styles = StyleSheet.create({
   yLabelText: {
     position: 'absolute',
     right: 4,
-    fontSize: 8,
-    color: '#8e8e93',
+    fontSize: 11,
+    color: '#AAAAAA',
     textAlign: 'right',
   },
   gridLine: {
@@ -235,12 +237,5 @@ const styles = StyleSheet.create({
     top: INNER_H + 4,
     fontSize: 8,
     color: '#8e8e93',
-  },
-  xAxisLabel: {
-    fontSize: 9,
-    fontWeight: '600',
-    color: '#8e8e93',
-    textAlign: 'center',
-    marginTop: 2,
   },
 });
