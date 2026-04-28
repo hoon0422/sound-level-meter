@@ -49,7 +49,8 @@
           "iosMicrophonePermission": "This app needs microphone access for audio analysis.",
           "androidPermissions": ["android.permission.RECORD_AUDIO"]
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

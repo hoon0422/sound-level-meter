@@ -1,0 +1,79 @@
+{
+  "tabs": {
+    "dbTime": "dB/Temps",
+    "dbFreq": "dB/Fréquence",
+    "soundGuide": "Description du son",
+    "records": "Enregistrer"
+  },
+  "stats": {
+    "min": "Minimum",
+    "average": "Moyenne",
+    "max": "Maximum",
+    "db": "Décibel",
+    "freq": "Fréquence"
+  },
+  "log": {
+    "date": "Date de mesure",
+    "duration": "Durée de mesure",
+    "noRecordings": "Aucun enregistrement",
+    "noRecordingsSubText": "Commencez l'enregistrement pour voir votre historique ici"
+  },
+  "days": {
+    "mon": "Lundi",
+    "tue": "Mardi",
+    "wed": "Mercredi",
+    "thu": "Jeudi",
+    "fri": "Vendredi",
+    "sat": "Samedi",
+    "sun": "Dimanche"
+  },
+  "warning": "Avertissement !",
+  "soundGuide": {
+    "lt30": ["Forêt paisible", "Bruissement des feuilles", "Tic-tac d'une horloge", "Bruit de la neige qui tombe"],
+    "db30": ["Quartier résidentiel à minuit", "Murmure très doux", "Intérieur d'une bibliothèque", "Brise légère"],
+    "db40": ["Parc calme", "Quartier résidentiel de jour", "Bruit de pluie légère", "Parc calme"],
+    "db50": ["Bureau calme", "Ronronnement du frigo", "Conversation calme", "Café calme"],
+    "db60": ["Conversation normale", "Bruit de grand magasin", "Bruit de lave-linge", "Restaurant calme"],
+    "db70": ["Sonnerie de téléphone", "Bureau bruyant", "Bruit d'aspirateur", "Rue animée"],
+    "db80": ["Bruit dans le métro", "Bruit au bord des rails", "Intérieur d'une usine bruyante", "Mixeur"],
+    "db90": ["Usine bruyante", "Bruit d'excavatrice", "Bruit de gros camions", "Tondeuse à gazon"],
+    "db100": ["Bruit d'un train qui passe", "Bruit de perceuse", "Bruit de klaxon", "Tronçonneuse"],
+    "gt110": ["Salle de concert de rock", "Bruit d'avion au décollage", "Bruit du tonnerre", "Sirène de pompier à proximité"]
+  },
+  "analysisGraph": {
+    "barelyAudible": "À peine audible",
+    "quietForest": "Forêt paisible",
+    "library": "Bibliothèque",
+    "lightRainfall": "Pluie légère",
+    "casualTalk": "Conversation légère",
+    "busyStreet": "Rue animée",
+    "heavyTraffic": "Trafic dense",
+    "subway": "Métro",
+    "planeTakingOff": "Avion au décollage",
+    "dangerZone": "Zone dangereuse"
+  },
+  "permissions": {
+    "micTitle": "« Decibella 2 » souhaite accéder au micro.",
+    "micMessage": "Cette application nécessite l'accès au micro pour mesurer et afficher les niveaux sonores ambiants en temps réel. Les données audio sont utilisées uniquement pour le calcul des décibels et ne sont jamais enregistrées ni stockées."
+  },
+  "settings": {
+    "title": "Paramètres",
+    "howToUse": "Mode d'emploi",
+    "language": "Langue",
+    "theme": "Thème",
+    "dark": "Sombre",
+    "light": "Clair",
+    "instagram": "Instagram",
+    "twitter": "X (Twitter)",
+    "sunnyApps": "Sunny Jeux et Apps",
+    "credits": "Crédits",
+    "openSource": "Infos open source",
+    "appVersion": "Version de l'app",
+    "terms": "Conditions",
+    "privacy": "Confidentialité",
+    "link": "Lien",
+    "comingSoonTitle": "Bientôt disponible",
+    "comingSoonMessage": "Cette fonctionnalité sera disponible dans une prochaine mise à jour.",
+    "linkErrorTitle": "Impossible d'ouvrir le lien"
+  }
+}

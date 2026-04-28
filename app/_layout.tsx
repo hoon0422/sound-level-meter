@@ -6,8 +6,11 @@ import { Tabs, useRouter } from 'expo-router';
 import { Image, Text, TouchableOpacity } from 'react-native';
 import { useEffect } from 'react';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { LanguageProvider } from '@/context/LanguageContext';
 import { useFonts, DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import * as SplashScreen from 'expo-splash-screen';
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -53,56 +56,59 @@ export default function RootLayout() {
 
   if (!fontsLoaded) return null;
 
+  const { t } = useTranslation();
   return (
     <ThemeProvider>
-      <Tabs
-        screenOptions={{
-          headerShown: true,
-          headerTitle: '',
-          headerStyle: { backgroundColor: colors.background },
-          headerShadowVisible: false,
-          headerLeft: () => <Decibella />,
-          headerRight: () => <SettingsButton />,
-          tabBarActiveTintColor: colors.primary, tabBarLabelStyle: { fontFamily: 'DMSans_500Medium' },
-        }}
-      >
-      <Tabs.Screen
-        name="index"
-        options={{
-          href: null, // This hides the tab from the bottom bar
-        }}
-      />
+      <LanguageProvider>
+        <Tabs
+          screenOptions={{
+            headerShown: true,
+            headerTitle: '',
+            headerStyle: { backgroundColor: colors.background },
+            headerShadowVisible: false,
+            headerLeft: () => <Decibella />,
+            headerRight: () => <SettingsButton />,
+            tabBarActiveTintColor: colors.primary, tabBarLabelStyle: { fontFamily: 'DMSans_500Medium' },
+          }}
+        >
         <Tabs.Screen
-          name="db-time"
+          name="index"
           options={{
-            title: 'dB/Time',
-            tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/graph.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
+            href: null, // This hides the tab from the bottom bar
           }}
         />
-        <Tabs.Screen
-          name="db-freq"
-          options={{
-            title: 'dB/Freq',
-            tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/chart.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
-          }}
-        />
-        <Tabs.Screen
-          name="sound-guide"
-          options={{
-            title: 'Sound Guide',
-            tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/book.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
-          }}
-        />
-        <Tabs.Screen
-          name="log"
-          options={{
-            title: 'Log',
-            tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/list.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
-          }}
-        />
-        <Tabs.Screen name="record" options={{ href: null }} />
-        <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />
-      </Tabs>
+          <Tabs.Screen
+            name="db-time"
+            options={{
+              title: t('tabs.dbTime'),
+              tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/graph.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
+            }}
+          />
+          <Tabs.Screen
+            name="db-freq"
+            options={{
+              title: t('tabs.dbFreq'),
+              tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/chart.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
+            }}
+          />
+          <Tabs.Screen
+            name="sound-guide"
+            options={{
+              title: t('tabs.soundGuide'),
+              tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/book.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
+            }}
+          />
+          <Tabs.Screen
+            name="log"
+            options={{
+              title: t('tabs.log'),
+              tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/list.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
+            }}
+          />
+          <Tabs.Screen name="record" options={{ href: null }} />
+          <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />
+        </Tabs>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

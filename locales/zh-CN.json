@@ -1,0 +1,79 @@
+{
+  "tabs": {
+    "dbTime": "dB/时间",
+    "dbFreq": "dB/频率",
+    "soundGuide": "声音说明",
+    "records": "记录"
+  },
+  "stats": {
+    "min": "最小",
+    "average": "平均",
+    "max": "最大",
+    "db": "分贝",
+    "freq": "频率"
+  },
+  "log": {
+    "date": "测量日期",
+    "duration": "测量持续时间",
+    "noRecordings": "还没有记录",
+    "noRecordingsSubText": "开始录制，在此查看历史记录"
+  },
+  "days": {
+    "mon": "星期一",
+    "tue": "星期二",
+    "wed": "星期三",
+    "thu": "星期四",
+    "fri": "星期五",
+    "sat": "星期六",
+    "sun": "星期日"
+  },
+  "warning": "警告!",
+  "soundGuide": {
+    "lt30": ["安静的森林", "树叶沙沙声", "时钟秒针声", "下雪声"],
+    "db30": ["深夜的住宅区", "极小声的耳语", "图书馆内部", "微风"],
+    "db40": ["安静的公园", "白天的住宅区", "轻微的雨声", "安静的公园"],
+    "db50": ["安静的办公室", "冰箱运行声", "安静处的日常对话", "安静的咖啡馆"],
+    "db60": ["普通的谈话声", "百货公司内的噪音", "洗衣机运行声", "安静的餐厅"],
+    "db70": ["电话铃声", "吵闹的办公室", "吸尘器噪音", "繁华街街道"],
+    "db80": ["地铁内的噪音", "铁路沿线的噪音", "吵闹的工厂内", "搅拌机"],
+    "db90": ["噪音严重的工厂", "挖掘机作业噪音", "大卡车通行声", "割草机"],
+    "db100": ["火车经过时的噪音", "电钻声", "汽车喇叭声", "电锯"],
+    "gt110": ["摇滚乐队演唱会场", "飞机起降噪音", "雷声", "近距离消防车警笛"]
+  },
+  "analysisGraph": {
+    "barelyAudible": "几乎听不见",
+    "quietForest": "安静的森林",
+    "library": "图书馆",
+    "lightRainfall": "轻微雨声",
+    "casualTalk": "日常交谈",
+    "busyStreet": "繁华街道",
+    "heavyTraffic": "交通噪音",
+    "subway": "地铁",
+    "planeTakingOff": "飞机起飞",
+    "dangerZone": "危险区域"
+  },
+  "permissions": {
+    "micTitle": "\"Decibella 2\"想访问您的麦克风。",
+    "micMessage": "此应用需要麦克风权限来实时测量并显示环境噪音水平。音频数据仅用于计算分贝，绝不会被录制或存储。"
+  },
+  "settings": {
+    "title": "设置",
+    "howToUse": "使用方法",
+    "language": "语言",
+    "theme": "主题",
+    "dark": "深色",
+    "light": "浅色",
+    "instagram": "Instagram",
+    "twitter": "X (推特)",
+    "sunnyApps": "Sunny 游戏应用",
+    "credits": "致谢",
+    "openSource": "开源信息",
+    "appVersion": "应用版本",
+    "terms": "条款",
+    "privacy": "隐私",
+    "link": "链接",
+    "comingSoonTitle": "即将推出",
+    "comingSoonMessage": "此功能将在未来的更新中推出。",
+    "linkErrorTitle": "无法打开链接"
+  }
+}
