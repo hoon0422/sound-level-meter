@@ -3,10 +3,12 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AnalysisGraph from '@/components/AnalysisGraph';
 import { useSoundLevelMeter } from '@/hooks/useSoundLevelMeter';
+import { useTheme } from '@/context/ThemeContext';
 
 const DISPLAY_INTERVAL_MS = 300;
 
 export default function SoundGuideScreen() {
+  const { colors } = useTheme();
   const { dbfs, isRunning, isBusy, toggleRecording } = useSoundLevelMeter();
   const [displayDb, setDisplayDb] = useState(0);
   const lastUpdateRef = useRef(0);
@@ -22,8 +24,8 @@ export default function SoundGuideScreen() {
   const dbDisplay = isRunning ? `${displayDb.toFixed(1)} dB` : '— dB';
 
   return (
-    <View style={styles.page}>
-      <Text style={styles.dbText}>{dbDisplay}</Text>
+    <View style={[styles.page, { backgroundColor: colors.background }]}>
+      <Text style={[styles.dbText, { color: colors.text }]}>{dbDisplay}</Text>
       <AnalysisGraph />
       <TouchableOpacity
         style={[styles.micButton, isRunning && styles.micButtonRecording]}
@@ -44,12 +46,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 16,
     paddingVertical: 24,
-    backgroundColor: '#FEFAEE',
   },
   dbText: {
     fontSize: 48,
     fontWeight: '700',
-    color: '#000',
   },
   micButton: {
     width: 72,

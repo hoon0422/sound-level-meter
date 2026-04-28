@@ -2,13 +2,15 @@ import { SpectrumBars } from '@/components/SpectrumBars';
 import { StatsPanel } from '@/components/StatsPanel';
 import { useSoundLevelMeter } from '@/hooks/useSoundLevelMeter';
 import { Button, StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function App() {
+  const { colors } = useTheme();
   const { bars, buttonTitle, dbfs, elapsedSeconds, error, isBusy, isRunning, isStarting, peakHz, toggleRecording } =
     useSoundLevelMeter();
 
   return (
-    <View style={styles.page}>
+    <View style={[styles.page, { backgroundColor: colors.background }]}>
       <View style={styles.container}>
         {isRunning ? (
           <View style={styles.content}>
@@ -32,7 +34,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingBlock: 40,
     paddingInline: 20,
-    backgroundColor: '#FEFAEE',
   },
   container: {
     flex: 1,
