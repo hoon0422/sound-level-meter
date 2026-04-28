@@ -2,10 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import useLogsStore, { RecordingLog } from '@/store/logsStore';
 import { useTheme } from '@/context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export default function LogScreen() {
   const { colors } = useTheme();
-  const { logs, clearLogs } = useLogsStore();
+  const { t } = useTranslation();
+  const { logs } = useLogsStore();
 
   const renderItem = ({ item, index }: { item: RecordingLog; index: number }) => (
     <View style={styles.card}>
@@ -20,22 +22,22 @@ export default function LogScreen() {
 
       <View style={styles.statsRow}>
         <View style={styles.stat}>
-          <Text style={styles.statLabel}>Duration</Text>
+          <Text style={styles.statLabel}>{t('log.duration')}</Text>
           <Text style={styles.statValue}>{item.duration}</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.stat}>
-          <Text style={styles.statLabel}>Max</Text>
+          <Text style={styles.statLabel}>{t('stats.max')}</Text>
           <Text style={[styles.statValue, styles.maxColor]}>{item.maxDb} dB</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.stat}>
-          <Text style={styles.statLabel}>Min</Text>
+          <Text style={styles.statLabel}>{t('stats.min')}</Text>
           <Text style={[styles.statValue, styles.minColor]}>{item.minDb} dB</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.stat}>
-          <Text style={styles.statLabel}>Avg</Text>
+          <Text style={styles.statLabel}>{t('stats.average')}</Text>
           <Text style={[styles.statValue, styles.avgColor]}>{item.avgDb} dB</Text>
         </View>
       </View>
@@ -46,8 +48,8 @@ export default function LogScreen() {
     <View style={[styles.page, { backgroundColor: colors.background }]}>
       {logs.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>No recordings yet</Text>
-          <Text style={styles.emptySubText}>Start recording to see your history here</Text>
+          <Text style={styles.emptyText}>{t('log.noRecordings')}</Text>
+          <Text style={styles.emptySubText}>{t('log.noRecordingsSubText')}</Text>
         </View>
       ) : (
         <FlatList

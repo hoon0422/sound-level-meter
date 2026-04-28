@@ -13,13 +13,25 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage, type LanguageCode } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const APP_VERSION = '1.0';
 
-const LANGUAGE_OPTIONS = [{ label: 'English', value: 1 }];
+const LANGUAGE_OPTIONS: { label: string; value: LanguageCode }[] = [
+  { label: 'English', value: 'en' },
+  { label: '한국어', value: 'ko' },
+  { label: '日本語', value: 'ja' },
+  { label: '中文 (简体)', value: 'zh-CN' },
+  { label: '中文 (繁體)', value: 'zh-TW' },
+  { label: 'Français', value: 'fr' },
+  { label: 'Español', value: 'es' },
+];
 
 export default function SettingsPage() {
   const { colors: themeColors, themeName, setTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
+  const { t } = useTranslation();
   const isDark = themeName === 'dark';
   const theme = themeName;
 
@@ -36,8 +48,6 @@ export default function SettingsPage() {
   const updateTheme = (val: 'Dark' | 'Light') => setTheme(val === 'Dark' ? 'dark' : 'light');
 
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
-  const userLanguage = 1;
-  const language = 1;
 
   const { width: screenWidth } = useWindowDimensions();
   const isTablet = screenWidth >= 768;
@@ -47,11 +57,11 @@ export default function SettingsPage() {
     try {
       await Linking.openURL(url);
     } catch (error: any) {
-      Alert.alert('Could not open link', error.message);
+      Alert.alert(t('settings.linkErrorTitle'), error.message);
     }
   };
 
-  const comingSoon = () => Alert.alert('Coming Soon', 'This feature will be available in a future update.');
+  const comingSoon = () => Alert.alert(t('settings.comingSoonTitle'), t('settings.comingSoonMessage'));
 
   const dynamicStyles = useMemo(() => {
     const basePadding = isTablet ? 40 : 20;
@@ -135,7 +145,7 @@ export default function SettingsPage() {
         fontWeight: '500',
       },
       themeOptionTextActive: {
-        color: isDark ? '#fff"' : '#000',
+        color: isDark ? '#fff' : '#000',
         fontWeight: '600',
       },
       linkText: {
@@ -213,9 +223,9 @@ export default function SettingsPage() {
     <View style={dynamicStyles.container}>
       {/* Header */}
       <View style={dynamicStyles.header}>
-        <Image source={require('./assets/icons/setting.png')} style={[{ height: 24, width: 24, tintColor: colors.text }, styles.headerIcon]} resizeMode="contain" />
+        <Image source={require('../assets/icons/setting.png')} style={[{ height: 24, width: 24, tintColor: colors.text }, styles.headerIcon]} resizeMode="contain" />
         <Text allowFontScaling={false} style={dynamicStyles.headerTitle}>
-          Settings
+          {t('settings.title')}
         </Text>
       </View>
 
@@ -225,7 +235,7 @@ export default function SettingsPage() {
       >
         {/* How to Use */}
         <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
-          <Text style={dynamicStyles.settingLabel}>How To Use</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.howToUse')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
@@ -236,9 +246,9 @@ export default function SettingsPage() {
             activeOpacity={0.7}
             onPress={() => setIsLanguageOpen(!isLanguageOpen)}
           >
-            <Text style={dynamicStyles.settingLabel}>Language</Text>
+            <Text style={dynamicStyles.settingLabel}>{t('settings.language')}</Text>
             <View style={styles.languageContainer}>
-              <Text style={dynamicStyles.languageValue}>English</Text>
+              <Text style={dynamicStyles.languageValue}>{LANGUAGE_OPTIONS.find(o => o.value === language)?.label}</Text>
               <Ionicons name={isLanguageOpen ? 'chevron-up' : 'chevron-down'} size={20} color={colors.arrows} />
             </View>
           </TouchableOpacity>
@@ -252,17 +262,17 @@ export default function SettingsPage() {
                     dynamicStyles.languageOptionItem,
                     language === option.value && dynamicStyles.selectedLanguageOption,
                   ]}
-                  onPress={() => setIsLanguageOpen(false)}
+                  onPress={() => { setLanguage(option.value); setIsLanguageOpen(false); }}
                 >
                   <Text
                     style={[
                       dynamicStyles.languageOptionText,
-                      userLanguage === option.value && dynamicStyles.selectedLanguageText,
+                      language === option.value && dynamicStyles.selectedLanguageText,
                     ]}
                   >
                     {option.label}
                   </Text>
-                  {userLanguage === option.value && <Ionicons name="checkmark" size={20} color={colors.arrows} />}
+                  {language === option.value && <Ionicons name="checkmark" size={20} color={colors.arrows} />}
                 </TouchableOpacity>
               ))}
             </View>
@@ -271,14 +281,14 @@ export default function SettingsPage() {
 
         {/* Theme */}
         <View style={dynamicStyles.settingItem}>
-          <Text style={dynamicStyles.settingLabel}>Theme</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.theme')}</Text>
           <View style={dynamicStyles.themeContainer}>
             <TouchableOpacity
               style={[dynamicStyles.themeOption, theme === 'dark' && dynamicStyles.themeOptionActive]}
               onPress={() => updateTheme('Dark')}
             >
               <Text style={[dynamicStyles.themeOptionText, theme === 'dark' && dynamicStyles.themeOptionTextActive]}>
-                Dark
+                {t('settings.dark')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -286,7 +296,7 @@ export default function SettingsPage() {
               onPress={() => updateTheme('Light')}
             >
               <Text style={[dynamicStyles.themeOptionText, theme === 'light' && dynamicStyles.themeOptionTextActive]}>
-                Light
+                {t('settings.light')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -294,44 +304,44 @@ export default function SettingsPage() {
 
         {/* Instagram */}
         <View style={dynamicStyles.settingItem}>
-          <Text style={dynamicStyles.settingLabel}>Instagram</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.instagram')}</Text>
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() => handleLinkPress('https://www.instagram.com/sunnyinnolab/')}
           >
-            <Text style={dynamicStyles.linkText}>Link</Text>
+            <Text style={dynamicStyles.linkText}>{t('settings.link')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* X (Twitter) */}
         <View style={dynamicStyles.settingItem}>
-          <Text style={dynamicStyles.settingLabel}>X (Twitter)</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.twitter')}</Text>
           <TouchableOpacity style={styles.linkButton} onPress={() => handleLinkPress('https://x.com/Sunnyinnolab')}>
-            <Text style={dynamicStyles.linkText}>Link</Text>
+            <Text style={dynamicStyles.linkText}>{t('settings.link')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Sunny's Games and Apps */}
         <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
-          <Text style={dynamicStyles.settingLabel}>Sunny Games Apps</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.sunnyApps')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Credits */}
         <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
-          <Text style={dynamicStyles.settingLabel}>Credits</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.credits')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Open Source Info */}
         <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
-          <Text style={dynamicStyles.settingLabel}>Open Source Info</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.openSource')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* App Version */}
         <View style={dynamicStyles.settingItem}>
-          <Text style={dynamicStyles.settingLabel}>App Version</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.appVersion')}</Text>
           <Text style={dynamicStyles.versionText}>v {APP_VERSION}</Text>
         </View>
 
@@ -346,7 +356,7 @@ export default function SettingsPage() {
               }
             >
               <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>
-                Terms
+                {t('settings.terms')}
               </Text>
             </TouchableOpacity>
             <View style={dynamicStyles.sunnyBannerFooterDivider} />
@@ -358,7 +368,7 @@ export default function SettingsPage() {
               }
             >
               <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>
-                Privacy
+                {t('settings.privacy')}
               </Text>
             </TouchableOpacity>
           </View>

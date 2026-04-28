@@ -1,9 +1,12 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Image, Text, TouchableOpacity } from 'react-native';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { LanguageProvider } from '@/context/LanguageContext';
 import { useFonts, DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,6 +31,7 @@ function SettingsButton() {
 
 function TabLayout() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -44,28 +48,28 @@ function TabLayout() {
       <Tabs.Screen
         name="db-time"
         options={{
-          title: 'dB/Time',
+          title: t('tabs.dbTime'),
           tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/graph.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
         }}
       />
       <Tabs.Screen
         name="index"
         options={{
-          title: 'dB/Freq',
+          title: t('tabs.dbFreq'),
           tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/bar.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
         }}
       />
       <Tabs.Screen
         name="sound-guide"
         options={{
-          title: 'Sound Guide',
+          title: t('tabs.soundGuide'),
           tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/book.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
         }}
       />
       <Tabs.Screen
         name="log"
         options={{
-          title: 'Log',
+          title: t('tabs.records'),
           tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/log.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
         }}
       />
@@ -86,7 +90,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <TabLayout />
+      <LanguageProvider>
+        <TabLayout />
+      </LanguageProvider>
     </ThemeProvider>
   );
 }
