@@ -18,6 +18,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 16,
     paddingVertical: 24,
-    backgroundColor: '#FEFAEE',
   },
 });

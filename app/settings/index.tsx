@@ -11,23 +11,25 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import useThemeStore from '@/store/themeStore';
+import { useTheme } from '@/context/ThemeContext';
 
 const APP_VERSION = '1.0';
 
 const LANGUAGE_OPTIONS = [{ label: 'English', value: 1 }];
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useThemeStore();
-  const isDark = theme === 'dark';
+  const { colors: themeColors, themeName, setTheme } = useTheme();
+  const isDark = themeName === 'dark';
+  const theme = themeName;
 
   const colors = {
-    primaryBackground: isDark ? '#000' : '#FEFAEE',
-    secondaryBackground: isDark ? '#1c1c1e' : '#fff',
-    text: isDark ? '#fff' : '#000',
-    secondaryText: '#8e8e93',
-    border: isDark ? '#38383a' : '#e0e0e0',
-    link: '#F0923A',
+    background: themeColors.background,
+    text: themeColors.text,
+    primary: themeColors.primary,
+    border: themeColors.border,
+
+    link: themeColors.text,
+    arrows: themeColors.primary,
   };
 
   const updateTheme = (val: 'Dark' | 'Light') => setTheme(val === 'Dark' ? 'dark' : 'light');
@@ -68,7 +70,7 @@ export default function SettingsPage() {
     return StyleSheet.create({
       container: {
         flex: 1,
-        backgroundColor: colors.primaryBackground,
+        backgroundColor: colors.background,
       },
       header: {
         flexDirection: 'row',
@@ -76,9 +78,9 @@ export default function SettingsPage() {
         paddingTop: headerPaddingTop,
         paddingBottom: isTablet ? 25 : 20,
         paddingHorizontal: basePadding,
-        backgroundColor: colors.primaryBackground,
+        backgroundColor: colors.background,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: '#000000',
       },
       headerTitle: {
         fontSize: headerFontSize,
@@ -93,10 +95,10 @@ export default function SettingsPage() {
         paddingHorizontal: basePadding,
         paddingVertical: isTablet ? 20 : 16,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: '#000000',
       },
       selectedItem: {
-        backgroundColor: colors.secondaryBackground,
+        backgroundColor: colors.background,
       },
       settingLabel: {
         fontSize: labelFontSize,
@@ -111,7 +113,6 @@ export default function SettingsPage() {
       },
       themeContainer: {
         flexDirection: 'row',
-        backgroundColor: isDark ? '#1e293b' : '#F5F5F5',
         borderRadius: 8,
         padding: 4,
         gap: 4,
@@ -121,19 +122,19 @@ export default function SettingsPage() {
         paddingVertical: isTablet ? 10 : 8,
         borderRadius: 6,
         borderWidth: 1,
-        borderColor: isDark ? '#334155' : '#E0E0E0',
+        borderColor: colors.border,
       },
       themeOptionActive: {
-        backgroundColor: isDark ? '#1a1f2e' : '#F0923A',
-        borderColor: isDark ? '#1a1f2e' : '#F0923A',
+        backgroundColor: colors.primary,
+        borderColor: colors.border,
       },
       themeOptionText: {
         fontSize: themeOptionFontSize,
-        color: isDark ? '#94a3b8' : '#000',
+        color: colors.text,
         fontWeight: '500',
       },
       themeOptionTextActive: {
-        color: isDark ? '#60a5fa' : '#fff',
+        color: isDark ? '#fff"' : '#000',
         fontWeight: '600',
       },
       linkText: {
@@ -142,7 +143,7 @@ export default function SettingsPage() {
         fontWeight: '600',
       },
       languageList: {
-        backgroundColor: colors.secondaryBackground,
+        backgroundColor: colors.background,
       },
       languageOptionItem: {
         flexDirection: 'row',
@@ -151,22 +152,22 @@ export default function SettingsPage() {
         paddingVertical: isTablet ? 16 : 12,
         paddingHorizontal: basePadding,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: '#000000',
       },
       selectedLanguageOption: {
         backgroundColor: isDark ? '#1e293b' : 'transparent',
       },
       languageOptionText: {
         fontSize: languageOptionFontSize,
-        color: colors.secondaryText,
+        color: colors.text,
       },
       selectedLanguageText: {
-        color: colors.link,
+        color: colors.primary,
         fontWeight: '600',
       },
       versionText: {
         fontSize: versionFontSize,
-        color: colors.secondaryText,
+        color: colors.text,
         fontWeight: '500',
       },
       pickerLabel: {
@@ -176,7 +177,7 @@ export default function SettingsPage() {
       },
       settingSubLabel: {
         fontSize: subLabelFontSize,
-        color: colors.secondaryText,
+        color: colors.text,
       },
       sunnyBanner: {
         flexDirection: 'row',
@@ -218,13 +219,13 @@ export default function SettingsPage() {
       </View>
 
       <ScrollView
-        style={[styles.scrollView, { backgroundColor: colors.primaryBackground }]}
+        style={[styles.scrollView, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.scrollContent}
       >
         {/* How to Use */}
         <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
           <Text style={dynamicStyles.settingLabel}>How To Use</Text>
-          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+          <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Language */}
@@ -237,7 +238,7 @@ export default function SettingsPage() {
             <Text style={dynamicStyles.settingLabel}>Language</Text>
             <View style={styles.languageContainer}>
               <Text style={dynamicStyles.languageValue}>English</Text>
-              <Ionicons name={isLanguageOpen ? 'chevron-up' : 'chevron-down'} size={20} color={colors.secondaryText} />
+              <Ionicons name={isLanguageOpen ? 'chevron-up' : 'chevron-down'} size={20} color={colors.arrows} />
             </View>
           </TouchableOpacity>
 
@@ -260,7 +261,7 @@ export default function SettingsPage() {
                   >
                     {option.label}
                   </Text>
-                  {userLanguage === option.value && <Ionicons name="checkmark" size={20} color={colors.link} />}
+                  {userLanguage === option.value && <Ionicons name="checkmark" size={20} color={colors.arrows} />}
                 </TouchableOpacity>
               ))}
             </View>
@@ -312,19 +313,19 @@ export default function SettingsPage() {
         {/* Sunny's Games and Apps */}
         <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
           <Text style={dynamicStyles.settingLabel}>Sunny Games Apps</Text>
-          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+          <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Credits */}
         <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
           <Text style={dynamicStyles.settingLabel}>Credits</Text>
-          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+          <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Open Source Info */}
         <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
           <Text style={dynamicStyles.settingLabel}>Open Source Info</Text>
-          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+          <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* App Version */}

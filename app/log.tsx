@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import useLogsStore, { RecordingLog } from '@/store/logsStore';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function LogScreen() {
+  const { colors } = useTheme();
   const { logs, clearLogs } = useLogsStore();
 
   const renderItem = ({ item, index }: { item: RecordingLog; index: number }) => (
@@ -41,7 +43,7 @@ export default function LogScreen() {
   );
 
   return (
-    <View style={styles.page}>
+    <View style={[styles.page, { backgroundColor: colors.background }]}>
       {logs.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>No recordings yet</Text>
@@ -62,7 +64,6 @@ export default function LogScreen() {
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: '#FEFAEE',
   },
   list: {
     padding: 16,
