@@ -7,9 +7,9 @@ export const themes = {
       border: "#000",
     },
     typography: {
-      fontFamily: "System",
+      fontFamily: "DM Sans",
       headingWeight: "700",
-      bodyWeight: "400",
+      bodyWeight: "500",
       scale: 1,
     },
   },
@@ -22,9 +22,9 @@ export const themes = {
       border: "#fff"
     },
     typography: {
-      fontFamily: "System",
+      fontFamily: "DM Sans",
       headingWeight: "700",
-      bodyWeight: "400",
+      bodyWeight: "500",
       scale: 1,
     },
   },

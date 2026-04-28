@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import AnalysisGraph from '@/components/AnalysisGraph';
 import { RecordButton } from '@/components/RecordButton';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';

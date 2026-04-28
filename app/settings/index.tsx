@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
+  Image,
   View,
   Text,
   TouchableOpacity,
@@ -212,7 +213,7 @@ export default function SettingsPage() {
     <View style={dynamicStyles.container}>
       {/* Header */}
       <View style={dynamicStyles.header}>
-        <Ionicons name="settings-outline" size={24} color={colors.text} style={styles.headerIcon} />
+        <Image source={require('./assets/icons/setting.png')} style={[{ height: 24, width: 24, tintColor: colors.text }, styles.headerIcon]} resizeMode="contain" />
         <Text allowFontScaling={false} style={dynamicStyles.headerTitle}>
           Settings
         </Text>

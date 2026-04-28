@@ -3,16 +3,29 @@ import { useRecordingLogger } from '@/hooks/useRecordingLogger';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
+import { Image, Text, TouchableOpacity } from 'react-native';
 import { useEffect } from 'react';
-import { Text, TouchableOpacity } from 'react-native';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { useFonts, DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
+import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync();
+
+// Apply DM Sans as the default font for all Text components
+const AnyText = Text as any;
+AnyText.defaultProps = AnyText.defaultProps ?? {};
+AnyText.defaultProps.style = { fontFamily: 'DMSans_400Regular' };
+
+function Decibella() {
+  return <Image source={require('./assets/icons/decibella.png')} style={{ height: 24, width: 120, marginLeft: 16 }} resizeMode="contain" />;
+}
 
 function SettingsButton() {
   const router = useRouter();
   const { colors } = useTheme();
   return (
     <TouchableOpacity onPress={() => router.push('/settings')} style={{ paddingRight: 16 }}>
-      <Ionicons name="settings-outline" size={22} color={colors.text} />
+      <Image source={require('./assets/icons/setting.png')} style={{ height: 24, width: 24, tintColor: colors.text }} resizeMode="contain" />
     </TouchableOpacity>
   );
 }
@@ -32,6 +45,14 @@ export default function RootLayout() {
   }, [connect, disconnect]);
 
   const { colors } = useTheme();
+  const [fontsLoaded] = useFonts({ DMSans_400Regular, DMSans_500Medium, DMSans_700Bold });
+
+  useEffect(() => {
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
+
   return (
     <ThemeProvider>
       <Tabs
@@ -40,11 +61,9 @@ export default function RootLayout() {
           headerTitle: '',
           headerStyle: { backgroundColor: colors.background },
           headerShadowVisible: false,
-          headerLeft: () => (
-            <Text style={{ fontSize: 22, fontWeight: 'bold', marginLeft: 16, color: colors.primary }}>DECIBELLA</Text>
-          ),
+          headerLeft: () => <Decibella />,
           headerRight: () => <SettingsButton />,
-          tabBarActiveTintColor: colors.primary,
+          tabBarActiveTintColor: colors.primary, tabBarLabelStyle: { fontFamily: 'DMSans_500Medium' },
         }}
       >
       <Tabs.Screen
@@ -57,28 +76,28 @@ export default function RootLayout() {
           name="db-time"
           options={{
             title: 'dB/Time',
-            tabBarIcon: ({ color, size }) => <Ionicons name="pulse-outline" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/graph.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
           }}
         />
         <Tabs.Screen
           name="db-freq"
           options={{
             title: 'dB/Freq',
-            tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart-outline" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/chart.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
           }}
         />
         <Tabs.Screen
           name="sound-guide"
           options={{
             title: 'Sound Guide',
-            tabBarIcon: ({ color, size }) => <Ionicons name="book-outline" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/book.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
           }}
         />
         <Tabs.Screen
           name="log"
           options={{
             title: 'Log',
-            tabBarIcon: ({ color, size }) => <Ionicons name="list-outline" size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/list.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
           }}
         />
         <Tabs.Screen name="record" options={{ href: null }} />
