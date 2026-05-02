@@ -75,5 +75,12 @@
     "comingSoonTitle": "Bientôt disponible",
     "comingSoonMessage": "Cette fonctionnalité sera disponible dans une prochaine mise à jour.",
     "linkErrorTitle": "Impossible d'ouvrir le lien"
+  },
+  "howToUse": {
+    "step1": { "title": "Autoriser le microphone", "desc": "Autorisez l'accès au microphone lorsque l'application le demande." },
+    "step2": { "title": "Voir les décibels en temps réel", "desc": "L'écran principal affiche le niveau sonore actuel en dB avec des indicateurs visuels." },
+    "step3": { "title": "Changer de mode d'affichage", "desc": "Utilisez l'onglet dB/Temps pour voir les niveaux dans le temps, ou dB/Fréq pour l'analyse des fréquences." },
+    "step4": { "title": "Explorer le guide sonore", "desc": "Consultez l'onglet Guide Sonore pour découvrir ce que signifient différents niveaux de décibels au quotidien." },
+    "step5": { "title": "Voir vos enregistrements", "desc": "Utilisez l'onglet Enregistrements pour consulter l'historique de vos mesures." }
   }
 }

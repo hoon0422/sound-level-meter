@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useLanguage, type LanguageCode } from '@/context/LanguageContext';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 
 const APP_VERSION = '1.0';
 
@@ -32,6 +33,7 @@ export default function SettingsPage() {
   const { colors: themeColors, themeName, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
   const { t } = useTranslation();
+  const router = useRouter();
   const isDark = themeName === 'dark';
   const theme = themeName;
 
@@ -60,8 +62,6 @@ export default function SettingsPage() {
       Alert.alert(t('settings.linkErrorTitle'), error.message);
     }
   };
-
-  const comingSoon = () => Alert.alert(t('settings.comingSoonTitle'), t('settings.comingSoonMessage'));
 
   const dynamicStyles = useMemo(() => {
     const basePadding = isTablet ? 40 : 20;
@@ -234,7 +234,7 @@ export default function SettingsPage() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* How to Use */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/how-to-use')}>
           <Text style={dynamicStyles.settingLabel}>{t('settings.howToUse')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
@@ -322,19 +322,19 @@ export default function SettingsPage() {
         </View>
 
         {/* Sunny's Games and Apps */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/sunny-apps')}>
           <Text style={dynamicStyles.settingLabel}>{t('settings.sunnyApps')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Credits */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/credits')}>
           <Text style={dynamicStyles.settingLabel}>{t('settings.credits')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Open Source Info */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/open-source')}>
           <Text style={dynamicStyles.settingLabel}>{t('settings.openSource')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
@@ -347,6 +347,11 @@ export default function SettingsPage() {
 
         {/* Sunny banner */}
         <View style={dynamicStyles.sunnyBanner}>
+          <Image
+            source={require('../assets/SIL_logo_setting_mini_xxhdpi.png')}
+            style={{ height: 32, width: 32, marginRight: 'auto' }}
+            resizeMode="contain"
+          />
           <View style={dynamicStyles.sunnyBannerFooterLinks}>
             <TouchableOpacity
               onPress={() =>

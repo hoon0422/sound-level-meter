@@ -75,5 +75,12 @@
     "comingSoonTitle": "Coming Soon",
     "comingSoonMessage": "This feature will be available in a future update.",
     "linkErrorTitle": "Could not open link"
+  },
+  "howToUse": {
+    "step1": { "title": "Grant Microphone Permission", "desc": "Allow microphone access when the app requests it." },
+    "step2": { "title": "View Real-Time Decibels", "desc": "The main screen shows your current sound level in dB with visual indicators." },
+    "step3": { "title": "Switch Visualization Modes", "desc": "Use dB/Time to see levels over time, or dB/Freq for frequency analysis." },
+    "step4": { "title": "Explore the Sound Guide", "desc": "Check the Sound Guide tab to learn what different decibel levels mean in everyday life." },
+    "step5": { "title": "View Your Records", "desc": "Use the Records tab to browse your measurement history." }
   }
 }
