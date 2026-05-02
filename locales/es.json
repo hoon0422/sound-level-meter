@@ -75,5 +75,12 @@
     "comingSoonTitle": "Próximamente",
     "comingSoonMessage": "Esta función estará disponible en una futura actualización.",
     "linkErrorTitle": "No se pudo abrir el enlace"
+  },
+  "howToUse": {
+    "step1": { "title": "Conceder permiso al micrófono", "desc": "Permite el acceso al micrófono cuando la aplicación lo solicite." },
+    "step2": { "title": "Ver decibelios en tiempo real", "desc": "La pantalla principal muestra el nivel de sonido actual en dB con indicadores visuales." },
+    "step3": { "title": "Cambiar modo de visualización", "desc": "Usa la pestaña dB/Tiempo para ver los niveles en el tiempo, o dB/Frec para análisis de frecuencia." },
+    "step4": { "title": "Explorar la guía de sonido", "desc": "Consulta la pestaña Guía de Sonido para conocer el significado de los distintos niveles de decibelios en la vida cotidiana." },
+    "step5": { "title": "Ver tus registros", "desc": "Usa la pestaña Registros para explorar el historial de mediciones." }
   }
 }
