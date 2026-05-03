@@ -1,5 +1,6 @@
 export type StatsSnapshot = {
   averageDbfs: number;
+  minimumDbfs: number;
   maximumDbfs: number;
   maximumDbfsPerFrequencyBin: number[];
 };

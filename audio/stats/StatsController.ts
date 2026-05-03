@@ -5,6 +5,7 @@ import type { StatsDisposeListener, StatsSnapshot, StatsSnapshotListener } from 
 export function createIdleStatsSnapshot(): StatsSnapshot {
   return {
     averageDbfs: -100,
+    minimumDbfs: 1000,
     maximumDbfs: -100,
     maximumDbfsPerFrequencyBin: [],
   };
@@ -17,7 +18,8 @@ export class StatsController {
   private unsubscribeFrame: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
   private dbfsSum = 0;
-  private frameCount = 0;
+  private dbfsSampleCount = 0;
+  private minimumDbfs = 1000;
   private maximumDbfs = -100;
   private maximumDbfsPerFrequencyBin: number[] = [];
 
@@ -40,7 +42,8 @@ export class StatsController {
 
   reset() {
     this.dbfsSum = 0;
-    this.frameCount = 0;
+    this.dbfsSampleCount = 0;
+    this.minimumDbfs = 1000;
     this.maximumDbfs = -100;
     this.maximumDbfsPerFrequencyBin = [];
     this.emit(createIdleStatsSnapshot());
@@ -73,7 +76,8 @@ export class StatsController {
 
   private resetAccumulatedStats() {
     this.dbfsSum = 0;
-    this.frameCount = 0;
+    this.dbfsSampleCount = 0;
+    this.minimumDbfs = 1000;
     this.maximumDbfs = -100;
     this.maximumDbfsPerFrequencyBin = [];
   }
@@ -82,7 +86,8 @@ export class StatsController {
     const dbfs = calibrateDbfsForDisplay(Number.isFinite(frame.dbfs) ? frame.dbfs : -100);
 
     this.dbfsSum += dbfs;
-    this.frameCount++;
+    this.dbfsSampleCount++;
+    this.minimumDbfs = Math.min(this.minimumDbfs, dbfs);
     this.maximumDbfs = Math.max(this.maximumDbfs, dbfs);
 
     if (this.maximumDbfsPerFrequencyBin.length !== frame.frequencyData.length) {
@@ -98,7 +103,8 @@ export class StatsController {
     }
 
     this.emit({
-      averageDbfs: this.dbfsSum / this.frameCount,
+      averageDbfs: this.dbfsSum / this.dbfsSampleCount,
+      minimumDbfs: this.minimumDbfs,
       maximumDbfs: this.maximumDbfs,
       maximumDbfsPerFrequencyBin: [...this.maximumDbfsPerFrequencyBin],
     });

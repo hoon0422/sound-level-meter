@@ -1,4 +1,5 @@
 import { DEFAULT_CONFIG } from '@/audio/constants';
+import { useRecordingLogger } from '@/hooks/useRecordingLogger';
 import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
@@ -20,10 +21,18 @@ function SettingsButton() {
 }
 
 export default function RootLayout() {
-  const connect = useMicrophoneSpectrumStore(state => state.connect);
+  const { connect, disconnect } = useMicrophoneSpectrumStore(state => ({
+    connect: state.connect,
+    disconnect: state.disconnect,
+  }));
+  useRecordingLogger();
+
   useEffect(() => {
-    connect(DEFAULT_CONFIG);
-  }, [connect]);
+    void connect(DEFAULT_CONFIG);
+    return () => {
+      void disconnect();
+    };
+  }, [connect, disconnect]);
 
   return (
     <Tabs
@@ -45,7 +54,7 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="db-freq"
         options={{
           title: 'dB/Freq',
           tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart-outline" size={size} color={color} />,
