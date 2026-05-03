@@ -1,5 +1,8 @@
-import { Tabs, useRouter } from 'expo-router';
+import { DEFAULT_CONFIG } from '@/audio/constants';
+import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
 import { Ionicons } from '@expo/vector-icons';
+import { Tabs, useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 
 function SettingsButton() {
@@ -17,6 +20,11 @@ function SettingsButton() {
 }
 
 export default function RootLayout() {
+  const connect = useMicrophoneSpectrumStore(state => state.connect);
+  useEffect(() => {
+    connect(DEFAULT_CONFIG);
+  }, [connect]);
+
   return (
     <Tabs
       screenOptions={{

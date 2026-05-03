@@ -4,7 +4,7 @@ import {
   type MicrophoneEngine,
   createMicrophoneEngine,
   disconnectMicrophoneEngine,
-  resumeMicrophoneEngine,
+  startMicrophoneEngine,
   stopMicrophoneEngine,
 } from './engine';
 
@@ -12,6 +12,7 @@ export type { AudioEngineConfig };
 
 export type MicrophoneState = {
   isRunning: boolean;
+  isConnecting: boolean;
   isStarting: boolean;
   isStopping: boolean;
   isDisconnecting: boolean;
@@ -31,10 +32,13 @@ export type MicrophoneAudioFrame = {
 
 export type MicrophoneStateListener = (state: MicrophoneState) => void;
 export type MicrophoneFrameListener = (frame: MicrophoneAudioFrame) => void;
+export type MicrophoneStateDisposeListener = (state: MicrophoneState) => void;
+export type MicrophoneFrameDisposeListener = (frame: MicrophoneAudioFrame | null) => void;
 
 export function createIdleMicrophoneState(): MicrophoneState {
   return {
     isRunning: false,
+    isConnecting: false,
     isStarting: false,
     isStopping: false,
     isDisconnecting: false,
@@ -52,6 +56,10 @@ export class MicrophoneController {
   private engine: MicrophoneEngine | null = null;
   private stateListeners = new Set<MicrophoneStateListener>();
   private frameListeners = new Set<MicrophoneFrameListener>();
+  private stateDisposeListeners = new Map<MicrophoneStateListener, MicrophoneStateDisposeListener>();
+  private frameDisposeListeners = new Map<MicrophoneFrameListener, MicrophoneFrameDisposeListener>();
+  private lastState = createIdleMicrophoneState();
+  private lastFrame: MicrophoneAudioFrame | null = null;
 
   private constructor() {}
 
@@ -62,28 +70,52 @@ export class MicrophoneController {
     return MicrophoneController.instance;
   }
 
-  subscribe(listener: MicrophoneStateListener): () => void {
+  subscribe(listener: MicrophoneStateListener, onDispose?: MicrophoneStateDisposeListener): () => void {
     this.stateListeners.add(listener);
+    if (onDispose) {
+      this.stateDisposeListeners.set(listener, onDispose);
+    }
+
     return () => {
       this.stateListeners.delete(listener);
+      this.stateDisposeListeners.delete(listener);
     };
   }
 
-  onFrame(listener: MicrophoneFrameListener): () => void {
+  onFrame(listener: MicrophoneFrameListener, onDispose?: MicrophoneFrameDisposeListener): () => void {
     this.frameListeners.add(listener);
+    if (onDispose) {
+      this.frameDisposeListeners.set(listener, onDispose);
+    }
+
     return () => {
       this.frameListeners.delete(listener);
+      this.frameDisposeListeners.delete(listener);
     };
   }
 
   private emitState(state: MicrophoneState) {
+    this.lastState = state;
+
     for (const listener of this.stateListeners) {
       listener(state);
     }
   }
 
   private emitFrame(frame: MicrophoneAudioFrame) {
+    this.lastFrame = frame;
+
     for (const listener of this.frameListeners) {
+      listener(frame);
+    }
+  }
+
+  private emitDispose(state: MicrophoneState, frame: MicrophoneAudioFrame | null) {
+    for (const listener of Array.from(this.stateDisposeListeners.values())) {
+      listener(state);
+    }
+
+    for (const listener of Array.from(this.frameDisposeListeners.values())) {
       listener(frame);
     }
   }
@@ -106,6 +138,7 @@ export class MicrophoneController {
 
     this.emitState({
       isRunning: true,
+      isConnecting: false,
       isStarting: false,
       isStopping: false,
       isDisconnecting: false,
@@ -122,7 +155,7 @@ export class MicrophoneController {
     this.emitState(createIdleMicrophoneState());
   }
 
-  async disconnect(): Promise<void> {
+  private async releaseEngine(): Promise<void> {
     this.running = false;
     this.emitState({
       ...createIdleMicrophoneState(),
@@ -137,30 +170,32 @@ export class MicrophoneController {
     this.emitState(createIdleMicrophoneState());
   }
 
-  async start(config: AudioEngineConfig): Promise<boolean> {
-    if (this.running) {
-      this.stop();
-    }
+  async disconnect(): Promise<void> {
+    const stateSnapshot = this.lastState;
+    const frameSnapshot = this.lastFrame;
 
+    this.emitDispose(stateSnapshot, frameSnapshot);
+    await this.releaseEngine();
+
+    this.stateListeners.clear();
+    this.frameListeners.clear();
+    this.stateDisposeListeners.clear();
+    this.frameDisposeListeners.clear();
+    this.lastFrame = null;
+  }
+
+  async dispose(): Promise<void> {
+    await this.disconnect();
+  }
+
+  private async prepareEngine(config: AudioEngineConfig, stateKey: 'isConnecting' | 'isStarting'): Promise<boolean> {
     if (this.engine) {
-      try {
-        resumeMicrophoneEngine();
-        this.elapsedAccumulator = 0;
-        this.running = true;
-
-        this.emitState({
-          ...createIdleMicrophoneState(),
-          isRunning: true,
-        });
-        return true;
-      } catch {
-        await this.disconnect();
-      }
+      return true;
     }
 
     this.emitState({
       ...createIdleMicrophoneState(),
-      isStarting: true,
+      [stateKey]: true,
     });
 
     try {
@@ -176,6 +211,38 @@ export class MicrophoneController {
 
       this.freqData = new Float32Array(this.engine.analyser.frequencyBinCount);
       this.elapsedAccumulator = 0;
+
+      if (stateKey === 'isConnecting') {
+        this.emitState(createIdleMicrophoneState());
+      }
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.emitState({
+        ...createIdleMicrophoneState(),
+        error: message,
+      });
+      return false;
+    }
+  }
+
+  async connect(config: AudioEngineConfig): Promise<boolean> {
+    return this.prepareEngine(config, 'isConnecting');
+  }
+
+  async start(config: AudioEngineConfig): Promise<boolean> {
+    if (this.running) {
+      this.stop();
+    }
+
+    const connected = await this.prepareEngine(config, 'isStarting');
+    if (!connected) {
+      return false;
+    }
+
+    try {
+      startMicrophoneEngine();
+      this.elapsedAccumulator = 0;
       this.running = true;
 
       this.emitState({
@@ -184,7 +251,9 @@ export class MicrophoneController {
       });
       return true;
     } catch (error) {
+      console.error(error);
       const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      await this.releaseEngine();
       this.emitState({
         ...createIdleMicrophoneState(),
         error: message,

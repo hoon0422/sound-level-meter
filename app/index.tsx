@@ -4,8 +4,19 @@ import { useSoundLevelMeter } from '@/hooks/useSoundLevelMeter';
 import { Button, StyleSheet, Text, View } from 'react-native';
 
 export default function App() {
-  const { bars, buttonTitle, dbfs, elapsedSeconds, error, isBusy, isRunning, isStarting, peakHz, toggleRecording } =
-    useSoundLevelMeter();
+  const {
+    bars,
+    buttonTitle,
+    dbfs,
+    elapsedSeconds,
+    error,
+    isBusy,
+    isConnecting,
+    isRunning,
+    isStarting,
+    peakHz,
+    toggleRecording,
+  } = useSoundLevelMeter();
 
   return (
     <View style={styles.page}>
@@ -16,7 +27,7 @@ export default function App() {
             <SpectrumBars bars={bars} />
           </View>
         ) : (
-          <Text style={styles.statsText}>{isStarting ? 'Starting...' : 'Press record'}</Text>
+          <Text style={styles.statsText}>{isConnecting || isStarting ? 'Starting...' : 'Press record'}</Text>
         )}
         <Button title={buttonTitle} disabled={isBusy} onPress={toggleRecording} />
       </View>

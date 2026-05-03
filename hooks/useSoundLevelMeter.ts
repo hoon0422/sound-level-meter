@@ -48,10 +48,11 @@ export function useSoundLevelMeter() {
     stop,
     disconnect,
     configureSpectrum,
-    disposeSpectrum,
+    // disposeSpectrum,
     configureAudioMetrics,
-    disposeAudioMetrics,
+    // disposeAudioMetrics,
     isRunning,
+    isConnecting,
     isStarting,
     isStopping,
     isDisconnecting,
@@ -63,7 +64,7 @@ export function useSoundLevelMeter() {
   } = useMicrophoneSpectrumStore();
 
   const { addLog } = useLogsStore();
-  const samplesRef = useRef<Array<{ db: number; timestamp: number }>>([]);
+  const samplesRef = useRef<{ db: number; timestamp: number }[]>([]);
   const startTimeRef = useRef<number | null>(null);
   const prevIsRunningRef = useRef(false);
 
@@ -111,11 +112,14 @@ export function useSoundLevelMeter() {
 
   useEffect(() => {
     return () => {
-      disposeSpectrum();
-      disposeAudioMetrics();
+      // disposeSpectrum();
+      // disposeAudioMetrics();
       void disconnect();
     };
-  }, [disposeSpectrum, disposeAudioMetrics, disconnect]);
+  }, [
+    // disposeSpectrum, disposeAudioMetrics,
+    disconnect,
+  ]);
 
   const startRecording = useCallback(async () => {
     setIsPreparingRecording(true);
@@ -143,10 +147,16 @@ export function useSoundLevelMeter() {
     void startRecording();
   }, [isRunning, startRecording, stop]);
 
-  const isBusy = isPreparingRecording || isStarting || isStopping || isDisconnecting;
+  const isBusy = isPreparingRecording || isConnecting || isStarting || isStopping || isDisconnecting;
 
   const buttonTitle =
-    isPreparingRecording || isStarting ? 'Starting...' : isStopping ? 'Stopping...' : isRunning ? 'Stop' : 'Record';
+    isPreparingRecording || isConnecting || isStarting
+      ? 'Starting...'
+      : isStopping
+        ? 'Stopping...'
+        : isRunning
+          ? 'Stop'
+          : 'Record';
 
   return {
     bars,
@@ -155,6 +165,7 @@ export function useSoundLevelMeter() {
     elapsedSeconds,
     error,
     isBusy,
+    isConnecting,
     isRunning,
     isStarting,
     peakHz,
