@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
+import React, { useEffect, useRef } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useMicrophoneSpectrumStore } from '@/stores/useMicrophoneSpectrumStore';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CONTAINER_W = SCREEN_W - 48;

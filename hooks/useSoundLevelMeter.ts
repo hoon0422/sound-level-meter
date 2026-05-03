@@ -1,6 +1,6 @@
 import { DEFAULT_CONFIG } from '@/audio/constants';
-import { useMicrophoneSpectrumStore } from '@/stores/useMicrophoneSpectrumStore';
 import useLogsStore from '@/store/logsStore';
+import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 import { AudioManager } from 'react-native-audio-api';

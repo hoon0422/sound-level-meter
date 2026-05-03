@@ -1,5 +1,6 @@
 import type { MicrophoneSpectrumConfig } from '@/audio/constants';
 import { createStore, useStore } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import {
   type AudioMetricsDisplayConfig,
   type AudioMetricsSlice,
@@ -12,14 +13,17 @@ export type { AudioEngineConfig, AudioMetricsDisplayConfig, MicrophoneSpectrumCo
 
 type MicrophoneSpectrumState = MicrophoneSlice & SpectrumSlice & AudioMetricsSlice;
 
-export const microphoneSpectrumStore = createStore<MicrophoneSpectrumState>()((...a) => ({
-  ...createMicrophoneSlice(...a),
-  ...createSpectrumSlice(...a),
-  ...createAudioMetricsSlice(...a),
+export const microphoneSpectrumStore = createStore<MicrophoneSpectrumState>()((set, get, store) => ({
+  ...createMicrophoneSlice(set, get, store),
+  ...createSpectrumSlice(set, get, store),
+  ...createAudioMetricsSlice(set, get, store),
 }));
 
 export function useMicrophoneSpectrumStore(): MicrophoneSpectrumState;
 export function useMicrophoneSpectrumStore<T>(selector: (state: MicrophoneSpectrumState) => T): T;
 export function useMicrophoneSpectrumStore<T>(selector?: (state: MicrophoneSpectrumState) => T) {
-  return useStore(microphoneSpectrumStore, selector as (state: MicrophoneSpectrumState) => T);
+  return useStore(
+    microphoneSpectrumStore,
+    useShallow((selector ?? ((state: MicrophoneSpectrumState) => state)) as (state: MicrophoneSpectrumState) => T)
+  );
 }

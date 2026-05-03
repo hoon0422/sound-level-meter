@@ -1,6 +1,6 @@
+import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, Dimensions, Text } from 'react-native';
-import { useMicrophoneSpectrumStore } from '@/stores/useMicrophoneSpectrumStore';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
 const DISPLAY_INTERVAL_MS = 300;
 
