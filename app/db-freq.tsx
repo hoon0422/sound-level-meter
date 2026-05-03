@@ -1,4 +1,5 @@
 import { RecordButton } from '@/components/RecordButton';
+import { SoundMeter } from '@/components/SoundMeter';
 import { SpectrumBars } from '@/components/SpectrumBars';
 import { StatsPanel } from '@/components/StatsPanel';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
@@ -21,6 +22,7 @@ export default function DbFreqScreen() {
 
   return (
     <View style={styles.page}>
+      <SoundMeter />
       <Text style={styles.dbText}>{dbDisplay}</Text>
       <View>
         <StatsPanel elapsedSeconds={elapsedSeconds} dbfs={dbfs} peakHz={peakHz} error={error} />
