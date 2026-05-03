@@ -1,17 +1,17 @@
-import { DEFAULT_CONFIG } from '@/audio/constants';
+import { useRecordingControls } from '@/hooks/useRecordingControls';
 import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
 export function RecordButton() {
-  const { toggleDisabled, toggle, isRunning } = useToggleRecording();
+  const { isBusy, toggleRecording } = useRecordingControls();
+  const isRunning = useMicrophoneSpectrumStore(state => state.isRunning);
 
   return (
     <TouchableOpacity
       style={[styles.micButton, isRunning && styles.micButtonRecording]}
-      onPress={toggle}
-      disabled={toggleDisabled}
+      onPress={toggleRecording}
+      disabled={isBusy}
       activeOpacity={0.8}
     >
       <Ionicons name={isRunning ? 'stop' : 'mic'} size={32} color="#fff" />
@@ -37,31 +37,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#cc3300',
   },
 });
-
-const useToggleRecording = () => {
-  const { isRunning, stop, start, configureAudioMetrics, configureSpectrum, isBusy } = useMicrophoneSpectrumStore(
-    state => {
-      const isBusy =
-        state.isConnecting || state.isStarting || state.isStopping || state.isDisconnecting || state.isConnecting;
-      return {
-        isRunning: state.isRunning,
-        stop: state.stop,
-        start: state.start,
-        isBusy,
-        configureSpectrum: state.configureSpectrum,
-        configureAudioMetrics: state.configureAudioMetrics,
-      };
-    }
-  );
-  const startRecording = useCallback(() => {
-    configureSpectrum(DEFAULT_CONFIG);
-    configureAudioMetrics(DEFAULT_CONFIG);
-    start(DEFAULT_CONFIG);
-  }, [configureSpectrum, configureAudioMetrics, start]);
-
-  return {
-    toggleDisabled: isBusy,
-    toggle: isRunning ? stop : startRecording,
-    isRunning,
-  };
-};

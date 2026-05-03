@@ -1,33 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import AnalysisGraph from '@/components/AnalysisGraph';
 import { RecordButton } from '@/components/RecordButton';
+import { SpectrumBars } from '@/components/SpectrumBars';
+import { StatsPanel } from '@/components/StatsPanel';
 import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
 
-const DISPLAY_INTERVAL_MS = 300;
-
-export default function SoundGuideScreen() {
-  const { dbfs, isRunning } = useMicrophoneSpectrumStore(state => ({
+export default function DbFreqScreen() {
+  const { bars, dbfs, elapsedSeconds, error, isRunning, peakHz } = useMicrophoneSpectrumStore(state => ({
+    bars: state.bars,
     dbfs: state.dbfs,
+    elapsedSeconds: state.elapsedSeconds,
+    error: state.error,
     isRunning: state.isRunning,
+    peakHz: state.peakHz,
   }));
-  const [displayDb, setDisplayDb] = useState(0);
-  const lastUpdateRef = useRef(0);
 
-  useEffect(() => {
-    const now = Date.now();
-    if (now - lastUpdateRef.current >= DISPLAY_INTERVAL_MS) {
-      setDisplayDb(dbfs);
-      lastUpdateRef.current = now;
-    }
-  }, [dbfs]);
-
-  const dbDisplay = isRunning ? `${displayDb.toFixed(1)} dB` : '— dB';
+  const dbDisplay = isRunning ? `${dbfs.toFixed(1)} dB` : '— dB';
 
   return (
     <View style={styles.page}>
       <Text style={styles.dbText}>{dbDisplay}</Text>
-      <AnalysisGraph />
+      <View>
+        <StatsPanel elapsedSeconds={elapsedSeconds} dbfs={dbfs} peakHz={peakHz} error={error} />
+        <SpectrumBars bars={bars} />
+      </View>
+
       <RecordButton />
     </View>
   );
