@@ -12,7 +12,7 @@ export type { AudioMetricsDisplayConfig };
 
 export type AudioMetricsSlice = AudioMetricsSnapshot & {
   configureAudioMetrics: (config: AudioMetricsDisplayConfig) => void;
-  disposeAudioMetrics: () => void;
+  // disposeAudioMetrics: () => void;
 };
 
 export const createAudioMetricsSlice: StateCreator<AudioMetricsSlice> = set => {
@@ -24,6 +24,6 @@ export const createAudioMetricsSlice: StateCreator<AudioMetricsSlice> = set => {
   return {
     ...createIdleAudioMetricsSnapshot(),
     configureAudioMetrics: (config: AudioMetricsDisplayConfig) => metrics.configure(config),
-    disposeAudioMetrics: () => metrics.dispose(),
+    // disposeAudioMetrics: () => metrics.dispose(),
   };
 };

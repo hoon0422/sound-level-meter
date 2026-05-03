@@ -12,7 +12,7 @@ export type { SpectrumDisplayConfig };
 
 export type SpectrumSlice = SpectrumSnapshot & {
   configureSpectrum: (config: SpectrumDisplayConfig) => void;
-  disposeSpectrum: () => void;
+  // disposeSpectrum: () => void;
 };
 
 export const createSpectrumSlice: StateCreator<SpectrumSlice> = set => {
@@ -24,6 +24,6 @@ export const createSpectrumSlice: StateCreator<SpectrumSlice> = set => {
   return {
     ...createIdleSpectrumSnapshot(DEFAULT_CONFIG.barCount),
     configureSpectrum: (config: SpectrumDisplayConfig) => spectrum.configure(config),
-    disposeSpectrum: () => spectrum.dispose(),
+    // disposeSpectrum: () => spectrum.dispose(),
   };
 };
