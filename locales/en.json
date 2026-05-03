@@ -3,7 +3,7 @@
     "dbTime": "dB/Time",
     "dbFreq": "dB/Freq",
     "soundGuide": "Sound Guide",
-    "records": "Records"
+    "log": "Log"
   },
   "stats": {
     "min": "Min",

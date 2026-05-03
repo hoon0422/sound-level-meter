@@ -3,7 +3,7 @@
     "dbTime": "dB/Temps",
     "dbFreq": "dB/Fréquence",
     "soundGuide": "Description du son",
-    "records": "Enregistrer"
+    "log": "Enregistrer"
   },
   "stats": {
     "min": "Minimum",

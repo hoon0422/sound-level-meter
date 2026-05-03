@@ -1,7 +1,7 @@
 import { useRecordingControls } from '@/hooks/useRecordingControls';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity } from 'react-native';
 
 export function RecordButton() {
   const { isBusy, toggleRecording } = useRecordingControls();
@@ -14,24 +14,30 @@ export function RecordButton() {
       disabled={isBusy}
       activeOpacity={0.8}
     >
-      <Ionicons name={isRunning ? 'stop' : 'mic'} size={32} color="#fff" />
+      {isRunning ? (
+          <Ionicons name="stop" size={32} color="#fff" />
+        ) : (
+          <Image source={require('../app/assets/icons/mic.png')} style={{ height: 38, width: 120 }} resizeMode="contain" />
+        )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   micButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#FF8C00',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF8C00',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#333333',
+    shadowColor: '#333333',
+    shadowOffset: { width: 2, height: 1 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
   },
   micButtonRecording: {
     backgroundColor: '#cc3300',

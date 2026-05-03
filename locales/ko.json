@@ -3,7 +3,7 @@
     "dbTime": "dB/시간",
     "dbFreq": "dB/주파수",
     "soundGuide": "소리 설명",
-    "records": "기록"
+    "log": "기록"
   },
   "stats": {
     "min": "최소",

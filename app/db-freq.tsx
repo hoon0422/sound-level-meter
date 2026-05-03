@@ -3,9 +3,11 @@ import { SpectrumBars } from '@/components/SpectrumBars';
 import { StatsPanel } from '@/components/StatsPanel';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function DbFreqScreen() {
+  const { colors } = useTheme();
   const { dbfs, peakHz } = useThrottledAudioMeterValue(state => ({
     dbfs: state.dbfs,
     peakHz: state.peakHz,
@@ -20,8 +22,8 @@ export default function DbFreqScreen() {
   const dbDisplay = isRunning ? `${dbfs.toFixed(1)} dB` : '— dB';
 
   return (
-    <View style={styles.page}>
-      <Text style={styles.dbText}>{dbDisplay}</Text>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, paddingVertical: 24, backgroundColor: colors.background }}>
+      <Text style={{ fontSize: 48, fontWeight: '700', color: colors.text }}>{dbDisplay}</Text>
       <View>
         <StatsPanel elapsedSeconds={elapsedSeconds} dbfs={dbfs} peakHz={peakHz} error={error} />
         <SpectrumBars bars={bars} />
@@ -31,19 +33,3 @@ export default function DbFreqScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    paddingVertical: 24,
-    backgroundColor: '#FEFAEE',
-  },
-  dbText: {
-    fontSize: 48,
-    fontWeight: '700',
-    color: '#000',
-  },
-});

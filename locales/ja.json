@@ -3,7 +3,7 @@
     "dbTime": "dB/時間",
     "dbFreq": "dB/周波数",
     "soundGuide": "音の説明",
-    "records": "記録"
+    "log": "記録"
   },
   "stats": {
     "min": "最小",

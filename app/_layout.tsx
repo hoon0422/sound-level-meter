@@ -1,7 +1,6 @@
 import { DEFAULT_CONFIG } from '@/audio/constants';
 import { useRecordingLogger } from '@/hooks/useRecordingLogger';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
-import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
 import { Image, Text, TouchableOpacity } from 'react-native';
 import { useEffect } from 'react';
@@ -33,7 +32,7 @@ function SettingsButton() {
   );
 }
 
-export default function RootLayout() {
+function AppLayout() {
   const { connect, disconnect } = useAudioMeterStore(state => ({
     connect: state.connect,
     disconnect: state.disconnect,
@@ -48,19 +47,10 @@ export default function RootLayout() {
   }, [connect, disconnect]);
 
   const { colors } = useTheme();
-  const [fontsLoaded] = useFonts({ DMSans_400Regular, DMSans_500Medium, DMSans_700Bold });
-
-  useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync();
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) return null;
-
   const { t } = useTranslation();
+
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <Tabs
+    <Tabs
           screenOptions={{
             headerShown: true,
             headerTitle: '',
@@ -74,7 +64,7 @@ export default function RootLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            href: null, // This hides the tab from the bottom bar
+            href: null,
           }}
         />
           <Tabs.Screen
@@ -108,6 +98,22 @@ export default function RootLayout() {
           <Tabs.Screen name="record" options={{ href: null }} />
           <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />
         </Tabs>
+  );
+}
+
+export default function RootLayout() {
+  const [fontsLoaded] = useFonts({ DMSans_400Regular, DMSans_500Medium, DMSans_700Bold });
+
+  useEffect(() => {
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
+
+  return (
+    <ThemeProvider>
+      <LanguageProvider>
+        <AppLayout />
       </LanguageProvider>
     </ThemeProvider>
   );
