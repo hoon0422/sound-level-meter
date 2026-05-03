@@ -1,8 +1,7 @@
+import { useThrottledMicrophoneSpectrumValue } from '@/hooks/useThrottledMicrophoneSpectrumValue';
 import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
-
-const DISPLAY_INTERVAL_MS = 300;
 
 const RANGES = [
   { min: 0, max: 20, label: 'Barely audible', display: '<20' },
@@ -18,25 +17,14 @@ const RANGES = [
 ];
 
 export default function AnalysisGraph() {
-  const { dbfs, isRunning } = useMicrophoneSpectrumStore();
-  const [displayDb, setDisplayDb] = useState(0);
-  const lastUpdateRef = useRef(0);
-
-  useEffect(() => {
-    const now = Date.now();
-    if (now - lastUpdateRef.current >= DISPLAY_INTERVAL_MS) {
-      setDisplayDb(dbfs);
-      lastUpdateRef.current = now;
-    }
-  }, [dbfs]);
-
-  const currentDb = isRunning ? Math.min(150, Math.max(0, displayDb)) : null;
+  const isRunning = useMicrophoneSpectrumStore(state => state.isRunning);
+  const dbfs = useThrottledMicrophoneSpectrumValue(state => state.dbfs);
 
   return (
     <View style={styles.container}>
       {RANGES.map((range, index) => {
         // Check if currentDb falls within this specific range
-        const isActive = currentDb !== null && currentDb >= range.min && currentDb < range.max;
+        const isActive = isRunning && dbfs >= range.min && dbfs < range.max;
 
         return (
           <View key={index} style={[styles.row, isActive && styles.activeRow]}>

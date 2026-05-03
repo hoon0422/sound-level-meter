@@ -1,26 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import AnalysisGraph from '@/components/AnalysisGraph';
 import { RecordButton } from '@/components/RecordButton';
+import { useThrottledMicrophoneSpectrumValue } from '@/hooks/useThrottledMicrophoneSpectrumValue';
 import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
 
 const DISPLAY_INTERVAL_MS = 300;
 
 export default function SoundGuideScreen() {
-  const { dbfs, isRunning } = useMicrophoneSpectrumStore(state => ({
-    dbfs: state.dbfs,
-    isRunning: state.isRunning,
-  }));
-  const [displayDb, setDisplayDb] = useState(0);
-  const lastUpdateRef = useRef(0);
-
-  useEffect(() => {
-    const now = Date.now();
-    if (now - lastUpdateRef.current >= DISPLAY_INTERVAL_MS) {
-      setDisplayDb(dbfs);
-      lastUpdateRef.current = now;
-    }
-  }, [dbfs]);
+  const isRunning = useMicrophoneSpectrumStore(state => state.isRunning);
+  const displayDb = useThrottledMicrophoneSpectrumValue(state => state.dbfs, DISPLAY_INTERVAL_MS);
 
   const dbDisplay = isRunning ? `${displayDb.toFixed(1)} dB` : '— dB';
 

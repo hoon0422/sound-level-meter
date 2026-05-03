@@ -12,7 +12,7 @@ import { type StatsSlice, createStatsSlice } from './createStatsSlice';
 
 export type { AudioEngineConfig, AudioMetricsDisplayConfig, MicrophoneSpectrumConfig, SpectrumDisplayConfig };
 
-type MicrophoneSpectrumState = MicrophoneSlice & SpectrumSlice & AudioMetricsSlice & StatsSlice;
+export type MicrophoneSpectrumState = MicrophoneSlice & SpectrumSlice & AudioMetricsSlice & StatsSlice;
 
 export const microphoneSpectrumStore = createStore<MicrophoneSpectrumState>()((set, get, store) => ({
   ...createMicrophoneSlice(set, get, store),

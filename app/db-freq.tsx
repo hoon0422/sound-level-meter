@@ -1,17 +1,20 @@
-import { StyleSheet, Text, View } from 'react-native';
 import { RecordButton } from '@/components/RecordButton';
 import { SpectrumBars } from '@/components/SpectrumBars';
 import { StatsPanel } from '@/components/StatsPanel';
+import { useThrottledMicrophoneSpectrumValue } from '@/hooks/useThrottledMicrophoneSpectrumValue';
 import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function DbFreqScreen() {
-  const { bars, dbfs, elapsedSeconds, error, isRunning, peakHz } = useMicrophoneSpectrumStore(state => ({
-    bars: state.bars,
+  const { dbfs, peakHz } = useThrottledMicrophoneSpectrumValue(state => ({
     dbfs: state.dbfs,
+    peakHz: state.peakHz,
+  }));
+  const { bars, elapsedSeconds, error, isRunning } = useMicrophoneSpectrumStore(state => ({
     elapsedSeconds: state.elapsedSeconds,
     error: state.error,
     isRunning: state.isRunning,
-    peakHz: state.peakHz,
+    bars: state.bars,
   }));
 
   const dbDisplay = isRunning ? `${dbfs.toFixed(1)} dB` : '— dB';

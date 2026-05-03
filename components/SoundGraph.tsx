@@ -1,3 +1,4 @@
+import { useThrottledMicrophoneSpectrumValue } from '@/hooks/useThrottledMicrophoneSpectrumValue';
 import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
 import React, { useEffect, useRef } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -50,7 +51,8 @@ function LineSegment({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y
 }
 
 export default function SoundGraph() {
-  const { dbfs, isRunning } = useMicrophoneSpectrumStore();
+  const isRunning = useMicrophoneSpectrumStore(state => state.isRunning);
+  const dbfs = useThrottledMicrophoneSpectrumValue(state => state.dbfs);
   const scrollRef = useRef<ScrollView>(null);
   const samplesRef = useRef<Sample[]>([]);
   const startTimeRef = useRef<number | null>(null);
