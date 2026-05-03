@@ -3,7 +3,11 @@
     "dbTime": "dB/时间",
     "dbFreq": "dB/频率",
     "soundGuide": "声音说明",
+<<<<<<< HEAD
     "log": "记录"
+=======
+    "records": "记录"
+>>>>>>> 5b303d4941c8af01eac16389f07eef311a4dd690
   },
   "stats": {
     "min": "最小",

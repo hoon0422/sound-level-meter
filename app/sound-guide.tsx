@@ -17,6 +17,8 @@ export default function SoundGuideScreen() {
   return (
     <View style={[styles.page, { backgroundColor: colors.background }]}>
       <Text style={[styles.dbText, { color: colors.text }]}>{dbDisplay}</Text>
+    <View style={[styles.page, { backgroundColor: colors.background }]}>
+      <Text style={[styles.dbText, { color: colors.text }]}>{dbDisplay}</Text>
       <AnalysisGraph />
       <RecordButton />
     </View>
@@ -34,6 +36,5 @@ const styles = StyleSheet.create({
   dbText: {
     fontSize: 48,
     fontWeight: '700',
-    color: '#000',
   },
 });

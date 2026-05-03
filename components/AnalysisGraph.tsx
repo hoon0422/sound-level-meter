@@ -35,6 +35,7 @@ export default function AnalysisGraph() {
             </View>
             <Text style={[styles.text, isActive && styles.activeText, { flex: 1 }]} numberOfLines={1}>
               {t(`analysisGraph.${range.key}`)}
+              {t(`analysisGraph.${range.key}`)}
             </Text>
           </View>
         );
