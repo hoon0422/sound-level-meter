@@ -47,6 +47,12 @@ export default function RootLayout() {
       }}
     >
       <Tabs.Screen
+        name="index"
+        options={{
+          href: null, // This hides the tab from the bottom bar
+        }}
+      />
+      <Tabs.Screen
         name="db-time"
         options={{
           title: 'dB/Time',
