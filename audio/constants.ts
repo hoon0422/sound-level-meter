@@ -4,9 +4,9 @@ import { DEFAULT_SPECTRUM_DISPLAY_CONFIG, SpectrumDisplayConfig } from './spectr
 
 export { DEFAULT_AUDIO_ENGINE_CONFIG, DEFAULT_AUDIO_METRICS_DISPLAY_CONFIG, DEFAULT_SPECTRUM_DISPLAY_CONFIG };
 
-export type MicrophoneSpectrumConfig = AudioEngineConfig & AudioMetricsDisplayConfig & SpectrumDisplayConfig;
+export type AudioMeterConfig = AudioEngineConfig & AudioMetricsDisplayConfig & SpectrumDisplayConfig;
 
-export const DEFAULT_CONFIG: MicrophoneSpectrumConfig = {
+export const DEFAULT_CONFIG: AudioMeterConfig = {
   ...DEFAULT_AUDIO_ENGINE_CONFIG,
   ...DEFAULT_AUDIO_METRICS_DISPLAY_CONFIG,
   ...DEFAULT_SPECTRUM_DISPLAY_CONFIG,

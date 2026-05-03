@@ -1,5 +1,5 @@
-import { useThrottledMicrophoneSpectrumValue } from '@/hooks/useThrottledMicrophoneSpectrumValue';
-import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
+import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
@@ -17,8 +17,8 @@ const RANGES = [
 ];
 
 export default function AnalysisGraph() {
-  const isRunning = useMicrophoneSpectrumStore(state => state.isRunning);
-  const dbfs = useThrottledMicrophoneSpectrumValue(state => state.dbfs);
+  const isRunning = useAudioMeterStore(state => state.isRunning);
+  const dbfs = useThrottledAudioMeterValue(state => state.dbfs);
 
   return (
     <View style={styles.container}>

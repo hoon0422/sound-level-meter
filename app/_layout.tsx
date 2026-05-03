@@ -1,6 +1,6 @@
 import { DEFAULT_CONFIG } from '@/audio/constants';
 import { useRecordingLogger } from '@/hooks/useRecordingLogger';
-import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
 import { useEffect } from 'react';
@@ -21,7 +21,7 @@ function SettingsButton() {
 }
 
 export default function RootLayout() {
-  const { connect, disconnect } = useMicrophoneSpectrumStore(state => ({
+  const { connect, disconnect } = useAudioMeterStore(state => ({
     connect: state.connect,
     disconnect: state.disconnect,
   }));

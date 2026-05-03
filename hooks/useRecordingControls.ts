@@ -1,5 +1,5 @@
 import { DEFAULT_CONFIG } from '@/audio/constants';
-import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { useCallback, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 import { AudioManager } from 'react-native-audio-api';
@@ -52,7 +52,7 @@ export function useRecordingControls() {
     isStopping,
     start,
     stop,
-  } = useMicrophoneSpectrumStore(state => ({
+  } = useAudioMeterStore(state => ({
     configureAudioMetrics: state.configureAudioMetrics,
     configureSpectrum: state.configureSpectrum,
     isConnecting: state.isConnecting,

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import useLogsStore from '@/store/logsStore';
-import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
 
 type LogStatsSnapshot = {
   averageDbfs: number;
@@ -23,7 +23,7 @@ function roundDb(dbfs: number) {
 
 export function useRecordingLogger() {
   const { addLog } = useLogsStore();
-  const { averageDbfs, elapsedSeconds, isRunning, maximumDbfs, minimumDbfs } = useMicrophoneSpectrumStore(state => ({
+  const { averageDbfs, elapsedSeconds, isRunning, maximumDbfs, minimumDbfs } = useAudioMeterStore(state => ({
     averageDbfs: state.averageDbfs,
     elapsedSeconds: state.elapsedSeconds,
     isRunning: state.isRunning,

@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native';
 import AnalysisGraph from '@/components/AnalysisGraph';
 import { RecordButton } from '@/components/RecordButton';
-import { useThrottledMicrophoneSpectrumValue } from '@/hooks/useThrottledMicrophoneSpectrumValue';
-import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
+import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
 
 const DISPLAY_INTERVAL_MS = 300;
 
 export default function SoundGuideScreen() {
-  const isRunning = useMicrophoneSpectrumStore(state => state.isRunning);
-  const displayDb = useThrottledMicrophoneSpectrumValue(state => state.dbfs, DISPLAY_INTERVAL_MS);
+  const isRunning = useAudioMeterStore(state => state.isRunning);
+  const displayDb = useThrottledAudioMeterValue(state => state.dbfs, DISPLAY_INTERVAL_MS);
 
   const dbDisplay = isRunning ? `${displayDb.toFixed(1)} dB` : '— dB';
 

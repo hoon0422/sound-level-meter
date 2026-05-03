@@ -1,11 +1,11 @@
 import { useRecordingControls } from '@/hooks/useRecordingControls';
-import { useMicrophoneSpectrumStore } from '@/store/microphoneSpectrumStore';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
 export function RecordButton() {
   const { isBusy, toggleRecording } = useRecordingControls();
-  const isRunning = useMicrophoneSpectrumStore(state => state.isRunning);
+  const isRunning = useAudioMeterStore(state => state.isRunning);
 
   return (
     <TouchableOpacity
