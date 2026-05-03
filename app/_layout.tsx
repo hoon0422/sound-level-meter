@@ -13,7 +13,6 @@ import '@/i18n';
 
 SplashScreen.preventAutoHideAsync();
 
-// Apply DM Sans as the default font for all Text components
 const AnyText = Text as any;
 AnyText.defaultProps = AnyText.defaultProps ?? {};
 AnyText.defaultProps.style = { fontFamily: 'DMSans_400Regular' };
@@ -27,7 +26,6 @@ function SettingsButton() {
   const { colors } = useTheme();
   return (
     <TouchableOpacity onPress={() => router.push('/settings')} style={{ paddingRight: 16 }}>
-      <Image source={require('./assets/icons/setting.png')} style={{ height: 24, width: 24, tintColor: colors.text }} resizeMode="contain" />
       <Image source={require('./assets/icons/setting.png')} style={{ height: 24, width: 24, tintColor: colors.text }} resizeMode="contain" />
     </TouchableOpacity>
   );

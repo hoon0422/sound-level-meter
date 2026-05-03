@@ -25,7 +25,6 @@ export default function AnalysisGraph() {
   return (
     <View style={styles.container}>
       {RANGES.map((range, index) => {
-        // Check if currentDb falls within this specific range
         const isActive = isRunning && dbfs >= range.min && dbfs < range.max;
 
         return (
@@ -34,7 +33,6 @@ export default function AnalysisGraph() {
               <Text style={[styles.text, isActive && styles.activeText]}>{range.display}dB</Text>
             </View>
             <Text style={[styles.text, isActive && styles.activeText, { flex: 1 }]} numberOfLines={1}>
-              {t(`analysisGraph.${range.key}`)}
               {t(`analysisGraph.${range.key}`)}
             </Text>
           </View>
@@ -87,7 +85,7 @@ const styles = StyleSheet.create({
     color: '#8e8e93',
   },
   activeText: {
-    color: '#000', // Black text for the active row to make it pop
+    color: '#000',
     fontWeight: '600',
   },
 });

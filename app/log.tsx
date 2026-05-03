@@ -30,11 +30,11 @@ export default function LogScreen() {
           <Text style={styles.statLabel}>{t('stats.max')}</Text>
           <Text style={[styles.statValue, styles.maxColor]}>{item.maxDb} dB</Text>
         </View>
-        <View style={styles.statDivider} />
+        {/* <View style={styles.statDivider} />
         <View style={styles.stat}>
           <Text style={styles.statLabel}>{t('stats.min')}</Text>
           <Text style={[styles.statValue, styles.minColor]}>{item.minDb} dB</Text>
-        </View>
+        </View> */}
         <View style={styles.statDivider} />
         <View style={styles.stat}>
           <Text style={styles.statLabel}>{t('stats.average')}</Text>
