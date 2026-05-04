@@ -8,18 +8,8 @@ import { useTheme } from '@/context/ThemeContext';
 
 export default function DbTimeScreen() {
   const { colors } = useTheme();
-  const { dbfs } = useThrottledAudioMeterValue(state => ({
-      dbfs: state.dbfs,
-      peakHz: state.peakHz,
-    }));
-
-  const { isRunning } = useAudioMeterStore(state => ({
-      elapsedSeconds: state.elapsedSeconds,
-      error: state.error,
-      isRunning: state.isRunning,
-      bars: state.bars,
-    }));
-
+  const dbfs = useThrottledAudioMeterValue(state =>  state.dbfs);
+  const isRunning = useAudioMeterStore(state => state.isRunning);
   const dbDisplay = isRunning ? `${dbfs.toFixed(1)} dB` : '— dB';
 
   return (
