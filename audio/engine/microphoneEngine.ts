@@ -8,6 +8,7 @@ import {
   WorkletNode,
 } from 'react-native-audio-api';
 import { scheduleOnRN } from 'react-native-worklets';
+import { initRecording } from './permission';
 import { AudioEngineConfig } from './types';
 
 type CreateMicrophoneEngineOptions = AudioEngineConfig & {
@@ -33,6 +34,11 @@ let microphoneEngine: MicrophoneEngine | null = null;
 export async function createMicrophoneEngine(options: CreateMicrophoneEngineOptions): Promise<MicrophoneEngine> {
   if (microphoneEngine) {
     return microphoneEngine;
+  }
+
+  const recordingInitialized = await initRecording();
+  if (!recordingInitialized) {
+    throw new Error('Failed to initialize recording');
   }
 
   const audioContext = new AudioContext({ sampleRate: options.sampleRate });
@@ -93,10 +99,10 @@ export async function createMicrophoneEngine(options: CreateMicrophoneEngineOpti
     await audioContext.resume();
   }
 
-  const startResult = recorder.start();
-  if (startResult.status === 'error') {
-    throw new Error(startResult.message);
-  }
+  // const startResult = recorder.start();
+  // if (startResult.status === 'error') {
+  //   throw new Error(startResult.message);
+  // }
 
   microphoneEngine = {
     audioContext,
@@ -110,7 +116,7 @@ export async function createMicrophoneEngine(options: CreateMicrophoneEngineOpti
   return microphoneEngine;
 }
 
-export function resumeMicrophoneEngine() {
+export function startMicrophoneEngine() {
   if (!microphoneEngine) return;
 
   const startResult = microphoneEngine.recorder.start();

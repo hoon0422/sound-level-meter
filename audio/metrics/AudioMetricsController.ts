@@ -3,6 +3,7 @@ import { type AudioMetricsSnapshot, analyzePeakFrequency, calibrateDbfsForDispla
 import { AudioMetricsDisplayConfig } from './types';
 
 export type AudioMetricsSnapshotListener = (snapshot: AudioMetricsSnapshot) => void;
+export type AudioMetricsDisposeListener = (snapshot: AudioMetricsSnapshot) => void;
 
 export function createIdleAudioMetricsSnapshot(): AudioMetricsSnapshot {
   return {
@@ -15,6 +16,8 @@ export function createIdleAudioMetricsSnapshot(): AudioMetricsSnapshot {
 export class AudioMetricsController {
   private config: AudioMetricsDisplayConfig;
   private listeners = new Set<AudioMetricsSnapshotListener>();
+  private disposeListeners = new Map<AudioMetricsSnapshotListener, AudioMetricsDisposeListener>();
+  private lastSnapshot = createIdleAudioMetricsSnapshot();
   private unsubscribeFrame: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
 
@@ -22,13 +25,18 @@ export class AudioMetricsController {
     this.config = config;
 
     this.unsubscribeFrame = mic.onFrame(this.handleFrame);
-    this.unsubscribeState = mic.subscribe(this.handleMicState);
+    this.unsubscribeState = mic.subscribe(this.handleMicState, this.handleMicDispose);
   }
 
-  subscribe(listener: AudioMetricsSnapshotListener): () => void {
+  subscribe(listener: AudioMetricsSnapshotListener, onDispose?: AudioMetricsDisposeListener): () => void {
     this.listeners.add(listener);
+    if (onDispose) {
+      this.disposeListeners.set(listener, onDispose);
+    }
+
     return () => {
       this.listeners.delete(listener);
+      this.disposeListeners.delete(listener);
     };
   }
 
@@ -41,11 +49,21 @@ export class AudioMetricsController {
     this.unsubscribeState?.();
     this.unsubscribeFrame = null;
     this.unsubscribeState = null;
+    this.emitDispose(this.lastSnapshot);
     this.listeners.clear();
+    this.disposeListeners.clear();
   }
 
   private emit(snapshot: AudioMetricsSnapshot) {
+    this.lastSnapshot = snapshot;
+
     for (const listener of this.listeners) {
+      listener(snapshot);
+    }
+  }
+
+  private emitDispose(snapshot: AudioMetricsSnapshot) {
+    for (const listener of this.disposeListeners.values()) {
       listener(snapshot);
     }
   }
@@ -69,8 +87,12 @@ export class AudioMetricsController {
   };
 
   private handleMicState = (state: MicrophoneState) => {
-    if (!state.isRunning && !state.isStarting && !state.isDisconnecting) {
+    if (!state.isRunning && !state.isConnecting && !state.isStarting && !state.isDisconnecting) {
       this.emit(createIdleAudioMetricsSnapshot());
     }
+  };
+
+  private handleMicDispose = () => {
+    this.dispose();
   };
 }

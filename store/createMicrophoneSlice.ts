@@ -9,6 +9,7 @@ import type { StateCreator } from 'zustand';
 export type { AudioEngineConfig };
 
 export type MicrophoneSlice = MicrophoneState & {
+  connect: (config: AudioEngineConfig) => Promise<boolean>;
   start: (config: AudioEngineConfig) => Promise<boolean>;
   stop: () => void;
   disconnect: () => Promise<void>;
@@ -17,12 +18,18 @@ export type MicrophoneSlice = MicrophoneState & {
 export const createMicrophoneSlice: StateCreator<MicrophoneSlice> = set => {
   const mic = MicrophoneController.getInstance();
 
-  mic.subscribe(state => set(state));
+  mic.subscribe(state =>
+    set({
+      ...state,
+      isRunning: state.isRunning && state.elapsedSeconds > 0,
+    })
+  );
 
   return {
     ...createIdleMicrophoneState(),
+    connect: (config: AudioEngineConfig) => mic.connect(config),
     start: (config: AudioEngineConfig) => mic.start(config),
     stop: () => mic.stop(),
-    disconnect: async () => await mic.disconnect(),
+    disconnect: () => mic.disconnect(),
   };
 };

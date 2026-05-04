@@ -7,6 +7,7 @@ export type SpectrumSnapshot = {
 };
 
 export type SpectrumSnapshotListener = (snapshot: SpectrumSnapshot) => void;
+export type SpectrumDisposeListener = (snapshot: SpectrumSnapshot) => void;
 
 export function createIdleSpectrumSnapshot(barCount: number): SpectrumSnapshot {
   return {
@@ -18,20 +19,28 @@ export class SpectrumAnalysisController {
   private config: SpectrumDisplayConfig;
   private smoothedBars: number[] = [];
   private listeners = new Set<SpectrumSnapshotListener>();
+  private disposeListeners = new Map<SpectrumSnapshotListener, SpectrumDisposeListener>();
+  private lastSnapshot: SpectrumSnapshot;
   private unsubscribeFrame: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
 
   constructor(mic: MicrophoneController, config: SpectrumDisplayConfig) {
     this.config = config;
+    this.lastSnapshot = createIdleSpectrumSnapshot(config.barCount);
 
     this.unsubscribeFrame = mic.onFrame(this.handleFrame);
-    this.unsubscribeState = mic.subscribe(this.handleMicState);
+    this.unsubscribeState = mic.subscribe(this.handleMicState, this.handleMicDispose);
   }
 
-  subscribe(listener: SpectrumSnapshotListener): () => void {
+  subscribe(listener: SpectrumSnapshotListener, onDispose?: SpectrumDisposeListener): () => void {
     this.listeners.add(listener);
+    if (onDispose) {
+      this.disposeListeners.set(listener, onDispose);
+    }
+
     return () => {
       this.listeners.delete(listener);
+      this.disposeListeners.delete(listener);
     };
   }
 
@@ -44,12 +53,22 @@ export class SpectrumAnalysisController {
     this.unsubscribeState?.();
     this.unsubscribeFrame = null;
     this.unsubscribeState = null;
+    this.emitDispose(this.lastSnapshot);
     this.listeners.clear();
+    this.disposeListeners.clear();
     this.smoothedBars = [];
   }
 
   private emit(snapshot: SpectrumSnapshot) {
+    this.lastSnapshot = snapshot;
+
     for (const listener of this.listeners) {
+      listener(snapshot);
+    }
+  }
+
+  private emitDispose(snapshot: SpectrumSnapshot) {
+    for (const listener of this.disposeListeners.values()) {
       listener(snapshot);
     }
   }
@@ -73,9 +92,13 @@ export class SpectrumAnalysisController {
   };
 
   private handleMicState = (state: MicrophoneState) => {
-    if (!state.isRunning && !state.isStarting && !state.isDisconnecting) {
+    if (!state.isRunning && !state.isConnecting && !state.isStarting && !state.isDisconnecting) {
       this.smoothedBars = [];
       this.emit(createIdleSpectrumSnapshot(this.config.barCount));
     }
+  };
+
+  private handleMicDispose = () => {
+    this.dispose();
   };
 }

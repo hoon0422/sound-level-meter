@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
+import React, { useEffect, useRef } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useMicrophoneSpectrumStore } from '@/stores/useMicrophoneSpectrumStore';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CONTAINER_W = SCREEN_W - 48;
@@ -50,7 +51,8 @@ function LineSegment({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y
 }
 
 export default function SoundGraph() {
-  const { dbfs, isRunning } = useMicrophoneSpectrumStore();
+  const isRunning = useAudioMeterStore(state => state.isRunning);
+  const dbfs = useThrottledAudioMeterValue(state => state.dbfs);
   const scrollRef = useRef<ScrollView>(null);
   const samplesRef = useRef<Sample[]>([]);
   const startTimeRef = useRef<number | null>(null);

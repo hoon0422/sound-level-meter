@@ -1,5 +1,9 @@
-import { Tabs, useRouter } from 'expo-router';
+import { DEFAULT_CONFIG } from '@/audio/constants';
+import { useRecordingLogger } from '@/hooks/useRecordingLogger';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Ionicons } from '@expo/vector-icons';
+import { Tabs, useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 
 function SettingsButton() {
@@ -17,6 +21,19 @@ function SettingsButton() {
 }
 
 export default function RootLayout() {
+  const { connect, disconnect } = useAudioMeterStore(state => ({
+    connect: state.connect,
+    disconnect: state.disconnect,
+  }));
+  useRecordingLogger();
+
+  useEffect(() => {
+    void connect(DEFAULT_CONFIG);
+    return () => {
+      void disconnect();
+    };
+  }, [connect, disconnect]);
+
   return (
     <Tabs
       screenOptions={{
@@ -30,6 +47,12 @@ export default function RootLayout() {
       }}
     >
       <Tabs.Screen
+        name="index"
+        options={{
+          href: null, // This hides the tab from the bottom bar
+        }}
+      />
+      <Tabs.Screen
         name="db-time"
         options={{
           title: 'dB/Time',
@@ -37,7 +60,7 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="db-freq"
         options={{
           title: 'dB/Freq',
           tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart-outline" size={size} color={color} />,
