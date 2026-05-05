@@ -1,4 +1,5 @@
 {
+  "appName": "Decibella 2",
   "tabs": {
     "dbTime": "dB/时间",
     "dbFreq": "dB/频率",
@@ -15,8 +16,8 @@
   "log": {
     "date": "测量日期",
     "duration": "测量持续时间",
-    "noRecordings": "还没有记录",
-    "noRecordingsSubText": "开始录制，在此查看历史记录"
+    "noRecordings": "未发现音量测量记录。",
+    "noRecordingsSubText": "日志将在此自动记录。"
   },
   "days": {
     "mon": "星期一",
@@ -58,7 +59,7 @@
   },
   "settings": {
     "title": "设置",
-    "howToUse": "使用方法",
+    "howToUse": "使用说明",
     "language": "语言",
     "theme": "主题",
     "dark": "深色",
@@ -72,15 +73,6 @@
     "terms": "条款",
     "privacy": "隐私",
     "link": "链接",
-    "comingSoonTitle": "即将推出",
-    "comingSoonMessage": "此功能将在未来的更新中推出。",
     "linkErrorTitle": "无法打开链接"
-  },
-  "howToUse": {
-    "step1": { "title": "授予麦克风权限", "desc": "当应用请求麦克风访问权限时，请点击允许。" },
-    "step2": { "title": "查看实时分贝", "desc": "主界面以可视化指示器显示当前声音级别（dB）。" },
-    "step3": { "title": "切换可视化模式", "desc": "使用dB/时间标签查看随时间变化的级别，或使用dB/频率标签进行频率分析。" },
-    "step4": { "title": "探索声音指南", "desc": "在声音指南标签中了解日常生活中不同分贝级别的含义。" },
-    "step5": { "title": "查看记录", "desc": "使用记录标签浏览您的测量历史。" }
   }
 }

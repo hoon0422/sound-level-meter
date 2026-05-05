@@ -1,4 +1,5 @@
 {
+  "appName": "Decibella 2",
   "tabs": {
     "dbTime": "dB/時間",
     "dbFreq": "dB/頻率",
@@ -15,8 +16,8 @@
   "log": {
     "date": "測量日期",
     "duration": "測量持續時間",
-    "noRecordings": "還沒有記錄",
-    "noRecordingsSubText": "開始錄製，在此查看歷史記錄"
+    "noRecordings": "未發現音量測量紀錄。",
+    "noRecordingsSubText": "日誌將在此自動記錄。"
   },
   "days": {
     "mon": "星期一",
@@ -58,7 +59,7 @@
   },
   "settings": {
     "title": "設定",
-    "howToUse": "使用方法",
+    "howToUse": "使用說明",
     "language": "語言",
     "theme": "主題",
     "dark": "深色",
@@ -72,15 +73,6 @@
     "terms": "條款",
     "privacy": "隱私",
     "link": "連結",
-    "comingSoonTitle": "即將推出",
-    "comingSoonMessage": "此功能將在未來的更新中推出。",
     "linkErrorTitle": "無法開啟連結"
-  },
-  "howToUse": {
-    "step1": { "title": "授予麥克風權限", "desc": "當應用程式請求麥克風存取權限時，請點選允許。" },
-    "step2": { "title": "查看即時分貝", "desc": "主畫面以視覺指示器顯示目前聲音級別（dB）。" },
-    "step3": { "title": "切換視覺化模式", "desc": "使用dB/時間標籤查看隨時間變化的級別，或使用dB/頻率標籤進行頻率分析。" },
-    "step4": { "title": "探索聲音指南", "desc": "在聲音指南標籤中了解日常生活中不同分貝級別的含義。" },
-    "step5": { "title": "查看記錄", "desc": "使用記錄標籤瀏覽您的測量歷史。" }
   }
 }
