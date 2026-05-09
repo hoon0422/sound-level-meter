@@ -4,6 +4,7 @@ import { SpectrumDisplayConfig } from './types';
 
 export type SpectrumSnapshot = {
   bars: number[];
+  maximumBars: number[];
 };
 
 export type SpectrumSnapshotListener = (snapshot: SpectrumSnapshot) => void;
@@ -11,13 +12,15 @@ export type SpectrumDisposeListener = (snapshot: SpectrumSnapshot) => void;
 
 export function createIdleSpectrumSnapshot(barCount: number): SpectrumSnapshot {
   return {
-    bars: Array(barCount).fill(-100) as number[],
+    bars: Array(barCount).fill(-200) as number[],
+    maximumBars: Array(barCount).fill(-200) as number[],
   };
 }
 
 export class SpectrumAnalysisController {
   private config: SpectrumDisplayConfig;
   private smoothedBars: number[] = [];
+  private maximumBars: number[] = [];
   private listeners = new Set<SpectrumSnapshotListener>();
   private disposeListeners = new Map<SpectrumSnapshotListener, SpectrumDisposeListener>();
   private lastSnapshot: SpectrumSnapshot;
@@ -57,6 +60,7 @@ export class SpectrumAnalysisController {
     this.listeners.clear();
     this.disposeListeners.clear();
     this.smoothedBars = [];
+    this.maximumBars = [];
   }
 
   private emit(snapshot: SpectrumSnapshot) {
@@ -74,6 +78,9 @@ export class SpectrumAnalysisController {
   }
 
   private handleFrame = (frame: MicrophoneAudioFrame) => {
+    if (frame.elapsedSeconds === 0) {
+      return;
+    }
     const analysis = analyzeFrequencyFrame(frame.frequencyData, this.smoothedBars, {
       sampleRate: frame.sampleRate,
       fftSize: frame.fftSize,
@@ -86,14 +93,22 @@ export class SpectrumAnalysisController {
     });
     this.smoothedBars = analysis.bars;
 
+    if (this.maximumBars.length === analysis.bars.length) {
+      this.maximumBars = this.maximumBars.map((max, i) => Math.max(max, analysis.bars[i]));
+    } else {
+      this.maximumBars = analysis.bars;
+    }
+
     this.emit({
       bars: analysis.bars,
+      maximumBars: this.maximumBars,
     });
   };
 
   private handleMicState = (state: MicrophoneState) => {
     if (!state.isRunning && !state.isConnecting && !state.isStarting && !state.isDisconnecting) {
       this.smoothedBars = [];
+      this.maximumBars = [];
       this.emit(createIdleSpectrumSnapshot(this.config.barCount));
     }
   };

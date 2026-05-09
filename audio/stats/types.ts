@@ -2,7 +2,6 @@ export type StatsSnapshot = {
   averageDbfs: number;
   minimumDbfs: number;
   maximumDbfs: number;
-  maximumDbfsPerFrequencyBin: number[];
 };
 
 export type StatsSnapshotListener = (snapshot: StatsSnapshot) => void;
