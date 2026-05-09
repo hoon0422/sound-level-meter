@@ -53,28 +53,24 @@ function LineSegment({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y
 
 export default function SoundGraph() {
   const isRunning = useAudioMeterStore(state => state.isRunning);
-  const dbfs = useThrottledAudioMeterValue(state => state.dbfs);
+  const { dbfs, elapsedSeconds } = useThrottledAudioMeterValue(state => ({
+    dbfs: state.dbfs,
+    elapsedSeconds: state.elapsedSeconds,
+  }));
+  const [samples, setSamples] = React.useState<Sample[]>([]);
   const scrollRef = useRef<ScrollView>(null);
-  const samplesRef = useRef<Sample[]>([]);
-  const startTimeRef = useRef<number | null>(null);
-  const prevIsRunningRef = useRef(false);
 
   useEffect(() => {
-    if (isRunning && !prevIsRunningRef.current) {
-      samplesRef.current = [];
-      startTimeRef.current = Date.now();
-    } else if (!isRunning && prevIsRunningRef.current) {
-      samplesRef.current = [];
-      startTimeRef.current = null;
+    if (!isRunning) {
+      setSamples([]);
     }
-    prevIsRunningRef.current = isRunning;
   }, [isRunning]);
 
   useEffect(() => {
-    if (isRunning && dbfs > 0) {
-      samplesRef.current.push({ db: dbfs, timestamp: Date.now() });
+    if (isRunning && elapsedSeconds > 0 && dbfs > 0) {
+      setSamples(prev => [...prev, { db: dbfs, timestamp: elapsedSeconds }]);
     }
-  }, [dbfs, isRunning]);
+  }, [dbfs, elapsedSeconds, isRunning]);
 
   useEffect(() => {
     if (isRunning) {
@@ -82,16 +78,15 @@ export default function SoundGraph() {
     }
   }, [dbfs, isRunning]);
 
-  const samples = samplesRef.current;
-  const startMs = startTimeRef.current ?? samples[0]?.timestamp ?? Date.now();
-  const totalElapsed = samples.length > 0 ? (samples[samples.length - 1].timestamp - startMs) / 1000 : 0;
+  // const samples = samplesRef.current;
+  const totalElapsed = samples.length > 0 ? samples[samples.length - 1].timestamp : 0;
   const innerW = Math.max(CHART_W, totalElapsed * PX_PER_SEC);
 
   // Downsample for display: keep at most one point per MIN_PX_SPACING px
   const displayPoints: DisplayPoint[] = [];
   let lastX = -Infinity;
   for (const s of samples) {
-    const x = ((s.timestamp - startMs) / 1000) * PX_PER_SEC;
+    const x = s.timestamp * PX_PER_SEC;
     if (x - lastX >= MIN_PX_SPACING) {
       displayPoints.push({ x, y: dbToY(s.db) });
       lastX = x;
@@ -100,7 +95,7 @@ export default function SoundGraph() {
   // Always include the last sample
   if (samples.length > 0) {
     const last = samples[samples.length - 1];
-    const lastX2 = ((last.timestamp - startMs) / 1000) * PX_PER_SEC;
+    const lastX2 = last.timestamp * PX_PER_SEC;
     const prev = displayPoints[displayPoints.length - 1];
     if (!prev || lastX2 - prev.x > 1) {
       displayPoints.push({ x: lastX2, y: dbToY(last.db) });
@@ -111,9 +106,9 @@ export default function SoundGraph() {
   const timeLabels: { x: number; label: string }[] = [];
   let nextSec = 0;
   for (const s of samples) {
-    const elapsed = (s.timestamp - startMs) / 1000;
+    const elapsed = s.timestamp;
     if (elapsed >= nextSec) {
-      timeLabels.push({ x: ((s.timestamp - startMs) / 1000) * PX_PER_SEC, label: `${nextSec}s` });
+      timeLabels.push({ x: s.timestamp * PX_PER_SEC, label: `${nextSec}s` });
       nextSec += 5;
     }
   }
