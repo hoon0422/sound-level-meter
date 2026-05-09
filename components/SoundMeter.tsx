@@ -1,16 +1,18 @@
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
-import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import WhiteContainer from './WhiteContainer';
 
 const NEEDLE_BASE_WRAPPER_SIZE = 18;
-const NEEDLE_LENGTH = 47;
+const NEEDLE_LENGTH = 65;
 const NEEDLE_WIDTH = 1.5;
 const MIN_DEGREE = 5;
 const MAX_DEGREE = 175;
-const TICK_LENGTH = 7;
-const TICK_RADIUS = 125;
+const INNER_STROKE_OFFSET = 4;
+const TICK_LENGTH = 10;
+const TICK_RADIUS_A = 120;
+const TICK_RADIUS_B = 120;
 const TICK_GAP = 12;
 const TICK_COLORS = [
   '#00ABC5',
@@ -32,9 +34,9 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const ANIMATION_DURATION = 50;
 
 export function SoundMeter() {
-  const isRunning = useAudioMeterStore(state => state.isRunning);
-  const { dbfs, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
+  const { isRunning, dbfs, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
+      isRunning: state.isRunning && state.elapsedSeconds > 0,
       dbfs: state.dbfs,
       averageDbfs: state.averageDbfs,
       maximumDbfs: state.maximumDbfs,
@@ -43,20 +45,22 @@ export function SoundMeter() {
   );
 
   return (
-    <View style={styles.soundMeterContainer}>
-      <Meter />
-      <View style={styles.statsContainer}>
-        <View style={styles.statContainer}>
-          <Text style={styles.avgDbText}>{isRunning ? Math.round(averageDbfs) : '–'}</Text>
-          <Text style={styles.unitText}>AVG</Text>
-        </View>
-        <Text style={styles.dbfsText}>{isRunning ? Math.round(dbfs) : '–'}</Text>
-        <View style={styles.statContainer}>
-          <Text style={styles.maxDbText}>{isRunning ? Math.round(maximumDbfs) : '–'}</Text>
-          <Text style={styles.unitText}>MAX</Text>
+    <WhiteContainer style={styles.container}>
+      <View style={styles.soundMeterContainer}>
+        <Meter />
+        <View style={styles.statsContainer}>
+          <View style={styles.statContainer}>
+            <Text style={styles.avgDbText}>{isRunning ? Math.round(averageDbfs) : '–'}</Text>
+            <Text style={styles.unitText}>AVG</Text>
+          </View>
+          <Text style={styles.dbfsText}>{isRunning ? Math.round(dbfs) : '–'}</Text>
+          <View style={styles.statContainer}>
+            <Text style={styles.maxDbText}>{isRunning ? Math.round(maximumDbfs) : '–'}</Text>
+            <Text style={styles.unitText}>MAX</Text>
+          </View>
         </View>
       </View>
-    </View>
+    </WhiteContainer>
   );
 }
 
@@ -84,54 +88,50 @@ function Meter() {
   });
 
   return (
-    <View>
-      <View className="sound-meter" style={styles.meter}>
-        <Svg width="260" height="150">
-          <Defs>
-            {/* Simplified the coordinates to percentages so it scales cleanly */}
-            <LinearGradient id="paint0" x1="100%" y1="0%" x2="0%" y2="0%">
-              <Stop offset="0%" stopColor="#F87171" />
-              <Stop offset="36.5%" stopColor="#FBBF24" />
-              <Stop offset="100%" stopColor="#22D3EE" />
-            </LinearGradient>
-          </Defs>
-          <Path
-            /* M = Move to bottom left. A = Draw arc to bottom right. */
-            d="M 10 140 A 120 120 0 0 1 250 140"
-            /* Apply the gradient to the STROKE instead of the FILL */
-            stroke="url(#paint0)"
-            strokeWidth="16"
-            strokeLinecap="round"
-            opacity="0.35"
-            fill="none"
-          />
-          <AnimatedPath
-            d="M 10 140 A 120 120 0 0 1 250 140"
-            stroke="url(#paint0)"
-            strokeWidth="16"
-            strokeLinecap="round"
-            strokeDasharray={pathLength}
-            strokeDashoffset={animatedStrokeOffset}
-            fill="none"
-          />
-        </Svg>
-        <View style={styles.needleBaseWrapper}>
-          <View style={styles.needleBase} />
-        </View>
-        <GaugeTicks />
-        <Animated.View
-          style={[
-            styles.needle,
-            {
-              transform: [
-                { translateX: '-50%' },
-                { translateY: -(NEEDLE_LENGTH + NEEDLE_BASE_WRAPPER_SIZE / 2) },
-                { rotate: spinString },
-              ],
-            },
-          ]}
+    <View className="sound-meter" style={styles.meter}>
+      <Svg width="260" height="140" viewBox="0 0 260 140" fill="none">
+        <Defs>
+          {/* Simplified the coordinates to percentages so it scales cleanly */}
+          <LinearGradient id="paint0" x1="100%" y1="0%" x2="0%" y2="0%">
+            <Stop offset="0%" stopColor="#F87171" />
+            <Stop offset="36.5%" stopColor="#FBBF24" />
+            <Stop offset="100%" stopColor="#22D3EE" />
+          </LinearGradient>
+        </Defs>
+        <Path
+          d="M 10 130 A 120 120 0 0 1 250 130"
+          stroke="url(#paint0)"
+          strokeWidth="16"
+          strokeLinecap="round"
+          opacity="0.35"
+          fill="none"
         />
+        <AnimatedPath
+          d="M 10 130 A 120 120 0 0 1 250 130"
+          stroke="url(#paint0)"
+          strokeWidth="16"
+          strokeLinecap="round"
+          strokeDasharray={pathLength}
+          strokeDashoffset={animatedStrokeOffset}
+          fill="none"
+        />
+      </Svg>
+      <View style={styles.needleBaseWrapper}>
+        <View style={styles.needleBase} />
       </View>
+      <GaugeTicks />
+      <Animated.View
+        style={[
+          styles.needle,
+          {
+            transform: [
+              { translateX: '-50%' },
+              { translateY: -(NEEDLE_LENGTH + NEEDLE_BASE_WRAPPER_SIZE / 2) },
+              { rotate: spinString },
+            ],
+          },
+        ]}
+      />
     </View>
   );
 }
@@ -144,17 +144,23 @@ function GaugeTicks() {
         const isMajor = index % 2 === 0;
         const numberValue = index * 10;
 
+        const theta = angle * (Math.PI / 180);
+
+        // r(θ) = (a * b) / sqrt((b * cos(θ))^2 + (a * sin(θ))^2)
+        const dynamicRadius =
+          (TICK_RADIUS_A * TICK_RADIUS_B) /
+          Math.sqrt(Math.pow(TICK_RADIUS_B * Math.cos(theta), 2) + Math.pow(TICK_RADIUS_A * Math.sin(theta), 2));
+
+        const tickOffset = -dynamicRadius + TICK_GAP - INNER_STROKE_OFFSET;
+        const numberOffset = -dynamicRadius + 30 - INNER_STROKE_OFFSET;
+
         return (
           <View key={index} style={[styles.centerPivot, { transform: [{ rotate: `${angle - 90}deg` }] }]}>
             <View
-              style={[
-                styles.tick,
-                { borderColor: TICK_COLORS[index] },
-                { transform: [{ translateY: -TICK_RADIUS + TICK_GAP }] },
-              ]}
+              style={[styles.tick, { borderColor: TICK_COLORS[index] }, { transform: [{ translateY: tickOffset }] }]}
             />
             {isMajor && (
-              <View style={[styles.numberContainer, { transform: [{ translateY: -TICK_RADIUS + 30 }] }]}>
+              <View style={[styles.numberContainer, { transform: [{ translateY: numberOffset }] }]}>
                 <Text style={[styles.numberText, { transform: [{ rotate: `${90 - angle}deg` }] }]}>{numberValue}</Text>
               </View>
             )}
@@ -166,6 +172,11 @@ function GaugeTicks() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 30,
+    paddingVertical: 22,
+    width: 320,
+  },
   soundMeterContainer: {
     display: 'flex',
     flexDirection: 'column',
@@ -254,7 +265,7 @@ const styles = StyleSheet.create({
   centerPivot: {
     position: 'absolute',
     bottom: 10,
-    left: '50%',
+    left: 130,
     width: 0,
     height: 0,
     alignItems: 'center',
