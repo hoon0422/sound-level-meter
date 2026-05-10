@@ -2,10 +2,11 @@ import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import React, { useEffect, useRef } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import WhiteContainer from './WhiteContainer';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CONTAINER_W = SCREEN_W - 48;
-const INNER_H = 160;
+const INNER_H = 110;
 const X_AXIS_H = 20;
 const GRAPH_H = INNER_H + X_AXIS_H;
 const Y_AXIS_W = 28;
@@ -14,9 +15,9 @@ const PX_PER_SEC = 30;
 const MIN_PX_SPACING = 6; // downsample: ~5 pts/sec max
 
 const DB_MIN = 0;
-const DB_MAX = 100;
-const Y_LABELS = [100, 75, 50, 25, 0];
-const GRID_DBS = [25, 50, 75, 100];
+const DB_MAX = 140;
+const Y_LABELS = [120, 100, 75, 50, 25, 0];
+const GRID_DBS = [25, 50, 75, 100, 120];
 
 type Sample = { db: number; timestamp: number };
 type DisplayPoint = { x: number; y: number };
@@ -118,11 +119,10 @@ export default function SoundGraph() {
   }
 
   return (
-    <View style={styles.container}>
+    <WhiteContainer style={styles.container}>
       <View style={styles.yAxisLabel}>
         <Text style={styles.axisText}>dB</Text>
       </View>
-
       <View style={styles.graphRow}>
         {/* Fixed Y-axis */}
         <View style={{ width: Y_AXIS_W, height: GRAPH_H }}>
@@ -178,27 +178,13 @@ export default function SoundGraph() {
           </View>
         </ScrollView>
       </View>
-
       <Text style={styles.xAxisLabel}>Time (s)</Text>
-    </View>
+    </WhiteContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 8,
-    marginHorizontal: 16,
-    width: CONTAINER_W,
-    borderWidth: 1,
-    borderColor: '#333333',
-    shadowColor: '#333333',
-    shadowOffset: { width: 2, height: 1 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
+  container: { padding: 8, width: '100%' },
   yAxisLabel: {
     position: 'absolute',
     top: 8,

@@ -1,30 +1,10 @@
 import FrequencyBarGraph from '@/components/FrequencyBarGraph';
-import { RecordButton } from '@/components/RecordButton';
-import { SoundMeter } from '@/components/SoundMeter';
-import { StyleSheet, View } from 'react-native';
+import GraphsLayout from '@/components/GraphTabLayout';
 
 export default function DbFreqScreen() {
   return (
-    <View style={styles.page}>
-      <SoundMeter />
+    <GraphsLayout>
       <FrequencyBarGraph />
-      <RecordButton />
-    </View>
+    </GraphsLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    paddingVertical: 24,
-    backgroundColor: '#FEFAEE',
-  },
-  dbText: {
-    fontSize: 48,
-    fontWeight: '700',
-    color: '#000',
-  },
-});

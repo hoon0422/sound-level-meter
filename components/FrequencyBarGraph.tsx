@@ -2,8 +2,9 @@ import { CALIBRATION_PEAK_DBFS } from '@/audio/engine';
 import { SPECTRUM_BANDS } from '@/audio/spectrum';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { StyleSheet, Text, View } from 'react-native';
+import WhiteContainer from './WhiteContainer';
 
-const BAR_HEIGHT = 180;
+const BAR_HEIGHT = 120;
 const MIN_DB = 0;
 const MAX_DB = 140;
 const DB_RANGE = MAX_DB - MIN_DB;
@@ -28,7 +29,11 @@ function meterColorDb(db: number) {
 }
 
 export default function FrequencyBarGraph() {
-  return <SpectrumBars />;
+  return (
+    <WhiteContainer style={styles.container}>
+      <SpectrumBars />
+    </WhiteContainer>
+  );
 }
 
 function SpectrumBars() {
