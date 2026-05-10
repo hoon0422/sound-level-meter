@@ -1,34 +1,13 @@
+import FrequencyBarGraph from '@/components/FrequencyBarGraph';
 import { RecordButton } from '@/components/RecordButton';
 import { SoundMeter } from '@/components/SoundMeter';
-import { SpectrumBars } from '@/components/SpectrumBars';
-import { StatsPanel } from '@/components/StatsPanel';
-import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
-import { useAudioMeterStore } from '@/store/audioMeterStore';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 export default function DbFreqScreen() {
-  const { dbfs, peakHz } = useThrottledAudioMeterValue(state => ({
-    dbfs: state.dbfs,
-    peakHz: state.peakHz,
-  }));
-  const { bars, elapsedSeconds, error, isRunning } = useAudioMeterStore(state => ({
-    elapsedSeconds: state.elapsedSeconds,
-    error: state.error,
-    isRunning: state.isRunning,
-    bars: state.bars,
-  }));
-
-  const dbDisplay = isRunning ? `${dbfs.toFixed(1)} dB` : '— dB';
-
   return (
     <View style={styles.page}>
       <SoundMeter />
-      <Text style={styles.dbText}>{dbDisplay}</Text>
-      <View>
-        <StatsPanel elapsedSeconds={elapsedSeconds} dbfs={dbfs} peakHz={peakHz} error={error} />
-        <SpectrumBars bars={bars} />
-      </View>
-
+      <FrequencyBarGraph />
       <RecordButton />
     </View>
   );
