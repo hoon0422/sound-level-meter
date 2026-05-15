@@ -20,6 +20,7 @@ type ThemeTypography = {
 };
 
 type ThemeContextType = {
+  logo: number;
   colors: ThemeColors;
   typography: ThemeTypography;
   themeName: ThemeName;
@@ -29,6 +30,7 @@ type ThemeContextType = {
 const THEME_KEY = 'theme-storage';
 
 const ThemeContext = createContext<ThemeContextType>({
+  logo: themes.light.logo,
   colors: themes.light.colors,
   typography: themes.light.typography,
   themeName: 'light',
@@ -56,7 +58,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = themes[themeName];
 
   return (
-    <ThemeContext.Provider value={{ colors: theme.colors, typography: theme.typography, themeName, setTheme }}>
+    <ThemeContext.Provider value={{ logo: theme.logo, colors: theme.colors, typography: theme.typography, themeName, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

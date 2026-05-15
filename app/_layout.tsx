@@ -18,7 +18,8 @@ AnyText.defaultProps = AnyText.defaultProps ?? {};
 AnyText.defaultProps.style = { fontFamily: 'DMSans_400Regular' };
 
 function Decibella() {
-  return <Image source={require('./assets/icons/decibella.png')} style={{ height: 24, width: 120, marginLeft: 16 }} resizeMode="contain" />;
+  const { logo } = useTheme();
+  return <Image source={logo} style={{ height: 24, width: 120, marginLeft: 16 }} resizeMode="contain" />;
 }
 
 function SettingsButton() {
