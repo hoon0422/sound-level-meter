@@ -94,7 +94,6 @@ function AppLayout() {
               tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/list.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
             }}
           />
-          <Tabs.Screen name="record" options={{ href: null }} />
           <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />
         </Tabs>
   );
