@@ -22,9 +22,6 @@ export default function HowToUsePage() {
 
   const basePadding = isTablet ? 40 : 20;
   const headerFontSize = isTablet ? 32 : 24;
-  const labelFontSize = isTablet ? 18 : 16;
-  const descFontSize = isTablet ? 16 : 14;
-  const stepNumberSize = isTablet ? 36 : 30;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

@@ -77,6 +77,8 @@ export default function SettingsPage() {
     const sunnyBannerPadding = isTablet ? 20 : Math.min(screenWidth * 0.05, 15);
     const sunnyBannerGap = isTablet ? 16 : Math.max(screenWidth * 0.02, 8);
     const sunnyBannerFontSize = isTablet ? 14 : Math.max(screenWidth * 0.035, 11);
+    const sunnyBannerLogoWidth = isTablet ? 120 : Math.min(screenWidth * 0.25, 100); // 화면 너비의 25% 또는 최대 100px
+    const sunnyBannerLogoMargin = isTablet ? 16 : Math.max(screenWidth * 0.02, 8); // 화면 너비의 2% 또는 최소 8px
 
     return StyleSheet.create({
       container: {
@@ -189,6 +191,11 @@ export default function SettingsPage() {
       settingSubLabel: {
         fontSize: subLabelFontSize,
         color: colors.text,
+      },
+      sunnyBannerLogoImage: {
+        height: 70,
+        width: sunnyBannerLogoWidth,
+        marginRight: 'auto',
       },
       sunnyBanner: {
         flexDirection: 'row',
@@ -348,8 +355,8 @@ export default function SettingsPage() {
         {/* Sunny banner */}
         <View style={dynamicStyles.sunnyBanner}>
           <Image
-            source={require('../assets/SIL_logo_setting_mini_xxhdpi.png')}
-            style={{ height: 32, width: 32, marginRight: 'auto' }}
+            source={require('../assets/SIL_logo_mini.png')}
+            style={dynamicStyles.sunnyBannerLogoImage}
             resizeMode="contain"
           />
           <View style={dynamicStyles.sunnyBannerFooterLinks}>
