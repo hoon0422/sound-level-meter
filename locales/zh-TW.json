@@ -1,0 +1,78 @@
+{
+  "appName": "Decibella 2",
+  "tabs": {
+    "dbTime": "dB/時間",
+    "dbFreq": "dB/頻率",
+    "soundGuide": "聲音說明",
+    "log": "記錄"
+  },
+  "stats": {
+    "min": "最小",
+    "average": "平均",
+    "max": "最大",
+    "db": "分貝",
+    "freq": "頻率"
+  },
+  "log": {
+    "date": "測量日期",
+    "duration": "測量持續時間",
+    "noRecordings": "未發現音量測量紀錄。",
+    "noRecordingsSubText": "日誌將在此自動記錄。"
+  },
+  "days": {
+    "mon": "星期一",
+    "tue": "星期二",
+    "wed": "星期三",
+    "thu": "星期四",
+    "fri": "星期五",
+    "sat": "星期六",
+    "sun": "星期日"
+  },
+  "warning": "警告!",
+  "soundGuide": {
+    "lt30": ["安靜的森林", "樹葉沙沙聲", "時鐘秒針聲", "下雪聲"],
+    "db30": ["深夜的住宅區", "極小聲的耳語", "圖書館內部", "微風"],
+    "db40": ["安靜的公園", "白天的住宅區", "輕微的雨聲", "安靜的公園"],
+    "db50": ["安靜的辦公室", "冰箱運行聲", "安靜處的日常對話", "安靜的咖啡館"],
+    "db60": ["普通的談話聲", "百貨公司內的噪音", "洗衣機運行聲", "安靜的餐廳"],
+    "db70": ["電話鈴聲", "吵鬧的辦公室", "吸塵器噪音", "繁華街街道"],
+    "db80": ["地鐵內的噪音", "鐵路沿線的噪音", "吵鬧的工廠內", "攪拌機"],
+    "db90": ["噪音嚴重的工廠", "挖掘機作業噪音", "大卡車通行聲", "割草機"],
+    "db100": ["火車經過時的噪音", "電鑽聲", "汽車喇叭聲", "電鋸"],
+    "gt110": ["搖滾樂隊演唱會場", "飛機起降噪音", "雷聲", "近距離消防車警笛"]
+  },
+  "analysisGraph": {
+    "barelyAudible": "幾乎聽不見",
+    "quietForest": "安靜的森林",
+    "library": "圖書館",
+    "lightRainfall": "輕微雨聲",
+    "casualTalk": "日常交談",
+    "busyStreet": "繁華街道",
+    "heavyTraffic": "交通噪音",
+    "subway": "地鐵",
+    "planeTakingOff": "飛機起飛",
+    "dangerZone": "危險區域"
+  },
+  "permissions": {
+    "micTitle": "「Decibella 2」想要存取您的麥克風。",
+    "micMessage": "此應用程式需要麥克風權限以即時測量並顯示環境噪音水平。音訊資料僅用於計算分貝，絕不會被錄製或儲存。"
+  },
+  "settings": {
+    "title": "設定",
+    "howToUse": "使用說明",
+    "language": "語言",
+    "theme": "主題",
+    "dark": "深色",
+    "light": "淺色",
+    "instagram": "Instagram",
+    "twitter": "X (推特)",
+    "sunnyApps": "Sunny 遊戲應用",
+    "credits": "致謝",
+    "openSource": "開源資訊",
+    "appVersion": "應用程式版本",
+    "terms": "條款",
+    "privacy": "隱私",
+    "link": "連結",
+    "linkErrorTitle": "無法開啟連結"
+  }
+}

@@ -3,6 +3,7 @@ import { useAudioMeterStore } from '@/store/audioMeterStore';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import WhiteContainer from './WhiteContainer';
+import { useTranslation } from 'react-i18next';
 
 const ROW_HEIGHT = 18;
 const RANGES = [

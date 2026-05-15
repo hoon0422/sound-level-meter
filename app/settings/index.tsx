@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
+  Image,
   View,
   Text,
   TouchableOpacity,
@@ -11,30 +12,44 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import useThemeStore from '@/store/themeStore';
+import { useTheme } from '@/context/ThemeContext';
+import { useLanguage, type LanguageCode } from '@/context/LanguageContext';
+import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 
 const APP_VERSION = '1.0';
 
-const LANGUAGE_OPTIONS = [{ label: 'English', value: 1 }];
+const LANGUAGE_OPTIONS: { label: string; value: LanguageCode }[] = [
+  { label: 'English', value: 'en' },
+  { label: '한국어', value: 'ko' },
+  { label: '日本語', value: 'ja' },
+  { label: '中文 (简体)', value: 'zh-CN' },
+  { label: '中文 (繁體)', value: 'zh-TW' },
+  { label: 'Français', value: 'fr' },
+  { label: 'Español', value: 'es' },
+];
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useThemeStore();
-  const isDark = theme === 'dark';
+  const { colors: themeColors, themeName, setTheme } = useTheme();
+  const { language, setLanguage } = useLanguage();
+  const { t } = useTranslation();
+  const router = useRouter();
+  const isDark = themeName === 'dark';
+  const theme = themeName;
 
   const colors = {
-    primaryBackground: isDark ? '#000' : '#FEFAEE',
-    secondaryBackground: isDark ? '#1c1c1e' : '#fff',
-    text: isDark ? '#fff' : '#000',
-    secondaryText: '#8e8e93',
-    border: isDark ? '#38383a' : '#e0e0e0',
-    link: '#F0923A',
+    background: themeColors.background,
+    text: themeColors.text,
+    primary: themeColors.primary,
+    border: themeColors.border,
+
+    link: themeColors.text,
+    arrows: themeColors.primary,
   };
 
   const updateTheme = (val: 'Dark' | 'Light') => setTheme(val === 'Dark' ? 'dark' : 'light');
 
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
-  const userLanguage = 1;
-  const language = 1;
 
   const { width: screenWidth } = useWindowDimensions();
   const isTablet = screenWidth >= 768;
@@ -44,11 +59,9 @@ export default function SettingsPage() {
     try {
       await Linking.openURL(url);
     } catch (error: any) {
-      Alert.alert('Could not open link', error.message);
+      Alert.alert(t('settings.linkErrorTitle'), error.message);
     }
   };
-
-  const comingSoon = () => Alert.alert('Coming Soon', 'This feature will be available in a future update.');
 
   const dynamicStyles = useMemo(() => {
     const basePadding = isTablet ? 40 : 20;
@@ -64,11 +77,13 @@ export default function SettingsPage() {
     const sunnyBannerPadding = isTablet ? 20 : Math.min(screenWidth * 0.05, 15);
     const sunnyBannerGap = isTablet ? 16 : Math.max(screenWidth * 0.02, 8);
     const sunnyBannerFontSize = isTablet ? 14 : Math.max(screenWidth * 0.035, 11);
+    const sunnyBannerLogoWidth = isTablet ? 120 : Math.min(screenWidth * 0.25, 100); // 화면 너비의 25% 또는 최대 100px
+    const sunnyBannerLogoMargin = isTablet ? 16 : Math.max(screenWidth * 0.02, 8); // 화면 너비의 2% 또는 최소 8px
 
     return StyleSheet.create({
       container: {
         flex: 1,
-        backgroundColor: colors.primaryBackground,
+        backgroundColor: colors.background,
       },
       header: {
         flexDirection: 'row',
@@ -76,9 +91,9 @@ export default function SettingsPage() {
         paddingTop: headerPaddingTop,
         paddingBottom: isTablet ? 25 : 20,
         paddingHorizontal: basePadding,
-        backgroundColor: colors.primaryBackground,
+        backgroundColor: colors.background,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: '#000000',
       },
       headerTitle: {
         fontSize: headerFontSize,
@@ -93,10 +108,10 @@ export default function SettingsPage() {
         paddingHorizontal: basePadding,
         paddingVertical: isTablet ? 20 : 16,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: '#000000',
       },
       selectedItem: {
-        backgroundColor: colors.secondaryBackground,
+        backgroundColor: colors.background,
       },
       settingLabel: {
         fontSize: labelFontSize,
@@ -111,7 +126,6 @@ export default function SettingsPage() {
       },
       themeContainer: {
         flexDirection: 'row',
-        backgroundColor: isDark ? '#1e293b' : '#F5F5F5',
         borderRadius: 8,
         padding: 4,
         gap: 4,
@@ -121,19 +135,19 @@ export default function SettingsPage() {
         paddingVertical: isTablet ? 10 : 8,
         borderRadius: 6,
         borderWidth: 1,
-        borderColor: isDark ? '#334155' : '#E0E0E0',
+        borderColor: colors.border,
       },
       themeOptionActive: {
-        backgroundColor: isDark ? '#1a1f2e' : '#F0923A',
-        borderColor: isDark ? '#1a1f2e' : '#F0923A',
+        backgroundColor: colors.primary,
+        borderColor: colors.border,
       },
       themeOptionText: {
         fontSize: themeOptionFontSize,
-        color: isDark ? '#94a3b8' : '#000',
+        color: colors.text,
         fontWeight: '500',
       },
       themeOptionTextActive: {
-        color: isDark ? '#60a5fa' : '#fff',
+        color: isDark ? '#fff' : '#000',
         fontWeight: '600',
       },
       linkText: {
@@ -142,7 +156,7 @@ export default function SettingsPage() {
         fontWeight: '600',
       },
       languageList: {
-        backgroundColor: colors.secondaryBackground,
+        backgroundColor: colors.background,
       },
       languageOptionItem: {
         flexDirection: 'row',
@@ -151,22 +165,22 @@ export default function SettingsPage() {
         paddingVertical: isTablet ? 16 : 12,
         paddingHorizontal: basePadding,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: '#000000',
       },
       selectedLanguageOption: {
         backgroundColor: isDark ? '#1e293b' : 'transparent',
       },
       languageOptionText: {
         fontSize: languageOptionFontSize,
-        color: colors.secondaryText,
+        color: colors.text,
       },
       selectedLanguageText: {
-        color: colors.link,
+        color: colors.primary,
         fontWeight: '600',
       },
       versionText: {
         fontSize: versionFontSize,
-        color: colors.secondaryText,
+        color: colors.text,
         fontWeight: '500',
       },
       pickerLabel: {
@@ -176,7 +190,12 @@ export default function SettingsPage() {
       },
       settingSubLabel: {
         fontSize: subLabelFontSize,
-        color: colors.secondaryText,
+        color: colors.text,
+      },
+      sunnyBannerLogoImage: {
+        height: 70,
+        width: sunnyBannerLogoWidth,
+        marginRight: 'auto',
       },
       sunnyBanner: {
         flexDirection: 'row',
@@ -211,20 +230,20 @@ export default function SettingsPage() {
     <View style={dynamicStyles.container}>
       {/* Header */}
       <View style={dynamicStyles.header}>
-        <Ionicons name="settings-outline" size={24} color={colors.text} style={styles.headerIcon} />
+        <Image source={require('../assets/icons/setting.png')} style={[{ height: 24, width: 24, tintColor: colors.text }, styles.headerIcon]} resizeMode="contain" />
         <Text allowFontScaling={false} style={dynamicStyles.headerTitle}>
-          Settings
+          {t('settings.title')}
         </Text>
       </View>
 
       <ScrollView
-        style={[styles.scrollView, { backgroundColor: colors.primaryBackground }]}
+        style={[styles.scrollView, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.scrollContent}
       >
         {/* How to Use */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
-          <Text style={dynamicStyles.settingLabel}>How To Use</Text>
-          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/how-to-use')}>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.howToUse')}</Text>
+          <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Language */}
@@ -234,10 +253,10 @@ export default function SettingsPage() {
             activeOpacity={0.7}
             onPress={() => setIsLanguageOpen(!isLanguageOpen)}
           >
-            <Text style={dynamicStyles.settingLabel}>Language</Text>
+            <Text style={dynamicStyles.settingLabel}>{t('settings.language')}</Text>
             <View style={styles.languageContainer}>
-              <Text style={dynamicStyles.languageValue}>English</Text>
-              <Ionicons name={isLanguageOpen ? 'chevron-up' : 'chevron-down'} size={20} color={colors.secondaryText} />
+              <Text style={dynamicStyles.languageValue}>{LANGUAGE_OPTIONS.find(o => o.value === language)?.label}</Text>
+              <Ionicons name={isLanguageOpen ? 'chevron-up' : 'chevron-down'} size={20} color={colors.arrows} />
             </View>
           </TouchableOpacity>
 
@@ -250,17 +269,17 @@ export default function SettingsPage() {
                     dynamicStyles.languageOptionItem,
                     language === option.value && dynamicStyles.selectedLanguageOption,
                   ]}
-                  onPress={() => setIsLanguageOpen(false)}
+                  onPress={() => { setLanguage(option.value); setIsLanguageOpen(false); }}
                 >
                   <Text
                     style={[
                       dynamicStyles.languageOptionText,
-                      userLanguage === option.value && dynamicStyles.selectedLanguageText,
+                      language === option.value && dynamicStyles.selectedLanguageText,
                     ]}
                   >
                     {option.label}
                   </Text>
-                  {userLanguage === option.value && <Ionicons name="checkmark" size={20} color={colors.link} />}
+                  {language === option.value && <Ionicons name="checkmark" size={20} color={colors.arrows} />}
                 </TouchableOpacity>
               ))}
             </View>
@@ -269,14 +288,14 @@ export default function SettingsPage() {
 
         {/* Theme */}
         <View style={dynamicStyles.settingItem}>
-          <Text style={dynamicStyles.settingLabel}>Theme</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.theme')}</Text>
           <View style={dynamicStyles.themeContainer}>
             <TouchableOpacity
               style={[dynamicStyles.themeOption, theme === 'dark' && dynamicStyles.themeOptionActive]}
               onPress={() => updateTheme('Dark')}
             >
               <Text style={[dynamicStyles.themeOptionText, theme === 'dark' && dynamicStyles.themeOptionTextActive]}>
-                Dark
+                {t('settings.dark')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -284,7 +303,7 @@ export default function SettingsPage() {
               onPress={() => updateTheme('Light')}
             >
               <Text style={[dynamicStyles.themeOptionText, theme === 'light' && dynamicStyles.themeOptionTextActive]}>
-                Light
+                {t('settings.light')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -292,49 +311,54 @@ export default function SettingsPage() {
 
         {/* Instagram */}
         <View style={dynamicStyles.settingItem}>
-          <Text style={dynamicStyles.settingLabel}>Instagram</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.instagram')}</Text>
           <TouchableOpacity
             style={styles.linkButton}
             onPress={() => handleLinkPress('https://www.instagram.com/sunnyinnolab/')}
           >
-            <Text style={dynamicStyles.linkText}>Link</Text>
+            <Text style={dynamicStyles.linkText}>{t('settings.link')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* X (Twitter) */}
         <View style={dynamicStyles.settingItem}>
-          <Text style={dynamicStyles.settingLabel}>X (Twitter)</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.twitter')}</Text>
           <TouchableOpacity style={styles.linkButton} onPress={() => handleLinkPress('https://x.com/Sunnyinnolab')}>
-            <Text style={dynamicStyles.linkText}>Link</Text>
+            <Text style={dynamicStyles.linkText}>{t('settings.link')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Sunny's Games and Apps */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
-          <Text style={dynamicStyles.settingLabel}>Sunny Games Apps</Text>
-          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/sunny-apps')}>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.sunnyApps')}</Text>
+          <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Credits */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
-          <Text style={dynamicStyles.settingLabel}>Credits</Text>
-          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/credits')}>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.credits')}</Text>
+          <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Open Source Info */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={comingSoon}>
-          <Text style={dynamicStyles.settingLabel}>Open Source Info</Text>
-          <Ionicons name="chevron-forward" size={24} color={colors.secondaryText} />
+        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/open-source')}>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.openSource')}</Text>
+          <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* App Version */}
         <View style={dynamicStyles.settingItem}>
-          <Text style={dynamicStyles.settingLabel}>App Version</Text>
+          <Text style={dynamicStyles.settingLabel}>{t('settings.appVersion')}</Text>
           <Text style={dynamicStyles.versionText}>v {APP_VERSION}</Text>
         </View>
 
         {/* Sunny banner */}
         <View style={dynamicStyles.sunnyBanner}>
+          <Image
+            source={require('../assets/SIL_logo_mini.png')}
+            style={dynamicStyles.sunnyBannerLogoImage}
+            resizeMode="contain"
+          />
           <View style={dynamicStyles.sunnyBannerFooterLinks}>
             <TouchableOpacity
               onPress={() =>
@@ -344,7 +368,7 @@ export default function SettingsPage() {
               }
             >
               <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>
-                Terms
+                {t('settings.terms')}
               </Text>
             </TouchableOpacity>
             <View style={dynamicStyles.sunnyBannerFooterDivider} />
@@ -356,7 +380,7 @@ export default function SettingsPage() {
               }
             >
               <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>
-                Privacy
+                {t('settings.privacy')}
               </Text>
             </TouchableOpacity>
           </View>

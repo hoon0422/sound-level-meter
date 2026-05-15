@@ -1,0 +1,78 @@
+{
+  "appName": "Decibella 2",
+  "tabs": {
+    "dbTime": "dB/Time",
+    "dbFreq": "dB/Freq",
+    "soundGuide": "Sound Guide",
+    "log": "Records"
+  },
+  "stats": {
+    "min": "Min",
+    "average": "Average",
+    "max": "Max",
+    "db": "dB",
+    "freq": "Freq"
+  },
+  "log": {
+    "date": "Date",
+    "duration": "Duration",
+    "noRecordings": "No sound measurements found.",
+    "noRecordingsSubText": "Logs will be recorded here automatically"
+  },
+  "days": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "warning": "Warning!",
+  "soundGuide": {
+    "lt30": ["Quiet forest", "Rustling leaves", "Ticking of a clock", "Sound of falling snow"],
+    "db30": ["Residential area at midnight", "Very soft whisper", "Inside a library", "Gentle breeze"],
+    "db40": ["Quiet park", "Residential area by day", "Light rain sound", "Quiet park"],
+    "db50": ["Quiet office", "Refrigerator hum", "Soft conversation", "Quiet cafe"],
+    "db60": ["Normal conversation", "Department store noise", "Washing machine noise", "Quiet restaurant"],
+    "db70": ["Phone ringtone", "Noisy office", "Vacuum cleaner noise", "Busy street"],
+    "db80": ["Noise inside a subway", "Roadside railway noise", "Inside a noisy factory", "Blender"],
+    "db90": ["Noisy factory", "Excavator work noise", "Heavy truck traffic", "Lawnmower"],
+    "db100": ["Noise of a passing train", "Electric drill sound", "Car horn sound", "Chainsaw"],
+    "gt110": ["Rock band venue", "Airplane takeoff/landing", "Thunder sound", "Nearby fire engine siren"]
+  },
+  "analysisGraph": {
+    "barelyAudible": "Barely audible",
+    "quietForest": "Quiet forest",
+    "library": "Library",
+    "lightRainfall": "Light rainfall",
+    "casualTalk": "Casual talk",
+    "busyStreet": "Busy street",
+    "heavyTraffic": "Heavy traffic",
+    "subway": "Subway",
+    "planeTakingOff": "Plane taking off",
+    "dangerZone": "Danger zone"
+  },
+  "permissions": {
+    "micTitle": "\"Decibella 2\" Would Like to Access the Microphone.",
+    "micMessage": "This app requires microphone access to measure and display real-time ambient sound levels. Audio data is used only for decibel calculation and is never recorded or stored."
+  },
+  "settings": {
+    "title": "Settings",
+    "howToUse": "How To Use",
+    "language": "Language",
+    "theme": "Theme",
+    "dark": "Dark",
+    "light": "Light",
+    "instagram": "Instagram",
+    "twitter": "X (Twitter)",
+    "sunnyApps": "Sunny Games Apps",
+    "credits": "Credits",
+    "openSource": "Open Source Info",
+    "appVersion": "App Version",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "link": "Link",
+    "linkErrorTitle": "Could not open link"
+  }
+}
