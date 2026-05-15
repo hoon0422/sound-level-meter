@@ -18,12 +18,7 @@ export type MicrophoneSlice = MicrophoneState & {
 export const createMicrophoneSlice: StateCreator<MicrophoneSlice> = set => {
   const mic = MicrophoneController.getInstance();
 
-  mic.subscribe(state =>
-    set({
-      ...state,
-      isRunning: state.isRunning && state.elapsedSeconds > 0,
-    })
-  );
+  mic.subscribe(state => set(state));
 
   return {
     ...createIdleMicrophoneState(),

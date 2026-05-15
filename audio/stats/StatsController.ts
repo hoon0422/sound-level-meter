@@ -7,7 +7,6 @@ export function createIdleStatsSnapshot(): StatsSnapshot {
     averageDbfs: -100,
     minimumDbfs: 1000,
     maximumDbfs: -100,
-    maximumDbfsPerFrequencyBin: [],
   };
 }
 
@@ -21,7 +20,6 @@ export class StatsController {
   private dbfsSampleCount = 0;
   private minimumDbfs = 1000;
   private maximumDbfs = -100;
-  private maximumDbfsPerFrequencyBin: number[] = [];
 
   constructor(mic: MicrophoneController) {
     this.unsubscribeFrame = mic.onFrame(this.handleFrame);
@@ -45,7 +43,6 @@ export class StatsController {
     this.dbfsSampleCount = 0;
     this.minimumDbfs = 1000;
     this.maximumDbfs = -100;
-    this.maximumDbfsPerFrequencyBin = [];
     this.emit(createIdleStatsSnapshot());
   }
 
@@ -79,7 +76,6 @@ export class StatsController {
     this.dbfsSampleCount = 0;
     this.minimumDbfs = 1000;
     this.maximumDbfs = -100;
-    this.maximumDbfsPerFrequencyBin = [];
   }
 
   private handleFrame = (frame: MicrophoneAudioFrame) => {
@@ -90,23 +86,10 @@ export class StatsController {
     this.minimumDbfs = Math.min(this.minimumDbfs, dbfs);
     this.maximumDbfs = Math.max(this.maximumDbfs, dbfs);
 
-    if (this.maximumDbfsPerFrequencyBin.length !== frame.frequencyData.length) {
-      this.maximumDbfsPerFrequencyBin = Array(frame.frequencyData.length).fill(frame.minDecibels) as number[];
-    }
-
-    for (let i = 0; i < frame.frequencyData.length; i++) {
-      const value = frame.frequencyData[i];
-      this.maximumDbfsPerFrequencyBin[i] = Math.max(
-        this.maximumDbfsPerFrequencyBin[i],
-        Number.isFinite(value) ? value : frame.minDecibels
-      );
-    }
-
     this.emit({
       averageDbfs: this.dbfsSum / this.dbfsSampleCount,
       minimumDbfs: this.minimumDbfs,
       maximumDbfs: this.maximumDbfs,
-      maximumDbfsPerFrequencyBin: [...this.maximumDbfsPerFrequencyBin],
     });
   };
 

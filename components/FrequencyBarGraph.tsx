@@ -1,17 +1,14 @@
 import { CALIBRATION_PEAK_DBFS } from '@/audio/engine';
 import { SPECTRUM_BANDS } from '@/audio/spectrum';
-import { memo } from 'react';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { StyleSheet, Text, View } from 'react-native';
+import WhiteContainer from './WhiteContainer';
 
-const BAR_HEIGHT = 180;
-const MIN_DB = 10;
-const MAX_DB = 90;
+const BAR_HEIGHT = 120;
+const MIN_DB = 0;
+const MAX_DB = 140;
 const DB_RANGE = MAX_DB - MIN_DB;
-const DB_GRID_LINES = [20, 40, 60, 80];
-
-type SpectrumBarsProps = {
-  bars: number[];
-};
+const DB_GRID_LINES = [20, 40, 60, 80, 100, 120];
 
 function dbToY(db: number) {
   return ((db - MIN_DB) / DB_RANGE) * BAR_HEIGHT;
@@ -31,7 +28,20 @@ function meterColorDb(db: number) {
   return '#f44336';
 }
 
-export const SpectrumBars = memo(function SpectrumBars({ bars }: SpectrumBarsProps) {
+export default function FrequencyBarGraph() {
+  return (
+    <WhiteContainer style={styles.container}>
+      <SpectrumBars />
+    </WhiteContainer>
+  );
+}
+
+function SpectrumBars() {
+  const { bars, barPeaks } = useAudioMeterStore(state => ({
+    bars: state.bars,
+    barPeaks: state.maximumBars,
+  }));
+
   return (
     <View style={styles.spectrumContainer}>
       <View style={styles.spectrumChart}>
@@ -51,17 +61,30 @@ export const SpectrumBars = memo(function SpectrumBars({ bars }: SpectrumBarsPro
           <View style={styles.barsRow}>
             {bars.map((rawDbfs, index) => {
               const db = calibrate(rawDbfs);
+              const peakDb = calibrate(barPeaks[index]);
               return (
-                <View
-                  key={SPECTRUM_BANDS[index]?.label ?? String(index)}
-                  style={[
-                    styles.bar,
-                    {
-                      height: dbToHeight(db),
-                      backgroundColor: meterColorDb(db),
-                    },
-                  ]}
-                />
+                <View style={styles.barContainer} key={SPECTRUM_BANDS[index]?.label ?? String(index)}>
+                  <View
+                    style={[
+                      styles.bar,
+                      styles.barPeak,
+                      {
+                        top: -dbToHeight(peakDb),
+                        height: dbToHeight(peakDb),
+                      },
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.bar,
+                      {
+                        top: -dbToHeight(db),
+                        height: dbToHeight(db),
+                        backgroundColor: meterColorDb(db),
+                      },
+                    ]}
+                  />
+                </View>
               );
             })}
           </View>
@@ -80,9 +103,13 @@ export const SpectrumBars = memo(function SpectrumBars({ bars }: SpectrumBarsPro
       </View>
     </View>
   );
-});
+}
 
 const styles = StyleSheet.create({
+  container: {
+    padding: 8,
+    width: 320,
+  },
   spectrumContainer: {
     width: '90%',
     alignItems: 'center',
@@ -129,12 +156,23 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 4,
   },
-  bar: {
+  barContainer: {
+    position: 'relative',
     flex: 1,
+  },
+  bar: {
+    ...StyleSheet.absoluteFillObject,
     borderRadius: 2,
+    width: 10,
+    left: '50%',
+    transform: [{ translateX: -5 }],
+  },
+  barPeak: {
+    backgroundColor: '#AAAAAA',
   },
   freqLabelsRow: {
     flexDirection: 'row',
+    justifyContent: 'center',
     width: '100%',
   },
   freqLabelsInner: {

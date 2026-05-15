@@ -3,10 +3,11 @@ import { useAudioMeterStore } from '@/store/audioMeterStore';
 import React, { useEffect, useRef } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
+import WhiteContainer from './WhiteContainer';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CONTAINER_W = SCREEN_W - 48;
-const INNER_H = 160;
+const INNER_H = 110;
 const X_AXIS_H = 20;
 const GRAPH_H = INNER_H + X_AXIS_H;
 const Y_AXIS_W = 28;
@@ -55,28 +56,24 @@ function LineSegment({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y
 export default function SoundGraph() {
   const { colors } = useTheme();
   const isRunning = useAudioMeterStore(state => state.isRunning);
-  const dbfs = useThrottledAudioMeterValue(state => state.dbfs);
+  const { dbfs, elapsedSeconds } = useThrottledAudioMeterValue(state => ({
+    dbfs: state.dbfs,
+    elapsedSeconds: state.elapsedSeconds,
+  }));
+  const [samples, setSamples] = React.useState<Sample[]>([]);
   const scrollRef = useRef<ScrollView>(null);
-  const samplesRef = useRef<Sample[]>([]);
-  const startTimeRef = useRef<number | null>(null);
-  const prevIsRunningRef = useRef(false);
 
   useEffect(() => {
-    if (isRunning && !prevIsRunningRef.current) {
-      samplesRef.current = [];
-      startTimeRef.current = Date.now();
-    } else if (!isRunning && prevIsRunningRef.current) {
-      samplesRef.current = [];
-      startTimeRef.current = null;
+    if (!isRunning) {
+      setSamples([]);
     }
-    prevIsRunningRef.current = isRunning;
   }, [isRunning]);
 
   useEffect(() => {
-    if (isRunning && dbfs > 0) {
-      samplesRef.current.push({ db: dbfs, timestamp: Date.now() });
+    if (isRunning && elapsedSeconds > 0 && dbfs > 0) {
+      setSamples(prev => [...prev, { db: dbfs, timestamp: elapsedSeconds }]);
     }
-  }, [dbfs, isRunning]);
+  }, [dbfs, elapsedSeconds, isRunning]);
 
   useEffect(() => {
     if (isRunning) {
@@ -84,16 +81,15 @@ export default function SoundGraph() {
     }
   }, [dbfs, isRunning]);
 
-  const samples = samplesRef.current;
-  const startMs = startTimeRef.current ?? samples[0]?.timestamp ?? Date.now();
-  const totalElapsed = samples.length > 0 ? (samples[samples.length - 1].timestamp - startMs) / 1000 : 0;
+  // const samples = samplesRef.current;
+  const totalElapsed = samples.length > 0 ? samples[samples.length - 1].timestamp : 0;
   const innerW = Math.max(CHART_W, totalElapsed * PX_PER_SEC);
 
   // Downsample for display: keep at most one point per MIN_PX_SPACING px
   const displayPoints: DisplayPoint[] = [];
   let lastX = -Infinity;
   for (const s of samples) {
-    const x = ((s.timestamp - startMs) / 1000) * PX_PER_SEC;
+    const x = s.timestamp * PX_PER_SEC;
     if (x - lastX >= MIN_PX_SPACING) {
       displayPoints.push({ x, y: dbToY(s.db) });
       lastX = x;
@@ -102,7 +98,7 @@ export default function SoundGraph() {
   // Always include the last sample
   if (samples.length > 0) {
     const last = samples[samples.length - 1];
-    const lastX2 = ((last.timestamp - startMs) / 1000) * PX_PER_SEC;
+    const lastX2 = last.timestamp * PX_PER_SEC;
     const prev = displayPoints[displayPoints.length - 1];
     if (!prev || lastX2 - prev.x > 1) {
       displayPoints.push({ x: lastX2, y: dbToY(last.db) });
@@ -113,19 +109,18 @@ export default function SoundGraph() {
   const timeLabels: { x: number; label: string }[] = [];
   let nextSec = 0;
   for (const s of samples) {
-    const elapsed = (s.timestamp - startMs) / 1000;
+    const elapsed = s.timestamp;
     if (elapsed >= nextSec) {
-      timeLabels.push({ x: ((s.timestamp - startMs) / 1000) * PX_PER_SEC, label: `${nextSec}s` });
+      timeLabels.push({ x: s.timestamp * PX_PER_SEC, label: `${nextSec}s` });
       nextSec += 5;
     }
   }
 
   return (
-    <View style={styles.container}>
+    <WhiteContainer style={styles.container}>
       <View style={styles.yAxisLabel}>
         <Text style={styles.axisText}>dB</Text>
       </View>
-
       <View style={styles.graphRow}>
         {/* Fixed Y-axis */}
         <View style={{ width: Y_AXIS_W, height: GRAPH_H }}>
@@ -181,25 +176,13 @@ export default function SoundGraph() {
           </View>
         </ScrollView>
       </View>
-    </View>
+      <Text style={styles.xAxisLabel}>Time (s)</Text>
+    </WhiteContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 8,
-    marginHorizontal: 16,
-    width: CONTAINER_W,
-    borderWidth: 1,
-    borderColor: '#333333',
-    shadowColor: '#333333',
-    shadowOffset: { width: 2, height: 1 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 3,
-  },
+  container: { padding: 8, width: '100%' },
   yAxisLabel: {
     fontSize: 10,
     position: 'absolute',

@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import useLogsStore, { RecordingLog } from '@/store/logsStore';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import React from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 export default function LogScreen() {
   const { colors } = useTheme();
@@ -81,7 +81,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 1 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',
