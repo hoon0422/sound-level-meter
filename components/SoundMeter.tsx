@@ -5,6 +5,7 @@ import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import WhiteContainer from './WhiteContainer';
 
 const NEEDLE_BASE_WRAPPER_SIZE = 18;
+const NEEDLE_BASE_SIZE = 10;
 const NEEDLE_LENGTH = 65;
 const NEEDLE_WIDTH = 1.5;
 const MIN_DEGREE = 5;
@@ -125,7 +126,7 @@ function Meter() {
           styles.needle,
           {
             transform: [
-              { translateX: '-50%' },
+              { translateX: -NEEDLE_WIDTH / 2 },
               { translateY: -(NEEDLE_LENGTH + NEEDLE_BASE_WRAPPER_SIZE / 2) },
               { rotate: spinString },
             ],
@@ -232,12 +233,12 @@ const styles = StyleSheet.create({
   needleBase: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#F0923A',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: NEEDLE_BASE_SIZE,
+    height: NEEDLE_BASE_SIZE,
+    borderRadius: NEEDLE_BASE_SIZE / 2,
     left: '50%',
     top: '50%',
-    transform: [{ translateX: '-50%' }, { translateY: '-50%' }],
+    transform: [{ translateX: -NEEDLE_BASE_SIZE / 2 }, { translateY: -NEEDLE_BASE_SIZE / 2 }],
   },
   needleBaseWrapper: {
     ...StyleSheet.absoluteFillObject,
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     left: '50%',
     top: '100%',
-    transform: [{ translateX: '-50%' }, { translateY: '-50%' }],
+    transform: [{ translateX: -NEEDLE_BASE_WRAPPER_SIZE / 2 }, { translateY: -NEEDLE_BASE_WRAPPER_SIZE / 2 }],
   },
   needle: {
     ...StyleSheet.absoluteFillObject,

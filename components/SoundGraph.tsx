@@ -1,8 +1,8 @@
+import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import React, { useEffect, useRef } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useTheme } from '@/context/ThemeContext';
 import WhiteContainer from './WhiteContainer';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -222,5 +222,10 @@ const styles = StyleSheet.create({
     top: INNER_H + 4,
     fontSize: 8,
     color: '#8e8e93',
+  },
+  xAxisLabel: {
+    fontSize: 10,
+    color: '#8e8e93',
+    textAlign: 'center',
   },
 });
