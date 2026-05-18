@@ -48,7 +48,7 @@ export default function LogScreen() {
     <View style={[styles.page, { backgroundColor: colors.background }]}>
       {logs.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>{t('log.noRecordings')}</Text>
+          <Text style={[styles.emptyText, { color: colors.text }]}>{t('log.noRecordings')}</Text>
           <Text style={styles.emptySubText}>{t('log.noRecordingsSubText')}</Text>
         </View>
       ) : (

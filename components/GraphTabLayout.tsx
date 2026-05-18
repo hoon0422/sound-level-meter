@@ -2,21 +2,23 @@ import { RecordButton } from '@/components/RecordButton';
 import { SoundMeter } from '@/components/SoundMeter';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 
 type Props = {
   children: React.ReactNode;
 };
 
 export default function GraphsLayout({ children }: Props) {
+  const { colors } = useTheme();
   const elapsedSeconds = useAudioMeterStore(state => (state.isRunning ? state.elapsedSeconds : null));
 
   return (
-    <View style={styles.page}>
+    <View style={[styles.page, { backgroundColor: colors.background }]}>
       <View style={styles.graphContainer}>
         <SoundMeter />
         {children}
         <View style={styles.recordingControlContainer}>
-          <Text style={styles.elapsedTimeText}>{secondsToTime(elapsedSeconds)}</Text>
+          <Text style={[styles.elapsedTimeText, { color: colors.text }]}>{secondsToTime(elapsedSeconds)}</Text>
           <RecordButton />
         </View>
       </View>
