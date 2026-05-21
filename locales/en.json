@@ -29,18 +29,56 @@
     "sun": "Sun"
   },
   "warning": "Warning!",
-  "soundGuide": {
-    "lt30": ["Quiet forest", "Rustling leaves", "Ticking of a clock", "Sound of falling snow"],
-    "db30": ["Residential area at midnight", "Very soft whisper", "Inside a library", "Gentle breeze"],
-    "db40": ["Quiet park", "Residential area by day", "Light rain sound", "Quiet park"],
-    "db50": ["Quiet office", "Refrigerator hum", "Soft conversation", "Quiet cafe"],
-    "db60": ["Normal conversation", "Department store noise", "Washing machine noise", "Quiet restaurant"],
-    "db70": ["Phone ringtone", "Noisy office", "Vacuum cleaner noise", "Busy street"],
-    "db80": ["Noise inside a subway", "Roadside railway noise", "Inside a noisy factory", "Blender"],
-    "db90": ["Noisy factory", "Excavator work noise", "Heavy truck traffic", "Lawnmower"],
-    "db100": ["Noise of a passing train", "Electric drill sound", "Car horn sound", "Chainsaw"],
-    "gt110": ["Rock band venue", "Airplane takeoff/landing", "Thunder sound", "Nearby fire engine siren"]
-  },
+  "soundGuide": [
+    {
+      "lt30": "Quiet forest",
+      "db30": "Residential area at midnight",
+      "db40": "Quiet park",
+      "db50": "Quiet office",
+      "db60": "Normal conversation",
+      "db70": "Phone ringtone",
+      "db80": "Noise inside a subway",
+      "db90": "Noisy factory",
+      "db100": "Noise of a passing train",
+      "gt110": "Rock band venue"
+    },
+    {
+      "lt30": "Rustling leaves",
+      "db30": "Very soft whisper",
+      "db40": "Residential area by day",
+      "db50": "Refrigerator hum",
+      "db60": "Department store noise",
+      "db70": "Noisy office",
+      "db80": "Roadside railway noise",
+      "db90": "Excavator work noise",
+      "db100": "Electric drill sound",
+      "gt110": "Airplane takeoff/landing"
+    },
+    {
+      "lt30": "Ticking of a clock",
+      "db30": "Inside a library",
+      "db40": "Light rain sound",
+      "db50": "Soft conversation",
+      "db60": "Washing machine noise",
+      "db70": "Vacuum cleaner noise",
+      "db80": "Inside a noisy factory",
+      "db90": "Heavy truck traffic",
+      "db100": "Car horn sound",
+      "gt110": "Thunder sound"
+    },
+    {
+      "lt30": "Sound of falling snow",
+      "db30": "Gentle breeze",
+      "db40": "Quiet park",
+      "db50": "Quiet cafe",
+      "db60": "Quiet restaurant",
+      "db70": "Busy street",
+      "db80": "Blender",
+      "db90": "Lawnmower",
+      "db100": "Chainsaw",
+      "gt110": "Nearby fire engine siren"
+    }
+  ],
   "analysisGraph": {
     "barelyAudible": "Barely audible",
     "quietForest": "Quiet forest",
