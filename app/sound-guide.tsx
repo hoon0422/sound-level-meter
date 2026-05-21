@@ -1,10 +1,10 @@
-import AnalysisGraph from '@/components/AnalysisGraph';
 import GraphsLayout from '@/components/GraphTabLayout';
+import SoundGuide from '@/components/SoundGuide';
 
 export default function SoundGuideScreen() {
   return (
     <GraphsLayout>
-      <AnalysisGraph />
+      <SoundGuide />
     </GraphsLayout>
   );
 }

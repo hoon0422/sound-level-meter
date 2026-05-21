@@ -3,7 +3,6 @@ import { useAudioMeterStore } from '@/store/audioMeterStore';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import WhiteContainer from './WhiteContainer';
-import { useTranslation } from 'react-i18next';
 
 const ROW_HEIGHT = 18;
 const RANGES = [
@@ -19,7 +18,7 @@ const RANGES = [
   { min: 100, max: 150, label: 'Danger zone', display: '>110' },
 ].map((range, index) => ({ ...range, index }));
 
-export default function AnalysisGraph() {
+export default function SoundGuide() {
   const isRunning = useAudioMeterStore(state => state.isRunning && state.dbfs > 0);
   const dbfs = useThrottledAudioMeterValue(state => state.dbfs);
   const activeIndex = isRunning ? RANGES.find(range => dbfs >= range.min && dbfs < range.max)?.index : undefined;
