@@ -9,7 +9,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.soundlevelmeter"
+      "bundleIdentifier": "com.sunnyinnolab.decibella2"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +23,7 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
-      "package": "com.anonymous.soundlevelmeter"
+      "package": "com.sunnyinnolab.decibella2"
     },
     "web": {
       "output": "static",
@@ -31,23 +31,13 @@
     },
     "plugins": [
       "expo-router",
-      // [
-      //   "expo-splash-screen",
-      //   {
-      //     "image": "./assets/images/splash-icon.png",
-      //     "imageWidth": 200,
-      //     "resizeMode": "contain",
-      //     "backgroundColor": "#ffffff",
-      //     "dark": {
-      //       "backgroundColor": "#000000"
-      //     }
-      //   }
-      // ],
       [
         "react-native-audio-api",
         {
           "iosMicrophonePermission": "This app needs microphone access for audio analysis.",
-          "androidPermissions": ["android.permission.RECORD_AUDIO"]
+          "androidPermissions": [
+            "android.permission.RECORD_AUDIO"
+          ]
         }
       ],
       "expo-localization"
@@ -55,6 +45,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fb9855b4-962b-4ef4-8939-83af8cd3b259"
+      }
     }
   }
 }
