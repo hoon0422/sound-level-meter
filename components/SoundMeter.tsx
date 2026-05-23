@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingVertical: 22,
     width: 320,
+    height: 248,
   },
   soundMeterContainer: {
     display: 'flex',
@@ -188,7 +189,10 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
     gap: 30,
+    width: '100%',
   },
   statContainer: {
     display: 'flex',
