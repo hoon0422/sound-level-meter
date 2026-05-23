@@ -1,8 +1,9 @@
+import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
-import WhiteContainer from './WhiteContainer';
+import Surface from './Surface';
 
 const NEEDLE_BASE_WRAPPER_SIZE = 18;
 const NEEDLE_BASE_SIZE = 10;
@@ -35,6 +36,7 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const ANIMATION_DURATION = 50;
 
 export function SoundMeter() {
+  const { colors } = useTheme();
   const { isRunning, dbfs, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
       isRunning: state.isRunning && state.elapsedSeconds > 0,
@@ -46,26 +48,27 @@ export function SoundMeter() {
   );
 
   return (
-    <WhiteContainer style={styles.container}>
+    <Surface style={styles.container}>
       <View style={styles.soundMeterContainer}>
         <Meter />
         <View style={styles.statsContainer}>
           <View style={styles.statContainer}>
-            <Text style={styles.avgDbText}>{isRunning ? Math.round(averageDbfs) : '–'}</Text>
-            <Text style={styles.unitText}>AVG</Text>
+            <Text style={[styles.avgDbText, { color: colors.info }]}>{isRunning ? Math.round(averageDbfs) : '–'}</Text>
+            <Text style={[styles.unitText, { color: colors.text }]}>AVG</Text>
           </View>
-          <Text style={styles.dbfsText}>{isRunning ? Math.round(dbfs) : '–'}</Text>
+          <Text style={[styles.dbfsText, { color: colors.quiet }]}>{isRunning ? Math.round(dbfs) : '–'}</Text>
           <View style={styles.statContainer}>
-            <Text style={styles.maxDbText}>{isRunning ? Math.round(maximumDbfs) : '–'}</Text>
-            <Text style={styles.unitText}>MAX</Text>
+            <Text style={[styles.maxDbText, { color: colors.loud }]}>{isRunning ? Math.round(maximumDbfs) : '–'}</Text>
+            <Text style={[styles.unitText, { color: colors.text }]}>MAX</Text>
           </View>
         </View>
       </View>
-    </WhiteContainer>
+    </Surface>
   );
 }
 
 function Meter() {
+  const { colors } = useTheme();
   const dbfs = useThrottledAudioMeterValue(state => (state.isRunning ? state.dbfs : 0), ANIMATION_DURATION);
   const animatedProgress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -117,13 +120,14 @@ function Meter() {
           fill="none"
         />
       </Svg>
-      <View style={styles.needleBaseWrapper}>
-        <View style={styles.needleBase} />
+      <View style={[styles.needleBaseWrapper, { borderColor: colors.divider }]}>
+        <View style={[styles.needleBase, { backgroundColor: colors.primary }]} />
       </View>
       <GaugeTicks />
       <Animated.View
         style={[
           styles.needle,
+          { borderColor: colors.divider },
           {
             transform: [
               { translateX: -NEEDLE_WIDTH / 2 },
@@ -138,6 +142,7 @@ function Meter() {
 }
 
 function GaugeTicks() {
+  const { colors } = useTheme();
   return (
     <>
       {Array.from({ length: TICK_COLORS.length }).map((_, index) => {
@@ -162,7 +167,11 @@ function GaugeTicks() {
             />
             {isMajor && (
               <View style={[styles.numberContainer, { transform: [{ translateY: numberOffset }] }]}>
-                <Text style={[styles.numberText, { transform: [{ rotate: `${90 - angle}deg` }] }]}>{numberValue}</Text>
+                <Text
+                  style={[styles.numberText, { color: colors.mutedText, transform: [{ rotate: `${90 - angle}deg` }] }]}
+                >
+                  {numberValue}
+                </Text>
               </View>
             )}
           </View>
@@ -205,7 +214,6 @@ const styles = StyleSheet.create({
     fontSize: 48,
     letterSpacing: 0,
     textAlign: 'center',
-    color: '#4CB522',
   },
   avgDbText: {
     fontFamily: 'DM Sans',
@@ -213,7 +221,6 @@ const styles = StyleSheet.create({
     fontSize: 30,
     letterSpacing: 0,
     textAlign: 'center',
-    color: '#20B9D0',
   },
   maxDbText: {
     fontFamily: 'DM Sans',
@@ -221,7 +228,6 @@ const styles = StyleSheet.create({
     fontSize: 30,
     letterSpacing: 0,
     textAlign: 'center',
-    color: '#E23F3F',
   },
   unitText: {
     fontFamily: 'DM Sans',
@@ -229,14 +235,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     letterSpacing: 0,
     textAlign: 'center',
-    color: '#333333',
   },
   meter: {
     position: 'relative',
   },
   needleBase: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#F0923A',
     width: NEEDLE_BASE_SIZE,
     height: NEEDLE_BASE_SIZE,
     borderRadius: NEEDLE_BASE_SIZE / 2,
@@ -246,7 +250,6 @@ const styles = StyleSheet.create({
   },
   needleBaseWrapper: {
     ...StyleSheet.absoluteFillObject,
-    borderColor: '#D6C7B5',
     backgroundColor: 'transparent',
     width: NEEDLE_BASE_WRAPPER_SIZE,
     height: NEEDLE_BASE_WRAPPER_SIZE,
@@ -258,7 +261,6 @@ const styles = StyleSheet.create({
   },
   needle: {
     ...StyleSheet.absoluteFillObject,
-    borderColor: '#D6C7B5',
     width: NEEDLE_WIDTH,
     height: NEEDLE_LENGTH,
     borderLeftWidth: NEEDLE_WIDTH / 2,
@@ -298,6 +300,5 @@ const styles = StyleSheet.create({
     fontStyle: 'normal',
     lineHeight: 18,
     letterSpacing: -0.5,
-    color: '#6B6459',
   },
 });

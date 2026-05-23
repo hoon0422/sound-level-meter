@@ -28,6 +28,7 @@ export default function CreditsPage() {
     background: themeColors.background,
     text: themeColors.text,
     primary: themeColors.primary,
+    border: themeColors.border,
   };
 
   const basePadding = isTablet ? 40 : 20;
@@ -39,7 +40,7 @@ export default function CreditsPage() {
       <View
         style={[
           styles.header,
-          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: '#000000' },
+          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: colors.border },
         ]}
       >
         <TouchableOpacity onPress={() => navigateBackFromSettings(router)} style={styles.backButton}>
@@ -54,7 +55,7 @@ export default function CreditsPage() {
         {CREDITS.map(credit => (
           <View
             key={credit.role}
-            style={[styles.creditItem, { paddingHorizontal: basePadding, borderBottomColor: '#000000' }]}
+            style={[styles.creditItem, { paddingHorizontal: basePadding, borderBottomColor: colors.border }]}
           >
             <Text style={[styles.roleText, { color: colors.text, fontSize: itemFontSize }]}>{credit.role}</Text>
             <View style={styles.namesContainer}>

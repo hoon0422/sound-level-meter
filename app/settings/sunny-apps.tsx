@@ -83,6 +83,8 @@ export default function SunnyAppsPage() {
     background: themeColors.background,
     text: themeColors.text,
     primary: themeColors.primary,
+    border: themeColors.border,
+    inactive: themeColors.inactive,
   };
 
   const basePadding = isTablet ? 40 : 20;
@@ -103,7 +105,7 @@ export default function SunnyAppsPage() {
       <View
         style={[
           styles.header,
-          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: '#000000' },
+          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: colors.border },
         ]}
       >
         <TouchableOpacity onPress={() => navigateBackFromSettings(router)} style={styles.backButton}>
@@ -118,7 +120,7 @@ export default function SunnyAppsPage() {
         {APPS.map(app => (
           <TouchableOpacity
             key={app.name}
-            style={[styles.appItem, { paddingHorizontal: basePadding, borderBottomColor: '#000000' }]}
+            style={[styles.appItem, { paddingHorizontal: basePadding, borderBottomColor: colors.border }]}
             activeOpacity={0.7}
             onPress={() => handleAppPress(app.url)}
           >
@@ -129,7 +131,13 @@ export default function SunnyAppsPage() {
                 resizeMode="contain"
               />
             ) : (
-              <View style={[styles.appIcon, styles.appIconPlaceholder, { width: iconSize, height: iconSize }]} />
+              <View
+                style={[
+                  styles.appIcon,
+                  styles.appIconPlaceholder,
+                  { backgroundColor: colors.inactive, width: iconSize, height: iconSize },
+                ]}
+              />
             )}
             <Text style={[styles.appName, { color: colors.text, fontSize: appNameFontSize }]}>{app.name}</Text>
             <Ionicons name="chevron-forward" size={20} color={colors.primary} />
@@ -160,6 +168,6 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   appIcon: { borderRadius: 12 },
-  appIconPlaceholder: { backgroundColor: '#e0e0e0' },
+  appIconPlaceholder: {},
   appName: { flex: 1, fontWeight: '500' },
 });

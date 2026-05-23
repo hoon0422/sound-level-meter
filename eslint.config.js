@@ -6,18 +6,16 @@ module.exports = defineConfig([
   expoConfig,
   {
     ignores: ['dist/*'],
-    "settings": {
-    "import/resolver": {
-      "typescript": {
-        "project": "./tsconfig.json"
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: './tsconfig.json',
+        },
+        alias: {
+          map: [['@assets', './assets']],
+          extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', '.svg'],
+        },
       },
-      "alias": {
-        "map": [
-          ["@assets", "./assets"]
-        ],
-        "extensions": [".js", ".jsx", ".ts", ".tsx", ".json", ".svg"]
-      }
-    }
-  }
+    },
   },
 ]);

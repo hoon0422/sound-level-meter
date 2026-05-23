@@ -1,10 +1,11 @@
+import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import * as SGIcon from '@assets/icons/sound-guide';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, StyleSheet, Text, View } from 'react-native';
-import WhiteContainer from './WhiteContainer';
+import Surface from './Surface';
 
 const ROW_HEIGHT = 16;
 const GUIDE_WIDTH = 320;
@@ -18,6 +19,7 @@ const OPACITY_INPUT_OFFSETS = [3, 2, 1, 0, -1, -2, -3];
 const OPACITY_OUTPUT_RANGE = [0.16, 0.3, 0.55, 1, 0.55, 0.3, 0.16];
 
 export default function SoundGuide() {
+  const { colors } = useTheme();
   const isRunning = useAudioMeterStore(state => state.isRunning);
   const dbfs = useThrottledAudioMeterValue(state => state.dbfs);
   const [isFirstActiveIndex, setIsFirstActiveIndex] = useState(true);
@@ -47,9 +49,20 @@ export default function SoundGuide() {
   }, [activeIndex, animatedY, isFirstActiveIndex]);
 
   return (
-    <WhiteContainer style={styles.container}>
+    <Surface style={styles.container}>
       <View style={styles.viewport}>
-        {isRunning && activeIndex !== undefined && !isFirstActiveIndex && <View style={styles.currentSoundSlot} />}
+        {isRunning && activeIndex !== undefined && !isFirstActiveIndex && (
+          <View
+            style={[
+              styles.currentSoundSlot,
+              {
+                backgroundColor: colors.moderate,
+                borderColor: colors.shadow,
+                shadowColor: colors.shadow,
+              },
+            ]}
+          />
+        )}
         <Animated.View style={[styles.listContainer, { transform: [{ translateY: animatedY }] }]}>
           {ranges.map(range => {
             const itemOpacityInterpolation = {
@@ -73,15 +86,21 @@ export default function SoundGuide() {
               <View key={range.index} style={styles.row}>
                 {/* DB Value Column */}
                 <View style={styles.dBLevelContainer}>
-                  <Animated.Text style={[styles.text, itemOpacityInterpolation].filter(Boolean)}>
+                  <Animated.Text
+                    style={[styles.text, { color: colors.text }, itemOpacityInterpolation].filter(Boolean)}
+                  >
                     {range.display}dB
                   </Animated.Text>
                 </View>
 
                 {/* Description Label */}
                 <Animated.View style={[styles.descriptionContainer, ...[itemOpacityInterpolation].filter(Boolean)]}>
-                  <Text style={styles.text}>{range.icon}</Text>
-                  <Text style={styles.text} numberOfLines={1}>
+                  <View style={styles.iconContainer}>
+                    {React.isValidElement(range.icon)
+                      ? React.cloneElement(range.icon, { color: colors.text } as { color: string })
+                      : range.icon}
+                  </View>
+                  <Text style={[styles.text, { color: colors.text }]} numberOfLines={1}>
                     {range.label}
                   </Text>
                 </Animated.View>
@@ -90,7 +109,7 @@ export default function SoundGuide() {
           })}
         </Animated.View>
       </View>
-    </WhiteContainer>
+    </Surface>
   );
 }
 
@@ -195,8 +214,10 @@ const styles = StyleSheet.create({
     right: 7,
     top: CURRENT_SLOT_TOP + 1,
     height: ROW_HEIGHT - 1,
-    backgroundColor: 'rgba(251, 191, 36, 0.4)',
-    boxShadow: '2px 1px 0px 0px rgba(51, 51, 51, 1)',
+    borderWidth: 1,
+    shadowOffset: { width: 2, height: 1 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     borderRadius: 4,
   },
   row: {
@@ -218,10 +239,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
+  iconContainer: {
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   text: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 10,
     lineHeight: 16,
-    color: '#333',
   },
 });

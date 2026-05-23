@@ -3,7 +3,7 @@ import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import React, { useEffect, useRef } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
-import WhiteContainer from './WhiteContainer';
+import Surface from './Surface';
 
 const SCREEN_W = Dimensions.get('window').width;
 const CONTAINER_W = SCREEN_W - 48;
@@ -117,15 +117,15 @@ export default function SoundGraph() {
   }
 
   return (
-    <WhiteContainer style={styles.container}>
+    <Surface style={styles.container}>
       <View style={styles.yAxisLabel}>
-        <Text style={styles.axisText}>dB</Text>
+        <Text style={[styles.axisText, { color: colors.mutedText }]}>dB</Text>
       </View>
       <View style={styles.graphRow}>
         {/* Fixed Y-axis */}
         <View style={{ width: Y_AXIS_W, height: GRAPH_H }}>
           {Y_LABELS.map(db => (
-            <Text key={`y-${db}`} style={[styles.yLabelText, { top: dbToTop(db) - 6 }]}>
+            <Text key={`y-${db}`} style={[styles.yLabelText, { color: colors.inactive, top: dbToTop(db) - 6 }]}>
               {db}
             </Text>
           ))}
@@ -142,10 +142,13 @@ export default function SoundGraph() {
           <View style={{ width: innerW, height: GRAPH_H }}>
             {/* Grid lines */}
             {GRID_DBS.map(db => (
-              <View key={`grid-${db}`} style={[styles.gridLine, { top: dbToTop(db), width: innerW }]} />
+              <View
+                key={`grid-${db}`}
+                style={[styles.gridLine, { backgroundColor: colors.divider, top: dbToTop(db), width: innerW }]}
+              />
             ))}
             {/* Baseline */}
-            <View style={[styles.baseline, { width: innerW }]} />
+            <View style={[styles.baseline, { backgroundColor: colors.divider, width: innerW }]} />
 
             {/* Line segments */}
             {displayPoints.slice(1).map((pt, i) => (
@@ -162,22 +165,22 @@ export default function SoundGraph() {
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  backgroundColor: isRunning ? colors.primary : '#8e8e93',
+                  backgroundColor: isRunning ? colors.primary : colors.inactive,
                 }}
               />
             )}
 
             {/* X-axis labels */}
             {timeLabels.map(({ x, label }) => (
-              <Text key={`lbl-${label}`} style={[styles.xLabel, { left: x }]}>
+              <Text key={`lbl-${label}`} style={[styles.xLabel, { color: colors.mutedText, left: x }]}>
                 {label}
               </Text>
             ))}
           </View>
         </ScrollView>
       </View>
-      <Text style={styles.xAxisLabel}>Time (s)</Text>
-    </WhiteContainer>
+      <Text style={[styles.xAxisLabel, { color: colors.mutedText }]}>Time (s)</Text>
+    </Surface>
   );
 }
 
@@ -192,7 +195,6 @@ const styles = StyleSheet.create({
   axisText: {
     fontSize: 9,
     fontWeight: '600',
-    color: '#8e8e93',
   },
   graphRow: {
     flexDirection: 'row',
@@ -201,31 +203,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 4,
     fontSize: 11,
-    color: '#AAAAAA',
     textAlign: 'right',
   },
   gridLine: {
     position: 'absolute',
     left: 0,
     height: 1,
-    backgroundColor: '#e0e0e0',
   },
   baseline: {
     position: 'absolute',
     top: INNER_H,
     left: 0,
     height: 1,
-    backgroundColor: '#ccc',
   },
   xLabel: {
     position: 'absolute',
     top: INNER_H + 4,
     fontSize: 8,
-    color: '#8e8e93',
   },
   xAxisLabel: {
     fontSize: 10,
-    color: '#8e8e93',
     textAlign: 'center',
   },
 });

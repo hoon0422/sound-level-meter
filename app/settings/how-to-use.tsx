@@ -19,6 +19,7 @@ export default function HowToUsePage() {
     background: themeColors.background,
     text: themeColors.text,
     primary: themeColors.primary,
+    border: themeColors.border,
   };
 
   const basePadding = isTablet ? 40 : 20;
@@ -29,7 +30,7 @@ export default function HowToUsePage() {
       <View
         style={[
           styles.header,
-          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: '#000000' },
+          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: colors.border },
         ]}
       >
         <TouchableOpacity onPress={() => navigateBackFromSettings(router)} style={styles.backButton}>

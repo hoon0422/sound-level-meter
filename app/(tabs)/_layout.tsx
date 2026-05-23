@@ -54,6 +54,11 @@ export default function TabsLayout() {
         headerLeft: () => <Decibella />,
         headerRight: () => <SettingsButton />,
         tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.inactive,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
+        },
         tabBarLabelStyle: { fontFamily: 'DMSans_500Medium' },
       }}
     >
