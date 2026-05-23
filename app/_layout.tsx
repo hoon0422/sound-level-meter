@@ -27,7 +27,11 @@ function SettingsButton() {
   const { colors } = useTheme();
   return (
     <TouchableOpacity onPress={() => router.push('/settings')} style={{ paddingRight: 16 }}>
-      <Image source={require('./assets/icons/setting.png')} style={{ height: 24, width: 24, tintColor: colors.text }} resizeMode="contain" />
+      <Image
+        source={require('./assets/icons/setting.png')}
+        style={{ height: 24, width: 24, tintColor: colors.text }}
+        resizeMode="contain"
+      />
     </TouchableOpacity>
   );
 }
@@ -51,52 +55,82 @@ function AppLayout() {
 
   return (
     <Tabs
-          screenOptions={{
-            headerShown: true,
-            headerTitle: '',
-            headerStyle: { backgroundColor: colors.background },
-            headerShadowVisible: false,
-            headerLeft: () => <Decibella />,
-            headerRight: () => <SettingsButton />,
-            tabBarActiveTintColor: colors.primary, tabBarLabelStyle: { fontFamily: 'DMSans_500Medium' },
-          }}
-        >
-        <Tabs.Screen
-          name="index"
-          options={{
-            href: null,
-          }}
-        />
-          <Tabs.Screen
-            name="db-time"
-            options={{
-              title: t('tabs.dbTime'),
-              tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/graph.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
-            }}
-          />
-          <Tabs.Screen
-            name="db-freq"
-            options={{
-              title: t('tabs.dbFreq'),
-              tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/chart.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
-            }}
-          />
-          <Tabs.Screen
-            name="sound-guide"
-            options={{
-              title: t('tabs.soundGuide'),
-              tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/book.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
-            }}
-          />
-          <Tabs.Screen
-            name="log"
-            options={{
-              title: t('tabs.log'),
-              tabBarIcon: ({ color, size }) => <Image source={require('./assets/icons/list.png')} style={{ height: size, width: size, tintColor: color }} resizeMode="contain" />,
-            }}
-          />
-          <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />
-        </Tabs>
+      screenOptions={{
+        headerShown: true,
+        headerTitle: '',
+        headerStyle: { backgroundColor: colors.background },
+        headerShadowVisible: false,
+        headerLeft: () => <Decibella />,
+        headerRight: () => <SettingsButton />,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.inactive,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
+        },
+        tabBarLabelStyle: { fontFamily: 'DMSans_500Medium' },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="db-time"
+        options={{
+          title: t('tabs.dbTime'),
+          tabBarIcon: ({ color, size }) => (
+            <Image
+              source={require('./assets/icons/graph.png')}
+              style={{ height: size, width: size, tintColor: color }}
+              resizeMode="contain"
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="db-freq"
+        options={{
+          title: t('tabs.dbFreq'),
+          tabBarIcon: ({ color, size }) => (
+            <Image
+              source={require('./assets/icons/chart.png')}
+              style={{ height: size, width: size, tintColor: color }}
+              resizeMode="contain"
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="sound-guide"
+        options={{
+          title: t('tabs.soundGuide'),
+          tabBarIcon: ({ color, size }) => (
+            <Image
+              source={require('./assets/icons/book.png')}
+              style={{ height: size, width: size, tintColor: color }}
+              resizeMode="contain"
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="log"
+        options={{
+          title: t('tabs.log'),
+          tabBarIcon: ({ color, size }) => (
+            <Image
+              source={require('./assets/icons/list.png')}
+              style={{ height: size, width: size, tintColor: color }}
+              resizeMode="contain"
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen name="settings" options={{ href: null, headerShown: false }} />
+    </Tabs>
   );
 }
 

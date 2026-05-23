@@ -50,7 +50,6 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 20,
     paddingVertical: 24,
-    backgroundColor: '#FEFAEE',
   },
   graphContainer: {
     alignItems: 'center',

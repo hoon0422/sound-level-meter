@@ -17,17 +17,57 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
 const APPS: { name: string; icon?: ReturnType<typeof require>; url: string }[] = [
-  { name: 'Sky Peacemaker - Finger Force', icon: require('../assets/app_icons/skyPeacemaker.png'), url: 'https://skypeacemaker.onelink.me/YQxG/8s9sx66i' },
-  { name: 'World Movie Trailer', icon: require('../assets/app_icons/worldMovieTrailer.png'), url: 'https://wmt.onelink.me/YPN9/m428wgpq' },
-  { name: 'World Book Ranking', icon: require('../assets/app_icons/worldBookRanking.png'), url: 'https://worldbookranking.onelink.me/so3H/gftf32rq' },
-  { name: 'Simply Multi Timer', icon: require('../assets/app_icons/simplyMultiTimer.png'), url: 'https://simplymultitimer.onelink.me/6kU2/v7i9ke1m' },
-  { name: 'Wisdom Qclock', icon: require('../assets/app_icons/wisdomQclock.png'), url: 'https://wisdomqclock.onelink.me/SVr2/b7gs4og1' },
-  { name: 'Play Memo', icon: require('../assets/app_icons/playMemo.png'), url: 'https://playmemo.onelink.me/LdOZ/6bbfoohf' },
-  { name: 'Find Four', icon: require('../assets/app_icons/findFour.png'), url: 'https://findfour.onelink.me/vurA/0tfteiuf' },
-  { name: 'Dual Flashlight', icon: require('../assets/app_icons/dualFlashlight.png'), url: 'https://dualflashlight.onelink.me/7gkq/qpbc8y65' },
+  {
+    name: 'Sky Peacemaker - Finger Force',
+    icon: require('../assets/app_icons/skyPeacemaker.png'),
+    url: 'https://skypeacemaker.onelink.me/YQxG/8s9sx66i',
+  },
+  {
+    name: 'World Movie Trailer',
+    icon: require('../assets/app_icons/worldMovieTrailer.png'),
+    url: 'https://wmt.onelink.me/YPN9/m428wgpq',
+  },
+  {
+    name: 'World Book Ranking',
+    icon: require('../assets/app_icons/worldBookRanking.png'),
+    url: 'https://worldbookranking.onelink.me/so3H/gftf32rq',
+  },
+  {
+    name: 'Simply Multi Timer',
+    icon: require('../assets/app_icons/simplyMultiTimer.png'),
+    url: 'https://simplymultitimer.onelink.me/6kU2/v7i9ke1m',
+  },
+  {
+    name: 'Wisdom Qclock',
+    icon: require('../assets/app_icons/wisdomQclock.png'),
+    url: 'https://wisdomqclock.onelink.me/SVr2/b7gs4og1',
+  },
+  {
+    name: 'Play Memo',
+    icon: require('../assets/app_icons/playMemo.png'),
+    url: 'https://playmemo.onelink.me/LdOZ/6bbfoohf',
+  },
+  {
+    name: 'Find Four',
+    icon: require('../assets/app_icons/findFour.png'),
+    url: 'https://findfour.onelink.me/vurA/0tfteiuf',
+  },
+  {
+    name: 'Dual Flashlight',
+    icon: require('../assets/app_icons/dualFlashlight.png'),
+    url: 'https://dualflashlight.onelink.me/7gkq/qpbc8y65',
+  },
   { name: 'Histree', icon: require('../assets/app_icons/histree.png'), url: 'https://histree.onelink.me/xyz7/abc123' },
-  { name: 'Scanatory', icon: require('../assets/app_icons/scanatory.png'), url: 'https://scanatory.onelink.me/zzpK/2tr21jtp' },
-  { name: 'Decibella', icon: require('../assets/app_icons/decibella.png'), url: 'https://decibella.onelink.me/Ve6i/vydwhkh4' },
+  {
+    name: 'Scanatory',
+    icon: require('../assets/app_icons/scanatory.png'),
+    url: 'https://scanatory.onelink.me/zzpK/2tr21jtp',
+  },
+  {
+    name: 'Decibella',
+    icon: require('../assets/app_icons/decibella.png'),
+    url: 'https://decibella.onelink.me/Ve6i/vydwhkh4',
+  },
 ];
 
 export default function SunnyAppsPage() {
@@ -42,6 +82,8 @@ export default function SunnyAppsPage() {
     background: themeColors.background,
     text: themeColors.text,
     primary: themeColors.primary,
+    border: themeColors.border,
+    inactive: themeColors.inactive,
   };
 
   const basePadding = isTablet ? 40 : 20;
@@ -62,25 +104,22 @@ export default function SunnyAppsPage() {
       <View
         style={[
           styles.header,
-          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: '#000000' },
+          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: colors.border },
         ]}
       >
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color={colors.text} />
         </TouchableOpacity>
-        <Text
-          allowFontScaling={false}
-          style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}
-        >
+        <Text allowFontScaling={false} style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}>
           {t('settings.sunnyApps')}
         </Text>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {APPS.map((app) => (
+        {APPS.map(app => (
           <TouchableOpacity
             key={app.name}
-            style={[styles.appItem, { paddingHorizontal: basePadding, borderBottomColor: '#000000' }]}
+            style={[styles.appItem, { paddingHorizontal: basePadding, borderBottomColor: colors.border }]}
             activeOpacity={0.7}
             onPress={() => handleAppPress(app.url)}
           >
@@ -91,7 +130,13 @@ export default function SunnyAppsPage() {
                 resizeMode="contain"
               />
             ) : (
-              <View style={[styles.appIcon, styles.appIconPlaceholder, { width: iconSize, height: iconSize }]} />
+              <View
+                style={[
+                  styles.appIcon,
+                  styles.appIconPlaceholder,
+                  { backgroundColor: colors.inactive, width: iconSize, height: iconSize },
+                ]}
+              />
             )}
             <Text style={[styles.appName, { color: colors.text, fontSize: appNameFontSize }]}>{app.name}</Text>
             <Ionicons name="chevron-forward" size={20} color={colors.primary} />
@@ -122,6 +167,6 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   appIcon: { borderRadius: 12 },
-  appIconPlaceholder: { backgroundColor: '#e0e0e0' },
+  appIconPlaceholder: {},
   appName: { flex: 1, fontWeight: '500' },
 });

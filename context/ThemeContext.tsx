@@ -7,9 +7,18 @@ type ThemeName = 'light' | 'dark';
 
 type ThemeColors = {
   background: string;
+  surface: string;
   text: string;
+  mutedText: string;
   primary: string;
   border: string;
+  shadow: string;
+  divider: string;
+  inactive: string;
+  quiet: string;
+  moderate: string;
+  loud: string;
+  info: string;
 };
 
 type ThemeTypography = {
@@ -38,9 +47,7 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeName, setThemeName] = useState<ThemeName>(
-    (Appearance.getColorScheme() as ThemeName) ?? 'light'
-  );
+  const [themeName, setThemeName] = useState<ThemeName>((Appearance.getColorScheme() as ThemeName) ?? 'light');
 
   useEffect(() => {
     AsyncStorage.getItem(THEME_KEY).then(stored => {
@@ -58,7 +65,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = themes[themeName];
 
   return (
-    <ThemeContext.Provider value={{ logo: theme.logo, colors: theme.colors, typography: theme.typography, themeName, setTheme }}>
+    <ThemeContext.Provider
+      value={{ logo: theme.logo, colors: theme.colors, typography: theme.typography, themeName, setTheme }}
+    >
       {children}
     </ThemeContext.Provider>
   );

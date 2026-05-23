@@ -62,12 +62,12 @@ export default function OpenSourcePage() {
     background: themeColors.background,
     text: themeColors.text,
     primary: themeColors.primary,
+    border: themeColors.border,
   };
 
   const basePadding = isTablet ? 40 : 20;
   const headerFontSize = isTablet ? 32 : 24;
   const nameFontSize = isTablet ? 17 : 15;
-  const licenseFontSize = isTablet ? 13 : 11;
 
   const handleLinkPress = async (url: string) => {
     try {
@@ -82,25 +82,22 @@ export default function OpenSourcePage() {
       <View
         style={[
           styles.header,
-          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: '#000000' },
+          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: colors.border },
         ]}
       >
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color={colors.text} />
         </TouchableOpacity>
-        <Text
-          allowFontScaling={false}
-          style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}
-        >
+        <Text allowFontScaling={false} style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}>
           {t('settings.openSource')}
         </Text>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {PACKAGES.map((pkg) => (
+        {PACKAGES.map(pkg => (
           <TouchableOpacity
             key={pkg.name}
-            style={[styles.packageItem, { paddingHorizontal: basePadding, borderBottomColor: '#000000' }]}
+            style={[styles.packageItem, { paddingHorizontal: basePadding, borderBottomColor: colors.border }]}
             activeOpacity={0.7}
             onPress={() => handleLinkPress(pkg.url)}
           >

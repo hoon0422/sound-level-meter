@@ -27,6 +27,7 @@ export default function CreditsPage() {
     background: themeColors.background,
     text: themeColors.text,
     primary: themeColors.primary,
+    border: themeColors.border,
   };
 
   const basePadding = isTablet ? 40 : 20;
@@ -38,31 +39,26 @@ export default function CreditsPage() {
       <View
         style={[
           styles.header,
-          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: '#000000' },
+          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: colors.border },
         ]}
       >
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color={colors.text} />
         </TouchableOpacity>
-        <Text
-          allowFontScaling={false}
-          style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}
-        >
+        <Text allowFontScaling={false} style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}>
           {t('settings.credits')}
         </Text>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {CREDITS.map((credit) => (
+        {CREDITS.map(credit => (
           <View
             key={credit.role}
-            style={[styles.creditItem, { paddingHorizontal: basePadding, borderBottomColor: '#000000' }]}
+            style={[styles.creditItem, { paddingHorizontal: basePadding, borderBottomColor: colors.border }]}
           >
-            <Text style={[styles.roleText, { color: colors.text, fontSize: itemFontSize }]}>
-              {credit.role}
-            </Text>
+            <Text style={[styles.roleText, { color: colors.text, fontSize: itemFontSize }]}>{credit.role}</Text>
             <View style={styles.namesContainer}>
-              {credit.names.map((name) => (
+              {credit.names.map(name => (
                 <Text key={name} style={[styles.nameText, { color: colors.text, fontSize: itemFontSize }]}>
                   {name}
                 </Text>

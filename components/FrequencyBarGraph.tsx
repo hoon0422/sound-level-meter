@@ -1,8 +1,9 @@
 import { CALIBRATION_PEAK_DBFS } from '@/audio/engine';
 import { SPECTRUM_BANDS } from '@/audio/spectrum';
+import { useTheme } from '@/context/ThemeContext';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { StyleSheet, Text, View } from 'react-native';
-import WhiteContainer from './WhiteContainer';
+import Surface from './Surface';
 
 const BAR_HEIGHT = 120;
 const MIN_DB = 0;
@@ -22,21 +23,22 @@ function dbToHeight(db: number) {
   return Math.max(2, ((Math.max(db, MIN_DB) - MIN_DB) / DB_RANGE) * BAR_HEIGHT);
 }
 
-function meterColorDb(db: number) {
-  if (db < 40) return '#4caf50';
-  if (db < 70) return '#ff9800';
-  return '#f44336';
+function meterColorDb(db: number, colors: ReturnType<typeof useTheme>['colors']) {
+  if (db < 40) return colors.quiet;
+  if (db < 70) return colors.moderate;
+  return colors.loud;
 }
 
 export default function FrequencyBarGraph() {
   return (
-    <WhiteContainer style={styles.container}>
+    <Surface style={styles.container}>
       <SpectrumBars />
-    </WhiteContainer>
+    </Surface>
   );
 }
 
 function SpectrumBars() {
+  const { colors } = useTheme();
   const { bars, barPeaks } = useAudioMeterStore(state => ({
     bars: state.bars,
     barPeaks: state.maximumBars,
@@ -47,15 +49,15 @@ function SpectrumBars() {
       <View style={styles.spectrumChart}>
         <View style={styles.dbAxis}>
           {DB_GRID_LINES.map(db => (
-            <Text key={db} style={[styles.dbLabel, { bottom: dbToY(db) - 6 }]}>
+            <Text key={db} style={[styles.dbLabel, { bottom: dbToY(db) - 6, color: colors.inactive }]}>
               {db}
             </Text>
           ))}
         </View>
 
-        <View style={styles.chartArea}>
+        <View style={[styles.chartArea, { borderColor: colors.divider }]}>
           {DB_GRID_LINES.map(db => (
-            <View key={db} style={[styles.gridLine, { bottom: dbToY(db) }]} />
+            <View key={db} style={[styles.gridLine, { backgroundColor: colors.divider, bottom: dbToY(db) }]} />
           ))}
 
           <View style={styles.barsRow}>
@@ -71,6 +73,7 @@ function SpectrumBars() {
                       {
                         top: -dbToHeight(peakDb),
                         height: dbToHeight(peakDb),
+                        backgroundColor: colors.inactive,
                       },
                     ]}
                   />
@@ -80,7 +83,7 @@ function SpectrumBars() {
                       {
                         top: -dbToHeight(db),
                         height: dbToHeight(db),
-                        backgroundColor: meterColorDb(db),
+                        backgroundColor: meterColorDb(db, colors),
                       },
                     ]}
                   />
@@ -95,7 +98,7 @@ function SpectrumBars() {
         <View style={styles.dbAxisSpacer} />
         <View style={styles.freqLabelsInner}>
           {SPECTRUM_BANDS.map(band => (
-            <Text key={band.label} style={styles.freqLabel}>
+            <Text key={band.label} style={[styles.freqLabel, { color: colors.inactive }]}>
               {band.label}
             </Text>
           ))}
@@ -132,7 +135,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 4,
     fontSize: 9,
-    color: '#999',
   },
   chartArea: {
     flex: 1,
@@ -140,14 +142,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderLeftWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#ccc',
   },
   gridLine: {
     position: 'absolute',
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: '#e0e0e0',
   },
   barsRow: {
     height: BAR_HEIGHT,
@@ -167,9 +167,7 @@ const styles = StyleSheet.create({
     left: '50%',
     transform: [{ translateX: -5 }],
   },
-  barPeak: {
-    backgroundColor: '#AAAAAA',
-  },
+  barPeak: {},
   freqLabelsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -183,7 +181,6 @@ const styles = StyleSheet.create({
   freqLabel: {
     flex: 1,
     fontSize: 9,
-    color: '#999',
     textAlign: 'center',
   },
 });

@@ -37,15 +37,20 @@ export default function SettingsPage() {
   const isDark = themeName === 'dark';
   const theme = themeName;
 
-  const colors = {
-    background: themeColors.background,
-    text: themeColors.text,
-    primary: themeColors.primary,
-    border: themeColors.border,
+  const colors = useMemo(
+    () => ({
+      background: themeColors.background,
+      text: themeColors.text,
+      primary: themeColors.primary,
+      border: themeColors.border,
+      divider: themeColors.divider,
+      surface: themeColors.surface,
 
-    link: themeColors.text,
-    arrows: themeColors.primary,
-  };
+      link: themeColors.text,
+      arrows: themeColors.primary,
+    }),
+    [themeColors]
+  );
 
   const updateTheme = (val: 'Dark' | 'Light') => setTheme(val === 'Dark' ? 'dark' : 'light');
 
@@ -78,7 +83,6 @@ export default function SettingsPage() {
     const sunnyBannerGap = isTablet ? 16 : Math.max(screenWidth * 0.02, 8);
     const sunnyBannerFontSize = isTablet ? 14 : Math.max(screenWidth * 0.035, 11);
     const sunnyBannerLogoWidth = isTablet ? 120 : Math.min(screenWidth * 0.25, 100); // 화면 너비의 25% 또는 최대 100px
-    const sunnyBannerLogoMargin = isTablet ? 16 : Math.max(screenWidth * 0.02, 8); // 화면 너비의 2% 또는 최소 8px
 
     return StyleSheet.create({
       container: {
@@ -93,7 +97,7 @@ export default function SettingsPage() {
         paddingHorizontal: basePadding,
         backgroundColor: colors.background,
         borderBottomWidth: 1,
-        borderBottomColor: '#000000',
+        borderBottomColor: colors.border,
       },
       headerTitle: {
         fontSize: headerFontSize,
@@ -108,7 +112,7 @@ export default function SettingsPage() {
         paddingHorizontal: basePadding,
         paddingVertical: isTablet ? 20 : 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#000000',
+        borderBottomColor: colors.border,
       },
       selectedItem: {
         backgroundColor: colors.background,
@@ -147,7 +151,7 @@ export default function SettingsPage() {
         fontWeight: '500',
       },
       themeOptionTextActive: {
-        color: isDark ? '#fff' : '#000',
+        color: colors.text,
         fontWeight: '600',
       },
       linkText: {
@@ -165,10 +169,10 @@ export default function SettingsPage() {
         paddingVertical: isTablet ? 16 : 12,
         paddingHorizontal: basePadding,
         borderBottomWidth: 1,
-        borderBottomColor: '#000000',
+        borderBottomColor: colors.border,
       },
       selectedLanguageOption: {
-        backgroundColor: isDark ? '#1e293b' : 'transparent',
+        backgroundColor: isDark ? colors.surface : 'transparent',
       },
       languageOptionText: {
         fontSize: languageOptionFontSize,
@@ -204,8 +208,11 @@ export default function SettingsPage() {
         paddingHorizontal: sunnyBannerPadding,
         marginTop: 20,
         height: 70,
-        backgroundColor: '#2d2d2d',
+        backgroundColor: colors.surface,
         minHeight: 70,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        borderColor: colors.border,
       },
       sunnyBannerFooterLinks: {
         flexDirection: 'row',
@@ -216,21 +223,25 @@ export default function SettingsPage() {
       },
       sunnyBannerFooterLink: {
         fontSize: sunnyBannerFontSize,
-        color: '#ffffff',
+        color: colors.text,
       },
       sunnyBannerFooterDivider: {
         width: 1,
         height: 14,
-        backgroundColor: '#ffffff',
+        backgroundColor: colors.divider,
       },
     });
-  }, [colors, isDark, isTablet, screenWidth, theme, insets.top]);
+  }, [colors, isDark, isTablet, screenWidth, insets.top]);
 
   return (
     <View style={dynamicStyles.container}>
       {/* Header */}
       <View style={dynamicStyles.header}>
-        <Image source={require('../assets/icons/setting.png')} style={[{ height: 24, width: 24, tintColor: colors.text }, styles.headerIcon]} resizeMode="contain" />
+        <Image
+          source={require('../assets/icons/setting.png')}
+          style={[{ height: 24, width: 24, tintColor: colors.text }, styles.headerIcon]}
+          resizeMode="contain"
+        />
         <Text allowFontScaling={false} style={dynamicStyles.headerTitle}>
           {t('settings.title')}
         </Text>
@@ -241,7 +252,11 @@ export default function SettingsPage() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* How to Use */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/how-to-use')}>
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={() => router.push('/settings/how-to-use')}
+        >
           <Text style={dynamicStyles.settingLabel}>{t('settings.howToUse')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
@@ -269,7 +284,10 @@ export default function SettingsPage() {
                     dynamicStyles.languageOptionItem,
                     language === option.value && dynamicStyles.selectedLanguageOption,
                   ]}
-                  onPress={() => { setLanguage(option.value); setIsLanguageOpen(false); }}
+                  onPress={() => {
+                    setLanguage(option.value);
+                    setIsLanguageOpen(false);
+                  }}
                 >
                   <Text
                     style={[
@@ -329,19 +347,31 @@ export default function SettingsPage() {
         </View>
 
         {/* Sunny's Games and Apps */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/sunny-apps')}>
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={() => router.push('/settings/sunny-apps')}
+        >
           <Text style={dynamicStyles.settingLabel}>{t('settings.sunnyApps')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Credits */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/credits')}>
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={() => router.push('/settings/credits')}
+        >
           <Text style={dynamicStyles.settingLabel}>{t('settings.credits')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Open Source Info */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/open-source')}>
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={() => router.push('/settings/open-source')}
+        >
           <Text style={dynamicStyles.settingLabel}>{t('settings.openSource')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>

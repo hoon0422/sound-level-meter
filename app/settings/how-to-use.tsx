@@ -18,6 +18,7 @@ export default function HowToUsePage() {
     background: themeColors.background,
     text: themeColors.text,
     primary: themeColors.primary,
+    border: themeColors.border,
   };
 
   const basePadding = isTablet ? 40 : 20;
@@ -28,22 +29,18 @@ export default function HowToUsePage() {
       <View
         style={[
           styles.header,
-          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: '#000000' },
+          { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: colors.border },
         ]}
       >
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color={colors.text} />
         </TouchableOpacity>
-        <Text
-          allowFontScaling={false}
-          style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}
-        >
+        <Text allowFontScaling={false} style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}>
           {t('settings.howToUse')}
         </Text>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-      </ScrollView>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}></ScrollView>
     </View>
   );
 }
