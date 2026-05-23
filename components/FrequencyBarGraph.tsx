@@ -4,7 +4,13 @@ import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { StyleSheet, Text, View } from 'react-native';
 import WhiteContainer from './WhiteContainer';
 
-const BAR_HEIGHT = 120;
+const CONTAINER_HEIGHT = 180;
+const CONTAINER_VERTICAL_PADDING = 8;
+const CONTAINER_HORIZONTAL_PADDING = 8;
+const CONTAINER_RIGHT_PADDING = 24;
+const FREQ_LABEL_HEIGHT = 14;
+const SPECTRUM_GAP = 4;
+const BAR_HEIGHT = CONTAINER_HEIGHT - CONTAINER_VERTICAL_PADDING * 2 - FREQ_LABEL_HEIGHT - SPECTRUM_GAP;
 const MIN_DB = 0;
 const MAX_DB = 140;
 const DB_RANGE = MAX_DB - MIN_DB;
@@ -46,6 +52,7 @@ function SpectrumBars() {
     <View style={styles.spectrumContainer}>
       <View style={styles.spectrumChart}>
         <View style={styles.dbAxis}>
+          <Text style={styles.dbAxisTitle}>dB</Text>
           {DB_GRID_LINES.map(db => (
             <Text key={db} style={[styles.dbLabel, { bottom: dbToY(db) - 6 }]}>
               {db}
@@ -69,7 +76,6 @@ function SpectrumBars() {
                       styles.bar,
                       styles.barPeak,
                       {
-                        top: -dbToHeight(peakDb),
                         height: dbToHeight(peakDb),
                       },
                     ]}
@@ -78,7 +84,6 @@ function SpectrumBars() {
                     style={[
                       styles.bar,
                       {
-                        top: -dbToHeight(db),
                         height: dbToHeight(db),
                         backgroundColor: meterColorDb(db),
                       },
@@ -107,14 +112,17 @@ function SpectrumBars() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 8,
+    height: CONTAINER_HEIGHT,
+    paddingVertical: CONTAINER_VERTICAL_PADDING,
+    paddingLeft: CONTAINER_HORIZONTAL_PADDING,
+    paddingRight: CONTAINER_RIGHT_PADDING,
     width: 320,
   },
   spectrumContainer: {
-    width: '90%',
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: SPECTRUM_GAP,
   },
   spectrumChart: {
     flexDirection: 'row',
@@ -124,6 +132,13 @@ const styles = StyleSheet.create({
     width: 30,
     height: BAR_HEIGHT,
     position: 'relative',
+  },
+  dbAxisTitle: {
+    position: 'absolute',
+    right: 4,
+    top: 0,
+    fontSize: 9,
+    color: '#999',
   },
   dbAxisSpacer: {
     width: 30,
@@ -159,9 +174,11 @@ const styles = StyleSheet.create({
   barContainer: {
     position: 'relative',
     flex: 1,
+    height: BAR_HEIGHT,
   },
   bar: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    bottom: 0,
     borderRadius: 2,
     width: 10,
     left: '50%',
@@ -174,6 +191,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     width: '100%',
+    height: FREQ_LABEL_HEIGHT,
   },
   freqLabelsInner: {
     flex: 1,
