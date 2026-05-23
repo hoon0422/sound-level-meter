@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useLanguage, type LanguageCode } from '@/context/LanguageContext';
+import { navigateBackFromSettings } from '@/navigation/settings';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
@@ -230,7 +231,14 @@ export default function SettingsPage() {
     <View style={dynamicStyles.container}>
       {/* Header */}
       <View style={dynamicStyles.header}>
-        <Image source={require('../assets/icons/setting.png')} style={[{ height: 24, width: 24, tintColor: colors.text }, styles.headerIcon]} resizeMode="contain" />
+        <TouchableOpacity onPress={() => navigateBackFromSettings(router)} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={28} color={colors.text} />
+        </TouchableOpacity>
+        <Image
+          source={require('../assets/icons/setting.png')}
+          style={[{ height: 24, width: 24, tintColor: colors.text }, styles.headerIcon]}
+          resizeMode="contain"
+        />
         <Text allowFontScaling={false} style={dynamicStyles.headerTitle}>
           {t('settings.title')}
         </Text>
@@ -241,7 +249,11 @@ export default function SettingsPage() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* How to Use */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/how-to-use')}>
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={() => router.push('/settings/how-to-use')}
+        >
           <Text style={dynamicStyles.settingLabel}>{t('settings.howToUse')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
@@ -269,7 +281,10 @@ export default function SettingsPage() {
                     dynamicStyles.languageOptionItem,
                     language === option.value && dynamicStyles.selectedLanguageOption,
                   ]}
-                  onPress={() => { setLanguage(option.value); setIsLanguageOpen(false); }}
+                  onPress={() => {
+                    setLanguage(option.value);
+                    setIsLanguageOpen(false);
+                  }}
                 >
                   <Text
                     style={[
@@ -329,19 +344,31 @@ export default function SettingsPage() {
         </View>
 
         {/* Sunny's Games and Apps */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/sunny-apps')}>
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={() => router.push('/settings/sunny-apps')}
+        >
           <Text style={dynamicStyles.settingLabel}>{t('settings.sunnyApps')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Credits */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/credits')}>
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={() => router.push('/settings/credits')}
+        >
           <Text style={dynamicStyles.settingLabel}>{t('settings.credits')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
         {/* Open Source Info */}
-        <TouchableOpacity style={dynamicStyles.settingItem} activeOpacity={0.7} onPress={() => router.push('/settings/open-source')}>
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={() => router.push('/settings/open-source')}
+        >
           <Text style={dynamicStyles.settingLabel}>{t('settings.openSource')}</Text>
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
@@ -391,6 +418,9 @@ export default function SettingsPage() {
 }
 
 const styles = StyleSheet.create({
+  backButton: {
+    marginRight: 12,
+  },
   headerIcon: {
     marginRight: 12,
   },

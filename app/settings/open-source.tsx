@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
+import { navigateBackFromSettings } from '@/navigation/settings';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
@@ -85,19 +86,16 @@ export default function OpenSourcePage() {
           { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: '#000000' },
         ]}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigateBackFromSettings(router)} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color={colors.text} />
         </TouchableOpacity>
-        <Text
-          allowFontScaling={false}
-          style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}
-        >
+        <Text allowFontScaling={false} style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}>
           {t('settings.openSource')}
         </Text>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {PACKAGES.map((pkg) => (
+        {PACKAGES.map(pkg => (
           <TouchableOpacity
             key={pkg.name}
             style={[styles.packageItem, { paddingHorizontal: basePadding, borderBottomColor: '#000000' }]}

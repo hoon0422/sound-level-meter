@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, useWindowDimensio
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
+import { navigateBackFromSettings } from '@/navigation/settings';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
@@ -41,28 +42,23 @@ export default function CreditsPage() {
           { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: '#000000' },
         ]}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigateBackFromSettings(router)} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color={colors.text} />
         </TouchableOpacity>
-        <Text
-          allowFontScaling={false}
-          style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}
-        >
+        <Text allowFontScaling={false} style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}>
           {t('settings.credits')}
         </Text>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {CREDITS.map((credit) => (
+        {CREDITS.map(credit => (
           <View
             key={credit.role}
             style={[styles.creditItem, { paddingHorizontal: basePadding, borderBottomColor: '#000000' }]}
           >
-            <Text style={[styles.roleText, { color: colors.text, fontSize: itemFontSize }]}>
-              {credit.role}
-            </Text>
+            <Text style={[styles.roleText, { color: colors.text, fontSize: itemFontSize }]}>{credit.role}</Text>
             <View style={styles.namesContainer}>
-              {credit.names.map((name) => (
+              {credit.names.map(name => (
                 <Text key={name} style={[styles.nameText, { color: colors.text, fontSize: itemFontSize }]}>
                   {name}
                 </Text>
