@@ -6,27 +6,40 @@ import { useTranslation } from 'react-i18next';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import WhiteContainer from './WhiteContainer';
 
-const ROW_HEIGHT = 18;
+const ROW_HEIGHT = 16;
+const GUIDE_WIDTH = 320;
+const GUIDE_HEIGHT = 180;
+const GUIDE_VERTICAL_PADDING = 10;
+const GUIDE_CONTENT_HEIGHT = GUIDE_HEIGHT - GUIDE_VERTICAL_PADDING * 2;
+const CURRENT_SLOT_TOP = (GUIDE_CONTENT_HEIGHT - ROW_HEIGHT) / 2;
+const RANGE_COUNT = 10;
+const DEFAULT_WHEEL_Y = (GUIDE_CONTENT_HEIGHT - RANGE_COUNT * ROW_HEIGHT) / 2;
+const OPACITY_INPUT_OFFSETS = [3, 2, 1, 0, -1, -2, -3];
+const OPACITY_OUTPUT_RANGE = [0.16, 0.3, 0.55, 1, 0.55, 0.3, 0.16];
 
 export default function SoundGuide() {
-  const isRunning = useAudioMeterStore(state => state.isRunning && state.dbfs > 0);
+  const isRunning = useAudioMeterStore(state => state.isRunning);
   const dbfs = useThrottledAudioMeterValue(state => state.dbfs);
   const [isFirstActiveIndex, setIsFirstActiveIndex] = useState(true);
-  const animatedY = useRef(new Animated.Value(0)).current;
+  const animatedY = useRef(new Animated.Value(DEFAULT_WHEEL_Y)).current;
   const ranges = useRanges();
-  const activeIndex = isRunning ? ranges.find(range => dbfs >= range.min && dbfs < range.max)?.index : undefined;
+  const activeIndex =
+    isRunning && dbfs > 0 ? ranges.find(range => dbfs >= range.min && dbfs < range.max)?.index : undefined;
 
   useEffect(() => {
+    const nextY = activeIndex !== undefined ? CURRENT_SLOT_TOP - activeIndex * ROW_HEIGHT : DEFAULT_WHEEL_Y;
+
     if (activeIndex === undefined) {
-      // stopped
+      animatedY.stopAnimation();
+      animatedY.setValue(DEFAULT_WHEEL_Y);
       setIsFirstActiveIndex(true);
-    } else if (isFirstActiveIndex) {
-      // first time active
-      animatedY.setValue(activeIndex * ROW_HEIGHT - 1);
-      setIsFirstActiveIndex(false);
     } else {
+      if (isFirstActiveIndex) {
+        setIsFirstActiveIndex(false);
+      }
+
       Animated.timing(animatedY, {
-        toValue: activeIndex * ROW_HEIGHT - 1,
+        toValue: nextY,
         duration: 200,
         useNativeDriver: true,
       }).start();
@@ -35,49 +48,47 @@ export default function SoundGuide() {
 
   return (
     <WhiteContainer style={styles.container}>
-      {activeIndex !== undefined && !isFirstActiveIndex && (
-        <Animated.View style={[styles.highlightRow, { transform: [{ translateY: animatedY }] }]} />
-      )}
-      <View style={styles.listContainer}>
-        {ranges.map(range => {
-          const itemOpacityInterpolation = {
-            opacity:
-              activeIndex !== undefined
-                ? animatedY.interpolate({
-                    inputRange: [
-                      (range.index - 1) * ROW_HEIGHT,
-                      range.index * ROW_HEIGHT,
-                      (range.index + 1) * ROW_HEIGHT,
-                    ],
-                    outputRange: [0.4, 1, 0.4],
-                    extrapolate: 'clamp',
-                  })
-                : animatedY.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.4, 0.4],
-                    extrapolate: 'clamp',
-                  }),
-          };
+      <View style={styles.viewport}>
+        {isRunning && activeIndex !== undefined && !isFirstActiveIndex && <View style={styles.currentSoundSlot} />}
+        <Animated.View style={[styles.listContainer, { transform: [{ translateY: animatedY }] }]}>
+          {ranges.map(range => {
+            const itemOpacityInterpolation = {
+              opacity:
+                activeIndex !== undefined
+                  ? animatedY.interpolate({
+                      inputRange: OPACITY_INPUT_OFFSETS.map(
+                        offset => CURRENT_SLOT_TOP - (range.index + offset) * ROW_HEIGHT
+                      ),
+                      outputRange: OPACITY_OUTPUT_RANGE,
+                      extrapolate: 'clamp',
+                    })
+                  : animatedY.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.4, 0.4],
+                      extrapolate: 'clamp',
+                    }),
+            };
 
-          return (
-            <View key={range.index} style={styles.row}>
-              {/* DB Value Column */}
-              <View style={styles.dBLevelContainer}>
-                <Animated.Text style={[styles.text, itemOpacityInterpolation].filter(Boolean)}>
-                  {range.display}dB
-                </Animated.Text>
+            return (
+              <View key={range.index} style={styles.row}>
+                {/* DB Value Column */}
+                <View style={styles.dBLevelContainer}>
+                  <Animated.Text style={[styles.text, itemOpacityInterpolation].filter(Boolean)}>
+                    {range.display}dB
+                  </Animated.Text>
+                </View>
+
+                {/* Description Label */}
+                <Animated.View style={[styles.descriptionContainer, ...[itemOpacityInterpolation].filter(Boolean)]}>
+                  <Text style={styles.text}>{range.icon}</Text>
+                  <Text style={styles.text} numberOfLines={1}>
+                    {range.label}
+                  </Text>
+                </Animated.View>
               </View>
-
-              {/* Description Label */}
-              <Animated.View style={[styles.descriptionContainer, ...[itemOpacityInterpolation].filter(Boolean)]}>
-                <Text style={styles.text}>{range.icon}</Text>
-                <Text style={styles.text} numberOfLines={1}>
-                  {range.label}
-                </Text>
-              </Animated.View>
-            </View>
-          );
-        })}
+            );
+          })}
+        </Animated.View>
       </View>
     </WhiteContainer>
   );
@@ -165,29 +176,36 @@ const useRanges = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
-    width: '100%',
+    width: GUIDE_WIDTH,
+    height: GUIDE_HEIGHT,
+    paddingVertical: GUIDE_VERTICAL_PADDING,
+  },
+  viewport: {
+    flex: 1,
+    overflow: 'hidden',
+    borderRadius: 11,
   },
   listContainer: {
-    paddingLeft: 40,
-    paddingRight: 25,
+    paddingLeft: 68,
+    paddingRight: 20,
   },
-  highlightRow: {
-    ...StyleSheet.absoluteFillObject,
+  currentSoundSlot: {
+    position: 'absolute',
+    left: 7,
+    right: 7,
+    top: CURRENT_SLOT_TOP + 1,
     height: ROW_HEIGHT - 1,
     backgroundColor: 'rgba(251, 191, 36, 0.4)',
     boxShadow: '2px 1px 0px 0px rgba(51, 51, 51, 1)',
     borderRadius: 4,
-    marginHorizontal: 4,
-    marginVertical: 2,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
+    paddingVertical: 0,
     borderRadius: 6,
-    gap: 50,
+    gap: 18,
     height: ROW_HEIGHT,
   },
   dBLevelContainer: {
@@ -195,13 +213,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   descriptionContainer: {
-    width: 150,
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
   text: {
+    fontFamily: 'DMSans_500Medium',
     fontSize: 10,
+    lineHeight: 16,
     color: '#333',
   },
 });
