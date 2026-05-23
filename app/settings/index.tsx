@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { useLanguage, type LanguageCode } from '@/context/LanguageContext';
+import { navigateBackFromSettings } from '@/navigation/settings';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
@@ -237,6 +238,9 @@ export default function SettingsPage() {
     <View style={dynamicStyles.container}>
       {/* Header */}
       <View style={dynamicStyles.header}>
+        <TouchableOpacity onPress={() => navigateBackFromSettings(router)} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={28} color={colors.text} />
+        </TouchableOpacity>
         <Image
           source={require('../assets/icons/setting.png')}
           style={[{ height: 24, width: 24, tintColor: colors.text }, styles.headerIcon]}
@@ -421,6 +425,9 @@ export default function SettingsPage() {
 }
 
 const styles = StyleSheet.create({
+  backButton: {
+    marginRight: 12,
+  },
   headerIcon: {
     marginRight: 12,
   },

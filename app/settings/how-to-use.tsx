@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, useWindowDimensio
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
+import { navigateBackFromSettings } from '@/navigation/settings';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
@@ -32,7 +33,7 @@ export default function HowToUsePage() {
           { paddingTop: insets.top + 8, paddingHorizontal: basePadding, borderBottomColor: colors.border },
         ]}
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigateBackFromSettings(router)} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color={colors.text} />
         </TouchableOpacity>
         <Text allowFontScaling={false} style={[styles.headerTitle, { color: colors.text, fontSize: headerFontSize }]}>
