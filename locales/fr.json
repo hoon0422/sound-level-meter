@@ -29,18 +29,56 @@
     "sun": "Dimanche"
   },
   "warning": "Avertissement !",
-  "soundGuide": {
-    "lt30": ["Forêt paisible", "Bruissement des feuilles", "Tic-tac d'une horloge", "Bruit de la neige qui tombe"],
-    "db30": ["Quartier résidentiel à minuit", "Murmure très doux", "Intérieur d'une bibliothèque", "Brise légère"],
-    "db40": ["Parc calme", "Quartier résidentiel de jour", "Bruit de pluie légère", "Parc calme"],
-    "db50": ["Bureau calme", "Ronronnement du frigo", "Conversation calme", "Café calme"],
-    "db60": ["Conversation normale", "Bruit de grand magasin", "Bruit de lave-linge", "Restaurant calme"],
-    "db70": ["Sonnerie de téléphone", "Bureau bruyant", "Bruit d'aspirateur", "Rue animée"],
-    "db80": ["Bruit dans le métro", "Bruit au bord des rails", "Intérieur d'une usine bruyante", "Mixeur"],
-    "db90": ["Usine bruyante", "Bruit d'excavatrice", "Bruit de gros camions", "Tondeuse à gazon"],
-    "db100": ["Bruit d'un train qui passe", "Bruit de perceuse", "Bruit de klaxon", "Tronçonneuse"],
-    "gt110": ["Salle de concert de rock", "Bruit d'avion au décollage", "Bruit du tonnerre", "Sirène de pompier à proximité"]
-  },
+  "soundGuide": [
+    {
+      "lt30": "Forêt paisible",
+      "db30": "Quartier résidentiel à minuit",
+      "db40": "Parc calme",
+      "db50": "Bureau calme",
+      "db60": "Conversation normale",
+      "db70": "Sonnerie de téléphone",
+      "db80": "Bruit dans le métro",
+      "db90": "Usine bruyante",
+      "db100": "Bruit d'un train qui passe",
+      "gt110": "Salle de concert de rock"
+    },
+    {
+      "lt30": "Bruissement des feuilles",
+      "db30": "Murmure très doux",
+      "db40": "Quartier résidentiel de jour",
+      "db50": "Ronronnement du frigo",
+      "db60": "Bruit de grand magasin",
+      "db70": "Bureau bruyant",
+      "db80": "Bruit au bord des rails",
+      "db90": "Bruit d'excavatrice",
+      "db100": "Bruit de perceuse",
+      "gt110": "Bruit d'avion au décollage"
+    },
+    {
+      "lt30": "Tic-tac d'une horloge",
+      "db30": "Intérieur d'une bibliothèque",
+      "db40": "Bruit de pluie légère",
+      "db50": "Conversation calme",
+      "db60": "Bruit de lave-linge",
+      "db70": "Bruit d'aspirateur",
+      "db80": "Intérieur d'une usine bruyante",
+      "db90": "Bruit de gros camions",
+      "db100": "Bruit de klaxon",
+      "gt110": "Bruit du tonnerre"
+    },
+    {
+      "lt30": "Bruit de la neige qui tombe",
+      "db30": "Brise légère",
+      "db40": "Parc calme",
+      "db50": "Café calme",
+      "db60": "Restaurant calme",
+      "db70": "Rue animée",
+      "db80": "Mixeur",
+      "db90": "Tondeuse à gazon",
+      "db100": "Tronçonneuse",
+      "gt110": "Sirène de pompier à proximité"
+    }
+  ],
   "analysisGraph": {
     "barelyAudible": "À peine audible",
     "quietForest": "Forêt paisible",
