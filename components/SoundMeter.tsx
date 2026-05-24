@@ -12,10 +12,10 @@ const NEEDLE_WIDTH = 1.5;
 const MIN_DEGREE = 5;
 const MAX_DEGREE = 175;
 const INNER_STROKE_OFFSET = 4;
-const TICK_LENGTH = 10;
-const TICK_RADIUS_A = 120;
-const TICK_RADIUS_B = 120;
-const TICK_GAP = 12;
+const TICK_LENGTH = 8;
+const TICK_RADIUS_A = 125;
+const TICK_RADIUS_B = 125;
+const TICK_GAP = 13;
 const TICK_COLORS = [
   '#00ABC5',
   '#00A4BD',
