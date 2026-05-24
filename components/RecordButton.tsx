@@ -24,7 +24,7 @@ export function RecordButton() {
       activeOpacity={0.8}
     >
       {isRunning ? (
-        <Ionicons name="stop" size={32} color={colors.text} />
+        <Ionicons name="stop" size={32} color="#FFFFFF" />
       ) : (
         <Image
           source={require('../app/assets/icons/mic.png')}
