@@ -116,16 +116,16 @@ export default function SoundGuide() {
 const RANDOM_TEXT_ID = Math.floor(Math.random() * 4); // 0-3
 const TEXT_ID_TO_ICON = [
   {
-    lt30: <SGIcon.TempIcon />,
-    db30: <SGIcon.TempIcon />,
-    db40: <SGIcon.TempIcon />,
-    db50: <SGIcon.TempIcon />,
-    db60: <SGIcon.TempIcon />,
-    db70: <SGIcon.TempIcon />,
-    db80: <SGIcon.TempIcon />,
-    db90: <SGIcon.TempIcon />,
-    db100: <SGIcon.TempIcon />,
-    gt110: <SGIcon.TempIcon />,
+    lt30: <SGIcon.QuiteForestIcon />,
+    db30: <SGIcon.ResidentialAreaAtMidnightIcon />,
+    db40: <SGIcon.QuiteCafeIcon />,
+    db50: <SGIcon.QuiteOfficeIcon />,
+    db60: <SGIcon.NormalConversationIcon />,
+    db70: <SGIcon.PhoneRingtoneIcon />,
+    db80: <SGIcon.NoiseInsideSubwayIcon />,
+    db90: <SGIcon.NoisyFactoryIcon />,
+    db100: <SGIcon.NoiseOfPassingTrainIcon />,
+    gt110: <SGIcon.RockBandVenueIcon />,
   },
   {
     lt30: <SGIcon.RustingLeavesIcon />,
