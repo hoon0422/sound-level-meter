@@ -22,6 +22,12 @@ function dbToY(db: number) {
 }
 
 function calibrate(dbfs: number) {
+  // Keep the user-facing Calibration Offset out of dB/Freq bars. This baseline
+  // shift only maps analyser dBFS values into the existing chart scale; a user
+  // Calibration Offset corrects the broadband sound-level reading. Correcting
+  // these per-band bars would require Frequency Response Calibration, because
+  // microphones differ by frequency and a single SPL offset would misrepresent
+  // the spectrum shape.
   return dbfs + CALIBRATION_PEAK_DBFS;
 }
 

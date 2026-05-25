@@ -1,5 +1,6 @@
 import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
+import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
@@ -37,6 +38,7 @@ const ANIMATION_DURATION = 50;
 
 export function SoundMeter() {
   const { colors } = useTheme();
+  const offsetDb = useCalibrationStore(state => state.offsetDb);
   const { isRunning, dbfs, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
       isRunning: state.isRunning && state.elapsedSeconds > 0,
@@ -53,12 +55,18 @@ export function SoundMeter() {
         <Meter />
         <View style={styles.statsContainer}>
           <View style={styles.statContainer}>
-            <Text style={[styles.avgDbText, { color: colors.info }]}>{isRunning ? Math.round(averageDbfs) : '–'}</Text>
+            <Text style={[styles.avgDbText, { color: colors.info }]}>
+              {isRunning ? Math.round(applyCalibrationOffset(averageDbfs, offsetDb)) : '–'}
+            </Text>
             <Text style={[styles.unitText, { color: colors.text }]}>AVG</Text>
           </View>
-          <Text style={[styles.dbfsText, { color: colors.quiet }]}>{isRunning ? Math.round(dbfs) : '–'}</Text>
+          <Text style={[styles.dbfsText, { color: colors.quiet }]}>
+            {isRunning ? Math.round(applyCalibrationOffset(dbfs, offsetDb)) : '–'}
+          </Text>
           <View style={styles.statContainer}>
-            <Text style={[styles.maxDbText, { color: colors.loud }]}>{isRunning ? Math.round(maximumDbfs) : '–'}</Text>
+            <Text style={[styles.maxDbText, { color: colors.loud }]}>
+              {isRunning ? Math.round(applyCalibrationOffset(maximumDbfs, offsetDb)) : '–'}
+            </Text>
             <Text style={[styles.unitText, { color: colors.text }]}>MAX</Text>
           </View>
         </View>
@@ -69,15 +77,17 @@ export function SoundMeter() {
 
 function Meter() {
   const { colors } = useTheme();
+  const offsetDb = useCalibrationStore(state => state.offsetDb);
   const dbfs = useThrottledAudioMeterValue(state => (state.isRunning ? state.dbfs : 0), ANIMATION_DURATION);
+  const displayDb = dbfs > 0 ? applyCalibrationOffset(dbfs, offsetDb) : 0;
   const animatedProgress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(animatedProgress, {
-      toValue: dbfs,
+      toValue: displayDb,
       duration: ANIMATION_DURATION,
       useNativeDriver: true,
     }).start();
-  }, [animatedProgress, dbfs]);
+  }, [animatedProgress, displayDb]);
 
   const spinString = animatedProgress.interpolate({
     inputRange: [0, 120],
@@ -92,7 +102,7 @@ function Meter() {
   });
 
   return (
-    <View className="sound-meter" style={styles.meter}>
+    <View style={styles.meter}>
       <Svg width="260" height="140" viewBox="0 0 260 140" fill="none">
         <Defs>
           {/* Simplified the coordinates to percentages so it scales cleanly */}

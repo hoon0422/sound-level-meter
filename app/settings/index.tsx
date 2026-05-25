@@ -265,6 +265,16 @@ export default function SettingsPage() {
           <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
         </TouchableOpacity>
 
+        {/* Calibration */}
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={() => router.push('/settings/calibration')}
+        >
+          <Text style={dynamicStyles.settingLabel}>{t('settings.calibration.title')}</Text>
+          <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
+        </TouchableOpacity>
+
         {/* Language */}
         <View>
           <TouchableOpacity

@@ -111,6 +111,21 @@
     "terms": "利用規約",
     "privacy": "プライバシーポリシー",
     "link": "リンク",
-    "linkErrorTitle": "リンクを開けませんでした"
+    "linkErrorTitle": "リンクを開けませんでした",
+    "calibration": {
+      "title": "キャリブレーション",
+      "currentDb": "現在のdB",
+      "offset": "オフセット",
+      "decrease": "オフセットを下げる",
+      "increase": "オフセットを上げる",
+      "instructions": {
+        "reference": "• 専用のデシベルメーターを基準にしてください",
+        "location": "• 両方のデバイスを同じ場所に置いてください",
+        "soundSource": "• 一定の音源（例：トーンジェネレーター）を再生してください",
+        "compare": "• 読み取り値を比較し、差分をオフセットとして入力してください",
+        "example": "• 例：基準が60dB、アプリが55dBなら +5.0 を入力します",
+        "freqExcluded": "• このオフセットはdB/周波数グラフには適用されません"
+      }
+    }
   }
 }
