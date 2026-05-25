@@ -20,6 +20,7 @@ export class StatsController {
   private dbfsSampleCount = 0;
   private minimumDbfs = 1000;
   private maximumDbfs = -100;
+  private lastMeasurementSessionId = 0;
 
   constructor(mic: MicrophoneController) {
     this.unsubscribeFrame = mic.onFrame(this.handleFrame);
@@ -94,7 +95,8 @@ export class StatsController {
   };
 
   private handleMicState = (state: MicrophoneState) => {
-    if (!state.isRunning && !state.isConnecting && !state.isStarting && !state.isDisconnecting) {
+    if (state.isRunning && state.measurementSessionId !== this.lastMeasurementSessionId) {
+      this.lastMeasurementSessionId = state.measurementSessionId;
       this.reset();
     }
   };

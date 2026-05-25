@@ -53,8 +53,11 @@ function buildBandBars(
   return bars;
 }
 
-function smoothArray(prev: number[], next: number[], alpha: number) {
-  if (prev.length === 0) return next;
+function smoothArray(prev: number[], next: number[], alpha: number, baseline: number) {
+  if (prev.length === 0) {
+    return next.map(value => baseline * (1 - alpha) + value * alpha);
+  }
+
   return next.map((value, i) => {
     const oldValue = prev[i] ?? value;
     return oldValue * (1 - alpha) + value * alpha;
@@ -70,7 +73,8 @@ export function analyzeFrequencyFrame(
   const bars = smoothArray(
     sanitizedPrevBars,
     buildBandBars(freqData, config.sampleRate, config.fftSize, SPECTRUM_BANDS, config.minDecibels),
-    config.barSmoothingAlpha
+    config.barSmoothingAlpha,
+    config.minDecibels
   );
 
   return {

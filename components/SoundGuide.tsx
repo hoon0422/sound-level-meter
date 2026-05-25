@@ -1,6 +1,5 @@
 import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
-import { useAudioMeterStore } from '@/store/audioMeterStore';
 import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
 import * as SGIcon from '@assets/icons/sound-guide';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -21,15 +20,17 @@ const OPACITY_OUTPUT_RANGE = [0.16, 0.3, 0.55, 1, 0.55, 0.3, 0.16];
 
 export default function SoundGuide() {
   const { colors } = useTheme();
-  const isRunning = useAudioMeterStore(state => state.isRunning);
   const offsetDb = useCalibrationStore(state => state.offsetDb);
-  const dbfs = useThrottledAudioMeterValue(state => state.dbfs);
+  const { dbfs, hasMeasurement } = useThrottledAudioMeterValue(state => ({
+    dbfs: state.dbfs,
+    hasMeasurement: state.elapsedSeconds > 0,
+  }));
   const displayDb = applyCalibrationOffset(dbfs, offsetDb);
   const [isFirstActiveIndex, setIsFirstActiveIndex] = useState(true);
   const animatedY = useRef(new Animated.Value(DEFAULT_WHEEL_Y)).current;
   const ranges = useRanges();
   const activeIndex =
-    isRunning && displayDb > 0
+    hasMeasurement && displayDb > 0
       ? ranges.find(range => displayDb >= range.min && displayDb < range.max)?.index
       : undefined;
 
@@ -56,7 +57,7 @@ export default function SoundGuide() {
   return (
     <Surface style={styles.container}>
       <View style={styles.viewport}>
-        {isRunning && activeIndex !== undefined && !isFirstActiveIndex && (
+        {hasMeasurement && activeIndex !== undefined && !isFirstActiveIndex && (
           <View
             style={[
               styles.currentSoundSlot,
@@ -121,16 +122,16 @@ export default function SoundGuide() {
 const RANDOM_TEXT_ID = Math.floor(Math.random() * 4); // 0-3
 const TEXT_ID_TO_ICON = [
   {
-    lt30: <SGIcon.TempIcon />,
-    db30: <SGIcon.TempIcon />,
-    db40: <SGIcon.TempIcon />,
-    db50: <SGIcon.TempIcon />,
-    db60: <SGIcon.TempIcon />,
-    db70: <SGIcon.TempIcon />,
-    db80: <SGIcon.TempIcon />,
-    db90: <SGIcon.TempIcon />,
-    db100: <SGIcon.TempIcon />,
-    gt110: <SGIcon.TempIcon />,
+    lt30: <SGIcon.QuiteForestIcon />,
+    db30: <SGIcon.ResidentialAreaAtMidnightIcon />,
+    db40: <SGIcon.QuiteCafeIcon />,
+    db50: <SGIcon.QuiteOfficeIcon />,
+    db60: <SGIcon.NormalConversationIcon />,
+    db70: <SGIcon.PhoneRingtoneIcon />,
+    db80: <SGIcon.NoiseInsideSubwayIcon />,
+    db90: <SGIcon.NoisyFactoryIcon />,
+    db100: <SGIcon.NoiseOfPassingTrainIcon />,
+    gt110: <SGIcon.RockBandVenueIcon />,
   },
   {
     lt30: <SGIcon.RustingLeavesIcon />,

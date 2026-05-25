@@ -17,6 +17,7 @@ export type MicrophoneState = {
   isStopping: boolean;
   isDisconnecting: boolean;
   elapsedSeconds: number;
+  measurementSessionId: number;
   error: string | null;
 };
 
@@ -35,14 +36,15 @@ export type MicrophoneFrameListener = (frame: MicrophoneAudioFrame) => void;
 export type MicrophoneStateDisposeListener = (state: MicrophoneState) => void;
 export type MicrophoneFrameDisposeListener = (frame: MicrophoneAudioFrame | null) => void;
 
-export function createIdleMicrophoneState(): MicrophoneState {
+export function createIdleMicrophoneState(measurementSessionId = 0, elapsedSeconds = 0): MicrophoneState {
   return {
     isRunning: false,
     isConnecting: false,
     isStarting: false,
     isStopping: false,
     isDisconnecting: false,
-    elapsedSeconds: 0,
+    elapsedSeconds,
+    measurementSessionId,
     error: null,
   };
 }
@@ -53,6 +55,7 @@ export class MicrophoneController {
   private freqData: Float32Array | null = null;
   private running = false;
   private elapsedAccumulator = 0;
+  private measurementSessionId = 0;
   private engine: MicrophoneEngine | null = null;
   private stateListeners = new Set<MicrophoneStateListener>();
   private frameListeners = new Set<MicrophoneFrameListener>();
@@ -143,6 +146,7 @@ export class MicrophoneController {
       isStopping: false,
       isDisconnecting: false,
       elapsedSeconds: this.elapsedAccumulator,
+      measurementSessionId: this.measurementSessionId,
       error: null,
     });
   };
@@ -150,15 +154,14 @@ export class MicrophoneController {
   stop() {
     this.running = false;
     stopMicrophoneEngine();
-    this.elapsedAccumulator = 0;
 
-    this.emitState(createIdleMicrophoneState());
+    this.emitState(createIdleMicrophoneState(this.measurementSessionId, this.elapsedAccumulator));
   }
 
   private async releaseEngine(): Promise<void> {
     this.running = false;
     this.emitState({
-      ...createIdleMicrophoneState(),
+      ...createIdleMicrophoneState(this.measurementSessionId, this.elapsedAccumulator),
       isDisconnecting: true,
     });
 
@@ -167,7 +170,7 @@ export class MicrophoneController {
     this.freqData = null;
     this.elapsedAccumulator = 0;
 
-    this.emitState(createIdleMicrophoneState());
+    this.emitState(createIdleMicrophoneState(this.measurementSessionId));
   }
 
   async disconnect(): Promise<void> {
@@ -194,7 +197,7 @@ export class MicrophoneController {
     }
 
     this.emitState({
-      ...createIdleMicrophoneState(),
+      ...createIdleMicrophoneState(this.measurementSessionId, this.elapsedAccumulator),
       [stateKey]: true,
     });
 
@@ -213,13 +216,13 @@ export class MicrophoneController {
       this.elapsedAccumulator = 0;
 
       if (stateKey === 'isConnecting') {
-        this.emitState(createIdleMicrophoneState());
+        this.emitState(createIdleMicrophoneState(this.measurementSessionId));
       }
       return true;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error occurred';
       this.emitState({
-        ...createIdleMicrophoneState(),
+        ...createIdleMicrophoneState(this.measurementSessionId, this.elapsedAccumulator),
         error: message,
       });
       return false;
@@ -243,19 +246,25 @@ export class MicrophoneController {
     try {
       startMicrophoneEngine();
       this.elapsedAccumulator = 0;
+      this.measurementSessionId++;
       this.running = true;
 
       this.emitState({
-        ...createIdleMicrophoneState(),
+        ...createIdleMicrophoneState(this.measurementSessionId),
         isRunning: true,
       });
       return true;
     } catch (error) {
       console.error(error);
       const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      await this.releaseEngine();
+      const heldElapsedSeconds = this.elapsedAccumulator;
+      this.running = false;
+      await disconnectMicrophoneEngine();
+      this.engine = null;
+      this.freqData = null;
+      this.elapsedAccumulator = heldElapsedSeconds;
       this.emitState({
-        ...createIdleMicrophoneState(),
+        ...createIdleMicrophoneState(this.measurementSessionId, heldElapsedSeconds),
         error: message,
       });
       return false;

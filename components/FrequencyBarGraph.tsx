@@ -32,6 +32,7 @@ function calibrate(dbfs: number) {
 }
 
 function dbToHeight(db: number) {
+  if (db <= MIN_DB) return 0;
   return Math.max(2, ((Math.max(db, MIN_DB) - MIN_DB) / DB_RANGE) * BAR_HEIGHT);
 }
 
@@ -51,9 +52,10 @@ export default function FrequencyBarGraph() {
 
 function SpectrumBars() {
   const { colors } = useTheme();
-  const { bars, barPeaks } = useAudioMeterStore(state => ({
+  const { bars, barPeaks, hasSignal } = useAudioMeterStore(state => ({
     bars: state.bars,
     barPeaks: state.maximumBars,
+    hasSignal: state.elapsedSeconds > 0 && state.dbfs > 0,
   }));
 
   return (
@@ -77,6 +79,8 @@ function SpectrumBars() {
             {bars.map((rawDbfs, index) => {
               const db = calibrate(rawDbfs);
               const peakDb = calibrate(barPeaks[index]);
+              const barHeight = hasSignal ? dbToHeight(db) : 0;
+              const peakHeight = hasSignal ? dbToHeight(peakDb) : 0;
               return (
                 <View style={styles.barContainer} key={SPECTRUM_BANDS[index]?.label ?? String(index)}>
                   <View
@@ -84,7 +88,7 @@ function SpectrumBars() {
                       styles.bar,
                       styles.barPeak,
                       {
-                        height: dbToHeight(peakDb),
+                        height: peakHeight,
                         backgroundColor: colors.inactive,
                       },
                     ]}
@@ -93,7 +97,7 @@ function SpectrumBars() {
                     style={[
                       styles.bar,
                       {
-                        height: dbToHeight(db),
+                        height: barHeight,
                         backgroundColor: meterColorDb(db, colors),
                       },
                     ]}

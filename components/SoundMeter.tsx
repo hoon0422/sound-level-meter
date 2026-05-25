@@ -41,7 +41,7 @@ export function SoundMeter() {
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const { isRunning, dbfs, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
-      isRunning: state.isRunning && state.elapsedSeconds > 0,
+      isRunning: state.elapsedSeconds > 0,
       dbfs: state.dbfs,
       averageDbfs: state.averageDbfs,
       maximumDbfs: state.maximumDbfs,
@@ -78,7 +78,7 @@ export function SoundMeter() {
 function Meter() {
   const { colors } = useTheme();
   const offsetDb = useCalibrationStore(state => state.offsetDb);
-  const dbfs = useThrottledAudioMeterValue(state => (state.isRunning ? state.dbfs : 0), ANIMATION_DURATION);
+  const dbfs = useThrottledAudioMeterValue(state => (state.elapsedSeconds > 0 ? state.dbfs : 0), ANIMATION_DURATION);
   const displayDb = dbfs > 0 ? applyCalibrationOffset(dbfs, offsetDb) : 0;
   const animatedProgress = useRef(new Animated.Value(0)).current;
   useEffect(() => {

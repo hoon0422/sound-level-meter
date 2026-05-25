@@ -58,18 +58,21 @@ export default function SoundGraph() {
   const { colors } = useTheme();
   const isRunning = useAudioMeterStore(state => state.isRunning);
   const offsetDb = useCalibrationStore(state => state.offsetDb);
-  const { dbfs, elapsedSeconds } = useThrottledAudioMeterValue(state => ({
+  const { dbfs, elapsedSeconds, measurementSessionId } = useThrottledAudioMeterValue(state => ({
     dbfs: state.dbfs,
     elapsedSeconds: state.elapsedSeconds,
+    measurementSessionId: state.measurementSessionId,
   }));
   const [samples, setSamples] = React.useState<Sample[]>([]);
   const scrollRef = useRef<ScrollView>(null);
+  const measurementSessionIdRef = useRef(measurementSessionId);
 
   useEffect(() => {
-    if (!isRunning) {
+    if (measurementSessionId !== measurementSessionIdRef.current) {
+      measurementSessionIdRef.current = measurementSessionId;
       setSamples([]);
     }
-  }, [isRunning]);
+  }, [measurementSessionId]);
 
   useEffect(() => {
     if (isRunning && elapsedSeconds > 0 && dbfs > 0) {
@@ -167,7 +170,7 @@ export default function SoundGraph() {
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  backgroundColor: isRunning ? colors.primary : colors.inactive,
+                  backgroundColor: colors.primary,
                 }}
               />
             )}
