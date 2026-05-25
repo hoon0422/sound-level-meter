@@ -16,6 +16,7 @@
   "log": {
     "date": "측정일",
     "duration": "측정 지속 시간",
+    "deleteRecord": "측정 기록 삭제",
     "noRecordings": "사운드 측정 기록이 없습니다.",
     "noRecordingsSubText": "로그는 이곳에 자동으로 기록됩니다."
   },

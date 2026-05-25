@@ -16,6 +16,7 @@
   "log": {
     "date": "Fecha de medición",
     "duration": "Duración de la medición",
+    "deleteRecord": "Eliminar medición",
     "noRecordings": "No hay mediciones.",
     "noRecordingsSubText": "Los registros se guardarán aquí automáticamente."
   },
