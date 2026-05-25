@@ -1,12 +1,12 @@
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <g clip-path="url(#clip0_366_616)">
-    <path
-      d="M11.3333 7.99992H12.6667L7.99998 1.33325L3.36665 7.99992H4.66665L2.06665 11.9999H6.67998V14.6666H9.31998V11.9999H14L11.3333 7.99992Z"
-      fill="currentColor" />
-  </g>
-  <defs>
-    <clipPath id="clip0_366_616">
-      <rect width="16" height="16" fill="white" />
-    </clipPath>
-  </defs>
+  <path d="M2 12.6667H14" stroke="currentColor" stroke-linecap="round" />
+  <path
+    d="M11.0479 12L11.048 8.97991M11.048 5.95982C11.048 6.09665 11.048 8.97991 11.048 8.97991M11.048 8.97991C11.048 8.97991 12.4144 9.64094 13.5122 8.47656C14.61 7.31218 13.6378 4.28973 12.7257 3.02818C12.1988 2.2993 11.6385 1.96305 11.0692 2.00321C10.1021 2.07142 9.56773 3.1106 9.07662 3.94642C8.45387 4.90051 8.15808 5.68617 8.05029 6.3202M11.048 8.97991C10.6507 9.11516 10.3016 9.1542 10 9.13553"
+    stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M8.14718 10.4444L8.3517 12.2215" stroke="currentColor" stroke-width="0.79999" stroke-linecap="round" />
+  <path d="M3.9517 10.4444L3.74718 12.2215" stroke="currentColor" stroke-width="0.79999" stroke-linecap="round" />
+  <rect x="2" y="7.24438" width="7.9999" height="1.59998" rx="0.79999" fill="#333333" />
+  <rect x="2" y="9.64429" width="7.9999" height="0.79999" rx="0.399995" fill="#333333" />
+  <path d="M4.40015 8.84448V9.64447" stroke="currentColor" stroke-width="0.79999" />
+  <path d="M7.6001 8.84448V9.64447" stroke="currentColor" stroke-width="0.79999" />
 </svg>
