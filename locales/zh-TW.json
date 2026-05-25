@@ -112,6 +112,21 @@
     "terms": "條款",
     "privacy": "隱私",
     "link": "連結",
-    "linkErrorTitle": "無法開啟連結"
+    "linkErrorTitle": "無法開啟連結",
+    "calibration": {
+      "title": "校準",
+      "currentDb": "目前 dB",
+      "offset": "偏移值",
+      "decrease": "降低偏移值",
+      "increase": "提高偏移值",
+      "instructions": {
+        "reference": "• 使用專業分貝計作為參考",
+        "location": "• 將兩台裝置放在同一位置",
+        "soundSource": "• 產生穩定的聲源（例如音調產生器）",
+        "compare": "• 比較讀數，並將差值輸入為偏移值",
+        "example": "• 範例：參考值為60dB，應用程式為55dB，請輸入 +5.0",
+        "freqExcluded": "• 此偏移值不會影響 dB/頻率圖表"
+      }
+    }
   }
 }

@@ -7,6 +7,10 @@ export type AudioMetricsSnapshot = {
 };
 
 export function calibrateDbfsForDisplay(dbfs: number) {
+  // Baseline conversion from raw dBFS into the app's overall displayed sound
+  // level. The user-controlled Calibration Offset is applied later at display
+  // and log-write time so active session stats can shift immediately without
+  // mutating the accumulated samples.
   return dbfs + CALIBRATION_PEAK_DBFS;
 }
 

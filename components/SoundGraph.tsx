@@ -1,6 +1,7 @@
 import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
+import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
 import React, { useEffect, useRef } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Surface from './Surface';
@@ -56,6 +57,7 @@ function LineSegment({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y
 export default function SoundGraph() {
   const { colors } = useTheme();
   const isRunning = useAudioMeterStore(state => state.isRunning);
+  const offsetDb = useCalibrationStore(state => state.offsetDb);
   const { dbfs, elapsedSeconds, measurementSessionId } = useThrottledAudioMeterValue(state => ({
     dbfs: state.dbfs,
     elapsedSeconds: state.elapsedSeconds,
@@ -94,7 +96,7 @@ export default function SoundGraph() {
   for (const s of samples) {
     const x = s.timestamp * PX_PER_SEC;
     if (x - lastX >= MIN_PX_SPACING) {
-      displayPoints.push({ x, y: dbToY(s.db) });
+      displayPoints.push({ x, y: dbToY(applyCalibrationOffset(s.db, offsetDb)) });
       lastX = x;
     }
   }
@@ -104,7 +106,7 @@ export default function SoundGraph() {
     const lastX2 = last.timestamp * PX_PER_SEC;
     const prev = displayPoints[displayPoints.length - 1];
     if (!prev || lastX2 - prev.x > 1) {
-      displayPoints.push({ x: lastX2, y: dbToY(last.db) });
+      displayPoints.push({ x: lastX2, y: dbToY(applyCalibrationOffset(last.db, offsetDb)) });
     }
   }
 

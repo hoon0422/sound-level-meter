@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import useLogsStore from '@/store/logsStore';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
+import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
+import useRecordingLogControlStore from '@/store/recordingLogControlStore';
 
 type LogStatsSnapshot = {
   averageDbfs: number;
@@ -23,6 +25,8 @@ function roundDb(dbfs: number) {
 
 export function useRecordingLogger() {
   const { addLog } = useLogsStore();
+  const offsetDb = useCalibrationStore(state => state.offsetDb);
+  const consumeSkipNextRecordingLog = useRecordingLogControlStore(state => state.consumeSkipNextRecordingLog);
   const { averageDbfs, elapsedSeconds, isRunning, maximumDbfs, minimumDbfs } = useAudioMeterStore(state => ({
     averageDbfs: state.averageDbfs,
     elapsedSeconds: state.elapsedSeconds,
@@ -46,16 +50,17 @@ export function useRecordingLogger() {
 
     if (!isRunning && prevIsRunningRef.current) {
       const stats = lastRunningStatsRef.current;
-      if (stats) {
+      const shouldSkipLog = consumeSkipNextRecordingLog();
+      if (stats && !shouldSkipLog) {
         const now = new Date();
         addLog({
           id: `${now.getTime()}`,
           date: now.toLocaleDateString(),
           time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           duration: formatDuration(stats.elapsedSeconds),
-          maxDb: roundDb(stats.maximumDbfs),
-          minDb: roundDb(stats.minimumDbfs),
-          avgDb: roundDb(stats.averageDbfs),
+          maxDb: roundDb(applyCalibrationOffset(stats.maximumDbfs, offsetDb)),
+          minDb: roundDb(applyCalibrationOffset(stats.minimumDbfs, offsetDb)),
+          avgDb: roundDb(applyCalibrationOffset(stats.averageDbfs, offsetDb)),
         });
       }
 
@@ -63,5 +68,5 @@ export function useRecordingLogger() {
     }
 
     prevIsRunningRef.current = isRunning;
-  }, [addLog, averageDbfs, elapsedSeconds, isRunning, maximumDbfs, minimumDbfs]);
+  }, [addLog, averageDbfs, consumeSkipNextRecordingLog, elapsedSeconds, isRunning, maximumDbfs, minimumDbfs, offsetDb]);
 }

@@ -112,6 +112,21 @@
     "terms": "Términos",
     "privacy": "Privacidad",
     "link": "Enlace",
-    "linkErrorTitle": "No se pudo abrir el enlace"
+    "linkErrorTitle": "No se pudo abrir el enlace",
+    "calibration": {
+      "title": "Calibración",
+      "currentDb": "dB actual",
+      "offset": "Compensación",
+      "decrease": "Reducir compensación",
+      "increase": "Aumentar compensación",
+      "instructions": {
+        "reference": "• Usa un medidor de decibelios profesional como referencia",
+        "location": "• Coloca ambos dispositivos en la misma ubicación",
+        "soundSource": "• Genera una fuente de sonido estable (p. ej., generador de tonos)",
+        "compare": "• Compara las lecturas e introduce la diferencia como compensación",
+        "example": "• Ejemplo: si la referencia muestra 60dB y la app 55dB, introduce +5.0",
+        "freqExcluded": "• Esta compensación no afecta al gráfico dB/Frec"
+      }
+    }
   }
 }

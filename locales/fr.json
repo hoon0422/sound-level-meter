@@ -112,6 +112,21 @@
     "terms": "Conditions",
     "privacy": "Confidentialité",
     "link": "Lien",
-    "linkErrorTitle": "Impossible d'ouvrir le lien"
+    "linkErrorTitle": "Impossible d'ouvrir le lien",
+    "calibration": {
+      "title": "Étalonnage",
+      "currentDb": "dB actuel",
+      "offset": "Décalage",
+      "decrease": "Réduire le décalage",
+      "increase": "Augmenter le décalage",
+      "instructions": {
+        "reference": "• Utilisez un décibelmètre professionnel comme référence",
+        "location": "• Placez les deux appareils au même endroit",
+        "soundSource": "• Générez une source sonore stable (ex. générateur de tonalité)",
+        "compare": "• Comparez les mesures et saisissez la différence comme décalage",
+        "example": "• Exemple : si la référence affiche 60dB et l'app 55dB, saisissez +5.0",
+        "freqExcluded": "• Ce décalage n'affecte pas le graphique dB/Fréq"
+      }
+    }
   }
 }

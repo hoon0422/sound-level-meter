@@ -1,5 +1,6 @@
 import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
+import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
 import * as SGIcon from '@assets/icons/sound-guide';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,15 +20,19 @@ const OPACITY_OUTPUT_RANGE = [0.16, 0.3, 0.55, 1, 0.55, 0.3, 0.16];
 
 export default function SoundGuide() {
   const { colors } = useTheme();
+  const offsetDb = useCalibrationStore(state => state.offsetDb);
   const { dbfs, hasMeasurement } = useThrottledAudioMeterValue(state => ({
     dbfs: state.dbfs,
     hasMeasurement: state.elapsedSeconds > 0,
   }));
+  const displayDb = applyCalibrationOffset(dbfs, offsetDb);
   const [isFirstActiveIndex, setIsFirstActiveIndex] = useState(true);
   const animatedY = useRef(new Animated.Value(DEFAULT_WHEEL_Y)).current;
   const ranges = useRanges();
   const activeIndex =
-    hasMeasurement && dbfs > 0 ? ranges.find(range => dbfs >= range.min && dbfs < range.max)?.index : undefined;
+    hasMeasurement && displayDb > 0
+      ? ranges.find(range => displayDb >= range.min && displayDb < range.max)?.index
+      : undefined;
 
   useEffect(() => {
     const nextY = activeIndex !== undefined ? CURRENT_SLOT_TOP - activeIndex * ROW_HEIGHT : DEFAULT_WHEEL_Y;
