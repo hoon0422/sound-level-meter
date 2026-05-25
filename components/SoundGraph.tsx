@@ -1,6 +1,6 @@
 import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Surface from './Surface';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
@@ -46,21 +46,22 @@ export default function SoundGraph() {
   const totalElapsed = samples.length > 0 ? samples[samples.length - 1].timestamp : 0;
   const innerW = Math.max(CHART_WIDTH, totalElapsed * PX_PER_SEC);
 
-  // Downsample for display: keep at most one point per MIN_PX_SPACING px
-  const displayPoints: DisplayPoint[] = [];
-  for (const s of samples) {
-    const x = s.timestamp * PX_PER_SEC;
-    displayPoints.push({ x, y: dbToY(s.db) });
-  }
-  // Always include the last sample
-  if (samples.length > 0) {
-    const last = samples[samples.length - 1];
-    const lastX2 = last.timestamp * PX_PER_SEC;
-    const prev = displayPoints[displayPoints.length - 1];
-    if (!prev || lastX2 - prev.x > 1) {
-      displayPoints.push({ x: lastX2, y: dbToY(last.db) });
+  const displayPoints = useMemo(() => {
+    const points: DisplayPoint[] = [];
+    for (const s of samples) {
+      const x = s.timestamp * PX_PER_SEC;
+      points.push({ x, y: dbToY(s.db) });
     }
-  }
+    if (samples.length > 0) {
+      const last = samples[samples.length - 1];
+      const lastX2 = last.timestamp * PX_PER_SEC;
+      const prev = points[points.length - 1];
+      if (!prev || lastX2 - prev.x > 1) {
+        points.push({ x: lastX2, y: dbToY(last.db) });
+      }
+    }
+    return points;
+  }, [samples]);
 
   // Static x-axis labels: always show 0–10
   const staticXLabels = Array.from({ length: 11 }, (_, i) => i);
