@@ -15,6 +15,7 @@ export type RecordingLog = {
 type LogsStore = {
   logs: RecordingLog[];
   addLog: (log: RecordingLog) => void;
+  deleteLog: (id: string) => void;
   clearLogs: () => void;
 };
 
@@ -45,6 +46,7 @@ const useLogsStore = create<LogsStore>()(
     set => ({
       logs: [],
       addLog: log => set(state => ({ logs: [log, ...state.logs] })),
+      deleteLog: id => set(state => ({ logs: state.logs.filter(log => log.id !== id) })),
       clearLogs: () => set({ logs: [] }),
     }),
     {

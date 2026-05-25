@@ -16,6 +16,7 @@
   "log": {
     "date": "Date",
     "duration": "Duration",
+    "deleteRecord": "Delete measurement record",
     "noRecordings": "No sound measurements found.",
     "noRecordingsSubText": "Logs will be recorded here automatically"
   },
