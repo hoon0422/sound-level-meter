@@ -2,10 +2,10 @@ import DeleteIcon from '@/app/assets/icons/delete.svg';
 import { useTheme } from '@/context/ThemeContext';
 import { RecordingLog } from '@/store/logsStore';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { useTranslation } from 'react-i18next';
 
 const ACTION_WIDTH = 66;
 const ACTION_OVERLAP = 12;

@@ -1,9 +1,9 @@
 import { RecordingLogCard } from '@/components/RecordingLogCard';
-import useLogsStore, { RecordingLog } from '@/store/logsStore';
 import { useTheme } from '@/context/ThemeContext';
+import useLogsStore, { RecordingLog } from '@/store/logsStore';
 import { useFocusEffect } from 'expo-router';
-import { useTranslation } from 'react-i18next';
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 export default function LogScreen() {
