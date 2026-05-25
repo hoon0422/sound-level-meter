@@ -154,13 +154,9 @@ export function RecordingLogCard({ index, item, logCount, onDelete, resetSignal 
 }
 
 const styles = StyleSheet.create({
-  rowClip: {
-    overflow: 'hidden',
-  },
+  rowClip: {},
   row: {
     justifyContent: 'center',
-    borderRadius: CARD_RADIUS,
-    overflow: 'hidden',
   },
   deleteAction: {
     position: 'absolute',
@@ -171,6 +167,8 @@ const styles = StyleSheet.create({
     paddingLeft: ACTION_OVERLAP,
     alignItems: 'center',
     justifyContent: 'center',
+    borderTopRightRadius: CARD_RADIUS,
+    borderBottomRightRadius: CARD_RADIUS,
   },
   card: {
     borderRadius: CARD_RADIUS,
