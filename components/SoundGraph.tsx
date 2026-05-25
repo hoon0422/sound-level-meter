@@ -27,30 +27,6 @@ const GRID_DBS = [40, 80, 120];
 
 type DisplayPoint = { x: number; y: number };
 
-// Module-level history — persists across component remounts
-const sampleHistory: Sample[] = [];
-let _lastSampleTime = 0;
-let _lastSampleTimestamp = -1;
-audioMeterStore.subscribe(state => {
-  if (!state.isRunning) {
-    sampleHistory.length = 0;
-    _lastSampleTime = 0;
-    _lastSampleTimestamp = -1;
-    return;
-  }
-  const now = Date.now();
-  if (
-    state.elapsedSeconds > 0 &&
-    state.dbfs > 0 &&
-    state.elapsedSeconds !== _lastSampleTimestamp &&
-    now - _lastSampleTime >= 300
-  ) {
-    sampleHistory.push({ db: state.dbfs, timestamp: state.elapsedSeconds });
-    _lastSampleTimestamp = state.elapsedSeconds;
-    _lastSampleTime = now;
-  }
-});
-
 function dbToY(db: number) {
   return INNER_H - ((db - DB_MIN) / (DB_MAX - DB_MIN)) * INNER_H;
 }
@@ -58,7 +34,6 @@ function dbToY(db: number) {
 function dbToTop(db: number) {
   return ((DB_MAX - db) / (DB_MAX - DB_MIN)) * INNER_H;
 }
-
 
 export default function SoundGraph() {
   const { typography, colors } = useTheme();
