@@ -24,6 +24,7 @@ export class SpectrumAnalysisController {
   private listeners = new Set<SpectrumSnapshotListener>();
   private disposeListeners = new Map<SpectrumSnapshotListener, SpectrumDisposeListener>();
   private lastSnapshot: SpectrumSnapshot;
+  private lastMeasurementSessionId = 0;
   private unsubscribeFrame: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
 
@@ -106,7 +107,8 @@ export class SpectrumAnalysisController {
   };
 
   private handleMicState = (state: MicrophoneState) => {
-    if (!state.isRunning && !state.isConnecting && !state.isStarting && !state.isDisconnecting) {
+    if (state.isRunning && state.measurementSessionId !== this.lastMeasurementSessionId) {
+      this.lastMeasurementSessionId = state.measurementSessionId;
       this.smoothedBars = [];
       this.maximumBars = [];
       this.emit(createIdleSpectrumSnapshot(this.config.barCount));

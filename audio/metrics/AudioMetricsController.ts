@@ -18,6 +18,7 @@ export class AudioMetricsController {
   private listeners = new Set<AudioMetricsSnapshotListener>();
   private disposeListeners = new Map<AudioMetricsSnapshotListener, AudioMetricsDisposeListener>();
   private lastSnapshot = createIdleAudioMetricsSnapshot();
+  private lastMeasurementSessionId = 0;
   private unsubscribeFrame: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
 
@@ -87,7 +88,8 @@ export class AudioMetricsController {
   };
 
   private handleMicState = (state: MicrophoneState) => {
-    if (!state.isRunning && !state.isConnecting && !state.isStarting && !state.isDisconnecting) {
+    if (state.isRunning && state.measurementSessionId !== this.lastMeasurementSessionId) {
+      this.lastMeasurementSessionId = state.measurementSessionId;
       this.emit(createIdleAudioMetricsSnapshot());
     }
   };
