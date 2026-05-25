@@ -39,7 +39,7 @@ export function SoundMeter() {
   const { colors } = useTheme();
   const { isRunning, dbfs, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
-      isRunning: state.isRunning && state.elapsedSeconds > 0,
+      isRunning: state.elapsedSeconds > 0,
       dbfs: state.dbfs,
       averageDbfs: state.averageDbfs,
       maximumDbfs: state.maximumDbfs,
@@ -69,7 +69,7 @@ export function SoundMeter() {
 
 function Meter() {
   const { colors } = useTheme();
-  const dbfs = useThrottledAudioMeterValue(state => (state.isRunning ? state.dbfs : 0), ANIMATION_DURATION);
+  const dbfs = useThrottledAudioMeterValue(state => (state.elapsedSeconds > 0 ? state.dbfs : 0), ANIMATION_DURATION);
   const animatedProgress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(animatedProgress, {

@@ -10,7 +10,7 @@ type Props = {
 
 export default function GraphsLayout({ children }: Props) {
   const { colors } = useTheme();
-  const elapsedSeconds = useAudioMeterStore(state => (state.isRunning ? state.elapsedSeconds : null));
+  const elapsedSeconds = useAudioMeterStore(state => state.elapsedSeconds);
 
   return (
     <View style={[styles.page, { backgroundColor: colors.background }]}>
@@ -27,8 +27,7 @@ export default function GraphsLayout({ children }: Props) {
   );
 }
 
-const secondsToTime = (seconds: number | null) => {
-  if (seconds === null) return '00:00:00';
+const secondsToTime = (seconds: number) => {
   const hours = Math.floor(seconds / 3600)
     .toString()
     .padStart(2, '0');
