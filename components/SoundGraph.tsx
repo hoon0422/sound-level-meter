@@ -1,9 +1,9 @@
 import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
-import React, { useEffect, useRef } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import Surface from './Surface';
-import { audioMeterStore, useAudioMeterStore } from '@/store/audioMeterStore';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
 import Animated, { Easing, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Line, Polyline } from 'react-native-svg';
 
@@ -22,35 +22,10 @@ const PX_PER_SEC = 30;
 
 const DB_MIN = 0;
 const DB_MAX = 120;
-const Y_LABELS = ['dB', 120, 100, 80, 60, 40, 20, 0];
+const Y_LABELS = [120, 100, 80, 60, 40, 20, 0];
 const GRID_DBS = [40, 80, 120];
 
-type Sample = { db: number; timestamp: number };
 type DisplayPoint = { x: number; y: number };
-
-// Module-level history — persists across component remounts
-const sampleHistory: Sample[] = [];
-let _lastSampleTime = 0;
-let _lastSampleTimestamp = -1;
-audioMeterStore.subscribe(state => {
-  if (!state.isRunning) {
-    sampleHistory.length = 0;
-    _lastSampleTime = 0;
-    _lastSampleTimestamp = -1;
-    return;
-  }
-  const now = Date.now();
-  if (
-    state.elapsedSeconds > 0 &&
-    state.dbfs > 0 &&
-    state.elapsedSeconds !== _lastSampleTimestamp &&
-    now - _lastSampleTime >= 300
-  ) {
-    sampleHistory.push({ db: state.dbfs, timestamp: state.elapsedSeconds });
-    _lastSampleTimestamp = state.elapsedSeconds;
-    _lastSampleTime = now;
-  }
-});
 
 function dbToY(db: number) {
   return INNER_H - ((db - DB_MIN) / (DB_MAX - DB_MIN)) * INNER_H;
@@ -60,34 +35,13 @@ function dbToTop(db: number) {
   return ((DB_MAX - db) / (DB_MAX - DB_MIN)) * INNER_H;
 }
 
-
 export default function SoundGraph() {
   const { typography, colors } = useTheme();
+  const samples = useAudioMeterStore(state => state.samples);
   const isRunning = useAudioMeterStore(state => state.isRunning);
-  const offsetDb = useCalibrationStore(state => state.offsetDb);
-  const { dbfs, elapsedSeconds, measurementSessionId } = useThrottledAudioMeterValue(state => ({
-    dbfs: state.dbfs,
-    elapsedSeconds: state.elapsedSeconds,
-    measurementSessionId: state.measurementSessionId,
-  }));
-  const [samples, setSamples] = React.useState<Sample[]>(() => [...sampleHistory]);
+
   const liveX = useSharedValue(0);
   const liveY = useSharedValue(INNER_H / 2);
-
-  useEffect(() => {
-    if (measurementSessionId !== measurementSessionIdRef.current) {
-      measurementSessionIdRef.current = measurementSessionId;
-      setSamples([]);
-      liveX.value = 0;
-      liveY.value = INNER_H / 2;
-    }
-  }, [measurementSessionId]);
-
-  useEffect(() => {
-    if (isRunning && elapsedSeconds > 0 && dbfs > 0) {
-      setSamples([...sampleHistory]);
-    }
-  }, [dbfs, elapsedSeconds, isRunning]);
 
   const totalElapsed = samples.length > 0 ? samples[samples.length - 1].timestamp : 0;
   const innerW = Math.max(CHART_WIDTH, totalElapsed * PX_PER_SEC);
@@ -153,8 +107,11 @@ export default function SoundGraph() {
       <View style={styles.graphRow}>
         {/* Fixed Y-axis */}
         <View style={{ width: Y_AXIS_WIDTH, height: INNER_H }}>
+          <Text style={[styles.yLabelText, { top: dbToTop(145), color: colors.inactive, marginTop: 0, fontFamily: typography.fontFamily }]}>
+              dB
+            </Text>
           {Y_LABELS.map(db => (
-            <Text key={`y-${db}`} style={[styles.yLabelText, { top: typeof db === 'string' ? dbToTop(145) : dbToTop(db) - 6, color: colors.inactive, marginTop: 0, fontFamily: typography.fontFamily }]}>
+            <Text key={`y-${db}`} style={[styles.yLabelText, { top: dbToTop(db) - 6, color: colors.inactive, marginTop: 0, fontFamily: typography.fontFamily }]}>
               {db}
             </Text>
           ))}
