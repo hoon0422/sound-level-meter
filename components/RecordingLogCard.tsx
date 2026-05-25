@@ -5,7 +5,8 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 const ACTION_WIDTH = 66;
 const ACTION_OVERLAP = 12;
@@ -66,7 +67,7 @@ export function RecordingLogCard({ index, item, logCount, onDelete, resetSignal 
     rowOpacity.value = withTiming(0, { duration: DELETE_DURATION_MS });
     rowHeight.value = withTiming(0, { duration: DELETE_DURATION_MS }, finished => {
       if (finished) {
-        runOnJS(onDelete)(item.id);
+        scheduleOnRN(onDelete, item.id);
       }
     });
   };
