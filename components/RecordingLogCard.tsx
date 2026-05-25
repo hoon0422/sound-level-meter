@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
 
 const ACTION_WIDTH = 66;
 const ACTION_OVERLAP = 12;
@@ -26,6 +25,7 @@ export function RecordingLogCard({ index, item, logCount, onDelete, resetSignal 
   const { colors, themeName } = useTheme();
   const { t } = useTranslation();
   const [measuredHeight, setMeasuredHeight] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
   const translateX = useSharedValue(0);
   const gestureStartX = useSharedValue(0);
   const rowHeight = useSharedValue(0);
@@ -63,13 +63,18 @@ export function RecordingLogCard({ index, item, logCount, onDelete, resetSignal 
   }));
 
   const handleDelete = () => {
+    if (isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
     translateX.value = withTiming(-ACTION_WIDTH - 24, { duration: DELETE_DURATION_MS });
     rowOpacity.value = withTiming(0, { duration: DELETE_DURATION_MS });
-    rowHeight.value = withTiming(0, { duration: DELETE_DURATION_MS }, finished => {
-      if (finished) {
-        scheduleOnRN(onDelete, item.id);
-      }
-    });
+    rowHeight.value = withTiming(0, { duration: DELETE_DURATION_MS });
+
+    setTimeout(() => {
+      onDelete(item.id);
+    }, DELETE_DURATION_MS);
   };
 
   return (
@@ -87,6 +92,7 @@ export function RecordingLogCard({ index, item, logCount, onDelete, resetSignal 
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('log.deleteRecord')}
+          disabled={isDeleting}
           onPress={handleDelete}
           style={[styles.deleteAction, { backgroundColor: colors.loud }]}
         >
