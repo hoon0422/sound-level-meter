@@ -4,8 +4,8 @@ import { useRecordingLogger } from '@/hooks/useRecordingLogger';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Tabs, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Image, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Image, TouchableOpacity } from 'react-native';
 
 function Decibella() {
   const { logo } = useTheme();
@@ -61,6 +61,7 @@ export default function TabsLayout() {
           alignItems: 'center',
           borderRadius: 10,
           borderWidth: 1,
+          borderColor: colors.border,
           shadowOffset: { width: 2, height: 1 },
           shadowOpacity: 1,
           shadowRadius: 0,
