@@ -1,6 +1,6 @@
 export const themes = {
   light: {
-    logo: require('../app/assets/icons/decibella.png') as number,
+    logo: require('@/assets/icons/decibella.png') as number,
     colors: {
       background: '#FEFAEE',
       surface: '#FDFCFA',
@@ -26,7 +26,7 @@ export const themes = {
   },
 
   dark: {
-    logo: require('../app/assets/icons/decibella_dark.png') as number,
+    logo: require('@/assets/icons/decibella_dark.png') as number,
     colors: {
       background: '#121212',
       surface: '#333333',

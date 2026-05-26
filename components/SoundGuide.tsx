@@ -1,7 +1,7 @@
+import * as SGIcon from '@/assets/icons/sound-guide';
 import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
 import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
-import * as SGIcon from '@assets/icons/sound-guide';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, StyleSheet, Text, View } from 'react-native';

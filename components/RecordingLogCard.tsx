@@ -1,4 +1,4 @@
-import DeleteIcon from '@/app/assets/icons/delete.svg';
+import DeleteIcon from '@/assets/icons/delete.svg';
 import { useTheme } from '@/context/ThemeContext';
 import { RecordingLog } from '@/store/logsStore';
 import React, { useEffect, useState } from 'react';

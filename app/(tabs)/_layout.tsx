@@ -19,7 +19,7 @@ function SettingsButton() {
   return (
     <TouchableOpacity onPress={() => router.push('/settings')} style={{ paddingRight: 16 }}>
       <Image
-        source={require('../assets/icons/setting.png')}
+        source={require('@/assets/icons/setting.png')}
         style={{ height: 24, width: 24, tintColor: colors.text }}
         resizeMode="contain"
       />
@@ -81,7 +81,7 @@ export default function TabsLayout() {
           title: t('tabs.dbTime'),
           tabBarIcon: ({ color, size }) => (
             <Image
-              source={require('../assets/icons/graph.png')}
+              source={require('@/assets/icons/graph.png')}
               style={{ height: size, width: size, tintColor: color }}
               resizeMode="contain"
             />
@@ -94,7 +94,7 @@ export default function TabsLayout() {
           title: t('tabs.dbFreq'),
           tabBarIcon: ({ color, size }) => (
             <Image
-              source={require('../assets/icons/chart.png')}
+              source={require('@/assets/icons/chart.png')}
               style={{ height: size, width: size, tintColor: color }}
               resizeMode="contain"
             />
@@ -107,7 +107,7 @@ export default function TabsLayout() {
           title: t('tabs.soundGuide'),
           tabBarIcon: ({ color, size }) => (
             <Image
-              source={require('../assets/icons/book.png')}
+              source={require('@/assets/icons/book.png')}
               style={{ height: size, width: size, tintColor: color }}
               resizeMode="contain"
             />
@@ -120,7 +120,7 @@ export default function TabsLayout() {
           title: t('tabs.log'),
           tabBarIcon: ({ color, size }) => (
             <Image
-              source={require('../assets/icons/list.png')}
+              source={require('@/assets/icons/list.png')}
               style={{ height: size, width: size, tintColor: color }}
               resizeMode="contain"
             />
