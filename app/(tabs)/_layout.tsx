@@ -58,6 +58,12 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
+          alignItems: 'center',
+          borderRadius: 10,
+          borderWidth: 1,
+          shadowOffset: { width: 2, height: 1 },
+          shadowOpacity: 1,
+          shadowRadius: 0,
         },
         tabBarLabelStyle: { fontFamily: 'DMSans_500Medium' },
       }}
