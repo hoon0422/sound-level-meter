@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import Surface from './Surface';
 
-const ROW_HEIGHT = 16;
+const ROW_HEIGHT = 24;
 const GUIDE_WIDTH = 320;
 const GUIDE_HEIGHT = 180;
 const GUIDE_VERTICAL_PADDING = 10;
@@ -62,7 +62,7 @@ export default function SoundGuide() {
             style={[
               styles.currentSoundSlot,
               {
-                backgroundColor: colors.moderate,
+                backgroundColor: colors.soundGuideSlot,
                 borderColor: colors.shadow,
                 shadowColor: colors.shadow,
               },
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontFamily: 'DMSans_500Medium',
-    fontSize: 10,
+    fontSize: 12,
     lineHeight: 16,
   },
 });
