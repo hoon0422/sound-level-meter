@@ -24,7 +24,8 @@ export type MicrophoneState = {
 export type MicrophoneAudioFrame = {
   frequencyData: Float32Array;
   dbfs: number;
-  elapsedSeconds: number;
+  frameDurationSeconds: number;
+  sessionElapsedSeconds: number;
   sampleRate: number;
   fftSize: number;
   minDecibels: number;
@@ -132,7 +133,8 @@ export class MicrophoneController {
     this.emitFrame({
       frequencyData: this.freqData,
       dbfs: metrics.dbfs,
-      elapsedSeconds: metrics.elapsedSeconds,
+      frameDurationSeconds: metrics.elapsedSeconds,
+      sessionElapsedSeconds: this.elapsedAccumulator,
       sampleRate: this.engine.audioContext.sampleRate,
       fftSize: this.engine.analyser.fftSize,
       minDecibels: this.engine.analyser.minDecibels,

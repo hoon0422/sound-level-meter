@@ -19,15 +19,7 @@ export type AudioMetricsSlice = AudioMetricsSnapshot & {
 
 export type { AudioEngineConfig, AudioMeterConfig, AudioMetricsDisplayConfig, SpectrumDisplayConfig };
 
-export type AudioMeterState = MicrophoneSlice & SpectrumSlice & AudioMetricsSlice & StatsSlice & AudioSamplesSlice;
-
-export type Sample = { db: number; timestamp: number };
-
-export type AudioSamplesSlice = {
-  samples: Sample[];
-  addSample: (sample: Sample) => void;
-  clearSamples: () => void;
-};
+export type AudioMeterState = MicrophoneSlice & SpectrumSlice & AudioMetricsSlice & StatsSlice;
 
 export type MicrophoneSlice = MicrophoneState & {
   connect: (config: AudioEngineConfig) => Promise<boolean>;
