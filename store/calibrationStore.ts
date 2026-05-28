@@ -1,3 +1,4 @@
+import { devtools } from '@csark0812/zustand-expo-devtools';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -31,22 +32,35 @@ export function formatCalibrationOffset(offsetDb: number) {
 }
 
 const useCalibrationStore = create<CalibrationState>()(
-  persist(
-    set => ({
-      offsetDb: 0,
-      decrementOffset: () =>
-        set(state => ({
-          offsetDb: normalizeOffset(state.offsetDb - CALIBRATION_OFFSET_STEP_DB),
-        })),
-      incrementOffset: () =>
-        set(state => ({
-          offsetDb: normalizeOffset(state.offsetDb + CALIBRATION_OFFSET_STEP_DB),
-        })),
-      setOffsetDb: offsetDb => set({ offsetDb: normalizeOffset(offsetDb) }),
-    }),
+  devtools(
+    persist(
+      set => ({
+        offsetDb: 0,
+        decrementOffset: () =>
+          set(
+            state => ({
+              offsetDb: normalizeOffset(state.offsetDb - CALIBRATION_OFFSET_STEP_DB),
+            }),
+            false,
+            'decrementOffset'
+          ),
+        incrementOffset: () =>
+          set(
+            state => ({
+              offsetDb: normalizeOffset(state.offsetDb + CALIBRATION_OFFSET_STEP_DB),
+            }),
+            false,
+            'incrementOffset'
+          ),
+        setOffsetDb: offsetDb => set({ offsetDb: normalizeOffset(offsetDb) }, false, 'setOffsetDb'),
+      }),
+      {
+        name: 'calibration-storage',
+        storage: createJSONStorage(() => AsyncStorage),
+      }
+    ),
     {
-      name: 'calibration-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      name: 'CalibrationStore',
     }
   )
 );

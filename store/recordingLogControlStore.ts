@@ -1,3 +1,4 @@
+import { devtools } from '@csark0812/zustand-expo-devtools';
 import { create } from 'zustand';
 
 type RecordingLogControlState = {
@@ -6,16 +7,24 @@ type RecordingLogControlState = {
   markNextRecordingStopAsTemporary: () => void;
 };
 
-const useRecordingLogControlStore = create<RecordingLogControlState>((set, get) => ({
-  skipNextRecordingLog: false,
-  consumeSkipNextRecordingLog: () => {
-    const shouldSkip = get().skipNextRecordingLog;
-    if (shouldSkip) {
-      set({ skipNextRecordingLog: false });
+const useRecordingLogControlStore = create<RecordingLogControlState>()(
+  devtools(
+    (set, get) => ({
+      skipNextRecordingLog: false,
+      consumeSkipNextRecordingLog: () => {
+        const shouldSkip = get().skipNextRecordingLog;
+        if (shouldSkip) {
+          set({ skipNextRecordingLog: false }, false, 'consumeSkipNextRecordingLog');
+        }
+        return shouldSkip;
+      },
+      markNextRecordingStopAsTemporary: () =>
+        set({ skipNextRecordingLog: true }, false, 'markNextRecordingStopAsTemporary'),
+    }),
+    {
+      name: 'RecordingLogControlStore',
     }
-    return shouldSkip;
-  },
-  markNextRecordingStopAsTemporary: () => set({ skipNextRecordingLog: true }),
-}));
+  )
+);
 
 export default useRecordingLogControlStore;
