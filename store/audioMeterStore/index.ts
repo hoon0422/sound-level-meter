@@ -21,6 +21,7 @@ export const audioMeterStore = createStore<AudioMeterState>()(
     }),
     {
       name: 'AudioMeterStore',
+      enabled: false,
     }
   )
 );
