@@ -1,24 +1,29 @@
 import { CALIBRATION_PEAK_DBFS } from '@/audio/engine';
 import { SPECTRUM_BANDS } from '@/audio/spectrum';
+import Surface from '@/components/Surface';
 import { useTheme } from '@/context/ThemeContext';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { StyleSheet, Text, View } from 'react-native';
-import Surface from './Surface';
 
 const CONTAINER_HEIGHT = 180;
 const CONTAINER_VERTICAL_PADDING = 8;
 const CONTAINER_HORIZONTAL_PADDING = 8;
 const CONTAINER_RIGHT_PADDING = 24;
-const FREQ_LABEL_HEIGHT = 14;
-const SPECTRUM_GAP = 4;
-const BAR_HEIGHT = CONTAINER_HEIGHT - CONTAINER_VERTICAL_PADDING * 2 - FREQ_LABEL_HEIGHT - SPECTRUM_GAP;
-const MIN_DB = 0;
-const MAX_DB = 140;
-const DB_RANGE = MAX_DB - MIN_DB;
-const DB_GRID_LINES = [20, 40, 60, 80, 100, 120];
+const CONTAINER_WIDTH = 320;
+const INNER_H = 110;
+const CHART_TOP_INSET = 10;
+const CHART_HEIGHT = INNER_H + CHART_TOP_INSET;
+const X_AXIS_H = 20;
+const Y_AXIS_WIDTH = 28;
 
-function dbToY(db: number) {
-  return ((db - MIN_DB) / DB_RANGE) * BAR_HEIGHT;
+const MIN_DB = 0;
+const MAX_DB = 120;
+const DB_RANGE = MAX_DB - MIN_DB;
+const DB_LABELS = [120, 100, 80, 60, 40, 20, 0];
+const DB_GRID_LINES = [40, 80, 120];
+
+function dbToTop(db: number) {
+  return CHART_TOP_INSET + ((MAX_DB - db) / DB_RANGE) * INNER_H;
 }
 
 function calibrate(dbfs: number) {
@@ -33,12 +38,13 @@ function calibrate(dbfs: number) {
 
 function dbToHeight(db: number) {
   if (db <= MIN_DB) return 0;
-  return Math.max(2, ((Math.max(db, MIN_DB) - MIN_DB) / DB_RANGE) * BAR_HEIGHT);
+  const clampedDb = Math.min(MAX_DB, Math.max(db, MIN_DB));
+  return Math.max(2, ((clampedDb - MIN_DB) / DB_RANGE) * INNER_H);
 }
 
 function meterColorDb(db: number, colors: ReturnType<typeof useTheme>['colors']) {
   if (db < 40) return colors.quiet;
-  if (db < 70) return colors.moderate;
+  if (db < 80) return colors.moderate;
   return colors.loud;
 }
 
@@ -51,7 +57,7 @@ export default function FrequencyBarGraph() {
 }
 
 function SpectrumBars() {
-  const { colors } = useTheme();
+  const { typography, colors } = useTheme();
   const { bars, barPeaks, hasSignal } = useAudioMeterStore(state => ({
     bars: state.bars,
     barPeaks: state.maximumBars,
@@ -59,20 +65,30 @@ function SpectrumBars() {
   }));
 
   return (
-    <View style={styles.spectrumContainer}>
-      <View style={styles.spectrumChart}>
-        <View style={styles.dbAxis}>
-          <Text style={styles.dbAxisTitle}>dB</Text>
-          {DB_GRID_LINES.map(db => (
-            <Text key={db} style={[styles.dbLabel, { bottom: dbToY(db) - 6, color: colors.inactive }]}>
-              {db}
-            </Text>
-          ))}
-        </View>
+    <View style={styles.graphRow}>
+      <View style={styles.yAxisLabels}>
+        <Text
+          style={[styles.yLabelText, { top: dbToTop(145), color: colors.inactive, fontFamily: typography.fontFamily }]}
+        >
+          dB
+        </Text>
+        {DB_LABELS.map(db => (
+          <Text
+            key={db}
+            style={[
+              styles.yLabelText,
+              { top: dbToTop(db) - 6, color: colors.inactive, fontFamily: typography.fontFamily },
+            ]}
+          >
+            {db}
+          </Text>
+        ))}
+      </View>
 
-        <View style={[styles.chartArea, { borderColor: colors.divider }]}>
+      <View style={styles.chartColumn}>
+        <View style={[styles.chartArea, { borderColor: colors.inactive }]}>
           {DB_GRID_LINES.map(db => (
-            <View key={db} style={[styles.gridLine, { backgroundColor: colors.divider, bottom: dbToY(db) }]} />
+            <View key={db} style={[styles.gridLine, { backgroundColor: colors.inactive, top: dbToTop(db) }]} />
           ))}
 
           <View style={styles.barsRow}>
@@ -107,13 +123,13 @@ function SpectrumBars() {
             })}
           </View>
         </View>
-      </View>
 
-      <View style={styles.freqLabelsRow}>
-        <View style={styles.dbAxisSpacer} />
-        <View style={styles.freqLabelsInner}>
+        <View style={styles.freqLabelsRow}>
           {SPECTRUM_BANDS.map(band => (
-            <Text key={band.label} style={[styles.freqLabel, { color: colors.inactive }]}>
+            <Text
+              key={band.label}
+              style={[styles.freqLabel, { color: colors.inactive, fontFamily: typography.fontFamily }]}
+            >
               {band.label}
             </Text>
           ))}
@@ -129,41 +145,28 @@ const styles = StyleSheet.create({
     paddingVertical: CONTAINER_VERTICAL_PADDING,
     paddingLeft: CONTAINER_HORIZONTAL_PADDING,
     paddingRight: CONTAINER_RIGHT_PADDING,
-    width: 320,
+    width: CONTAINER_WIDTH,
   },
-  spectrumContainer: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPECTRUM_GAP,
-  },
-  spectrumChart: {
+  graphRow: {
     flexDirection: 'row',
-    width: '100%',
+    marginTop: 24,
   },
-  dbAxis: {
-    width: 30,
-    height: BAR_HEIGHT,
+  yAxisLabels: {
+    width: Y_AXIS_WIDTH,
+    height: CHART_HEIGHT,
     position: 'relative',
   },
-  dbAxisTitle: {
+  yLabelText: {
     position: 'absolute',
-    right: 4,
-    top: 0,
-    fontSize: 9,
-    color: '#999',
+    right: 10,
+    fontSize: 10,
+    textAlign: 'right',
   },
-  dbAxisSpacer: {
-    width: 30,
-  },
-  dbLabel: {
-    position: 'absolute',
-    right: 4,
-    fontSize: 9,
+  chartColumn: {
+    flex: 1,
   },
   chartArea: {
-    flex: 1,
-    height: BAR_HEIGHT,
+    height: CHART_HEIGHT,
     position: 'relative',
     borderLeftWidth: 1,
     borderBottomWidth: 1,
@@ -175,7 +178,7 @@ const styles = StyleSheet.create({
     height: 1,
   },
   barsRow: {
-    height: BAR_HEIGHT,
+    height: CHART_HEIGHT,
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 4,
@@ -184,7 +187,7 @@ const styles = StyleSheet.create({
   barContainer: {
     position: 'relative',
     flex: 1,
-    height: BAR_HEIGHT,
+    height: CHART_HEIGHT,
   },
   bar: {
     position: 'absolute',
@@ -197,18 +200,14 @@ const styles = StyleSheet.create({
   barPeak: {},
   freqLabelsRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
     width: '100%',
-    height: FREQ_LABEL_HEIGHT,
-  },
-  freqLabelsInner: {
-    flex: 1,
-    flexDirection: 'row',
+    height: X_AXIS_H,
     paddingHorizontal: 4,
   },
   freqLabel: {
     flex: 1,
-    fontSize: 9,
+    top: 4,
+    fontSize: 10,
     textAlign: 'center',
   },
 });

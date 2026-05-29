@@ -2,7 +2,7 @@ import { DB_TIME_GRAPH_DB_MAX, DB_TIME_GRAPH_DB_MIN, type DbTimeGraphSample } fr
 import Surface from '@/components/Surface';
 import { useTheme } from '@/context/ThemeContext';
 import { useDbTimeGraphSnapshot } from '@/hooks/useDbTimeGraphSnapshot';
-import { Canvas, Circle, Line, Path, Skia, vec } from '@shopify/react-native-skia';
+import { Canvas, Circle, Path, Skia } from '@shopify/react-native-skia';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -12,6 +12,8 @@ const CONTAINER_HORIZONTAL_PADDING = 8;
 const CONTAINER_RIGHT_PADDING = 24;
 const CONTAINER_WIDTH = 320;
 const INNER_H = 110;
+const CHART_TOP_INSET = 10;
+const CHART_HEIGHT = INNER_H + CHART_TOP_INSET;
 const X_AXIS_H = 20;
 const Y_AXIS_WIDTH = 28;
 const CHART_WIDTH = CONTAINER_WIDTH - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING;
@@ -20,7 +22,6 @@ const Y_LABELS = [120, 100, 80, 60, 40, 20, 0];
 const GRID_DBS = [40, 80, 120];
 const X_LABEL_COUNT = 6;
 const ACTIVE_COLOR = '#3bbfce';
-const GRID_COLOR = '#d0d0d0';
 const CHART_RIGHT_INSET = 10;
 
 type ChartPoint = { x: number; y: number };
@@ -31,11 +32,15 @@ function clamp(value: number, min: number, max: number) {
 
 function dbToY(db: number) {
   const clampedDb = clamp(db, DB_TIME_GRAPH_DB_MIN, DB_TIME_GRAPH_DB_MAX);
-  return INNER_H - ((clampedDb - DB_TIME_GRAPH_DB_MIN) / (DB_TIME_GRAPH_DB_MAX - DB_TIME_GRAPH_DB_MIN)) * INNER_H;
+  return (
+    CHART_TOP_INSET +
+    INNER_H -
+    ((clampedDb - DB_TIME_GRAPH_DB_MIN) / (DB_TIME_GRAPH_DB_MAX - DB_TIME_GRAPH_DB_MIN)) * INNER_H
+  );
 }
 
 function dbToTop(db: number) {
-  return ((DB_TIME_GRAPH_DB_MAX - db) / (DB_TIME_GRAPH_DB_MAX - DB_TIME_GRAPH_DB_MIN)) * INNER_H;
+  return CHART_TOP_INSET + ((DB_TIME_GRAPH_DB_MAX - db) / (DB_TIME_GRAPH_DB_MAX - DB_TIME_GRAPH_DB_MIN)) * INNER_H;
 }
 
 function formatElapsedLabel(seconds: number) {
@@ -118,18 +123,15 @@ export default function SoundGraph() {
         </View>
 
         <View style={styles.chartColumn}>
-          <View style={styles.yAxisLine} />
+          <View style={[styles.yAxisLine, { backgroundColor: colors.inactive }]} />
           <View style={styles.chartClip}>
+            {GRID_DBS.map(db => (
+              <View
+                key={`grid-${db}`}
+                style={[styles.gridLine, { backgroundColor: colors.inactive, top: dbToY(db) }]}
+              />
+            ))}
             <Canvas style={styles.canvas}>
-              {GRID_DBS.map(db => (
-                <Line
-                  key={`grid-${db}`}
-                  p1={vec(0, dbToY(db))}
-                  p2={vec(CHART_WIDTH, dbToY(db))}
-                  color={GRID_COLOR}
-                  strokeWidth={1}
-                />
-              ))}
               <Path path={chart.path} color={ACTIVE_COLOR} style="stroke" strokeWidth={2} />
               {chart.currentPoint && (
                 <Circle
@@ -140,7 +142,7 @@ export default function SoundGraph() {
                 />
               )}
             </Canvas>
-            <View style={styles.xAxisLine} />
+            <View style={[styles.xAxisLine, { backgroundColor: colors.inactive }]} />
           </View>
 
           <View style={styles.xLabels}>
@@ -181,7 +183,7 @@ const styles = StyleSheet.create({
   },
   yAxisLabels: {
     width: Y_AXIS_WIDTH,
-    height: INNER_H,
+    height: CHART_HEIGHT,
   },
   yLabelText: {
     position: 'absolute',
@@ -194,19 +196,25 @@ const styles = StyleSheet.create({
   },
   yAxisLine: {
     position: 'absolute',
-    top: dbToTop(140) + 3,
+    top: 0,
     left: 0,
     width: 1,
-    height: INNER_H - (dbToTop(140) + 3),
-    backgroundColor: GRID_COLOR,
+    height: CHART_HEIGHT,
   },
   chartClip: {
-    height: INNER_H,
+    height: CHART_HEIGHT,
     overflow: 'hidden',
+    position: 'relative',
+  },
+  gridLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
   },
   canvas: {
     width: CHART_WIDTH,
-    height: INNER_H,
+    height: CHART_HEIGHT,
   },
   xAxisLine: {
     position: 'absolute',
@@ -214,7 +222,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: GRID_COLOR,
   },
   xLabels: {
     height: X_AXIS_H,
