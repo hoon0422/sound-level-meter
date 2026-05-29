@@ -1,7 +1,7 @@
 import { DB_TIME_GRAPH_DB_MAX, DB_TIME_GRAPH_DB_MIN, type DbTimeGraphSample } from '@/audio/dbTimeGraph';
 import Surface from '@/components/Surface';
 import { useTheme } from '@/context/ThemeContext';
-import { useDbTimeGraphSnapshot } from '@/hooks/useDbTimeGraphSnapshot';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Canvas, Circle, Path, Skia } from '@shopify/react-native-skia';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -57,7 +57,12 @@ function toChartPoint(sample: DbTimeGraphSample, windowStartSeconds: number, win
 
 export default function SoundGraph() {
   const { typography, colors } = useTheme();
-  const { samples, isRunning, windowStartSeconds, windowEndSeconds } = useDbTimeGraphSnapshot();
+  const { samples, isRunning, windowStartSeconds, windowEndSeconds } = useAudioMeterStore(state => ({
+    samples: state.dbTimeGraphSamples,
+    isRunning: state.dbTimeGraphIsRunning,
+    windowStartSeconds: state.dbTimeGraphWindowStartSeconds,
+    windowEndSeconds: state.dbTimeGraphWindowEndSeconds,
+  }));
 
   const chart = useMemo(() => {
     const drawableSamples = samples.filter(

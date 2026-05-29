@@ -2,6 +2,7 @@ import { devtools } from '@csark0812/zustand-expo-devtools';
 import { createStore, useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { createAudioMetricsSlice } from './createAudioMetricsSlice';
+import { createDbTimeGraphSlice } from './createDbTimeGraphSlice';
 import { createMicrophoneSlice } from './createMicrophoneSlice';
 import { createSpectrumSlice } from './createSpectrumSlice';
 import { createStatsSlice } from './createStatsSlice';
@@ -16,6 +17,7 @@ export const audioMeterStore = createStore<AudioMeterState>()(
       ...createSpectrumSlice(set, get, store),
       ...createAudioMetricsSlice(set, get, store),
       ...createStatsSlice(set, get, store),
+      ...createDbTimeGraphSlice(set, get, store),
     }),
     {
       name: 'AudioMeterStore',

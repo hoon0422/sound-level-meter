@@ -1,4 +1,5 @@
 import type { AudioMeterConfig } from '@/audio/constants';
+import type { DbTimeGraphSample } from '@/audio/dbTimeGraph';
 import { type AudioMetricsDisplayConfig, type AudioMetricsSnapshot } from '@/audio/metrics';
 import { type AudioEngineConfig, type MicrophoneState } from '@/audio/MicrophoneController';
 import { type SpectrumDisplayConfig, type SpectrumSnapshot } from '@/audio/spectrum';
@@ -19,7 +20,15 @@ export type AudioMetricsSlice = AudioMetricsSnapshot & {
 
 export type { AudioEngineConfig, AudioMeterConfig, AudioMetricsDisplayConfig, SpectrumDisplayConfig };
 
-export type AudioMeterState = MicrophoneSlice & SpectrumSlice & AudioMetricsSlice & StatsSlice;
+export type AudioMeterState = MicrophoneSlice & SpectrumSlice & AudioMetricsSlice & StatsSlice & DbTimeGraphSlice;
+
+export type DbTimeGraphSlice = {
+  dbTimeGraphSamples: DbTimeGraphSample[];
+  dbTimeGraphIsRunning: boolean;
+  dbTimeGraphWindowStartSeconds: number;
+  dbTimeGraphWindowEndSeconds: number;
+  dbTimeGraphVersion: number;
+};
 
 export type MicrophoneSlice = MicrophoneState & {
   connect: (config: AudioEngineConfig) => Promise<boolean>;
