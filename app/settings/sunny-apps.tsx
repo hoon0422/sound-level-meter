@@ -1,72 +1,72 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Image,
-  Linking,
-  Alert,
-  useWindowDimensions,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { navigateBackFromSettings } from '@/navigation/settings';
-import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  Alert,
+  Image,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const APPS: { name: string; icon?: ReturnType<typeof require>; url: string }[] = [
   {
     name: 'Sky Peacemaker - Finger Force',
-    icon: require('../assets/app_icons/skyPeacemaker.png'),
+    icon: require('@/assets/app_icons/skyPeacemaker.png'),
     url: 'https://skypeacemaker.onelink.me/YQxG/8s9sx66i',
   },
   {
     name: 'World Movie Trailer',
-    icon: require('../assets/app_icons/worldMovieTrailer.png'),
+    icon: require('@/assets/app_icons/worldMovieTrailer.png'),
     url: 'https://wmt.onelink.me/YPN9/m428wgpq',
   },
   {
     name: 'World Book Ranking',
-    icon: require('../assets/app_icons/worldBookRanking.png'),
+    icon: require('@/assets/app_icons/worldBookRanking.png'),
     url: 'https://worldbookranking.onelink.me/so3H/gftf32rq',
   },
   {
     name: 'Simply Multi Timer',
-    icon: require('../assets/app_icons/simplyMultiTimer.png'),
+    icon: require('@/assets/app_icons/simplyMultiTimer.png'),
     url: 'https://simplymultitimer.onelink.me/6kU2/v7i9ke1m',
   },
   {
     name: 'Wisdom Qclock',
-    icon: require('../assets/app_icons/wisdomQclock.png'),
+    icon: require('@/assets/app_icons/wisdomQclock.png'),
     url: 'https://wisdomqclock.onelink.me/SVr2/b7gs4og1',
   },
   {
     name: 'Play Memo',
-    icon: require('../assets/app_icons/playMemo.png'),
+    icon: require('@/assets/app_icons/playMemo.png'),
     url: 'https://playmemo.onelink.me/LdOZ/6bbfoohf',
   },
   {
     name: 'Find Four',
-    icon: require('../assets/app_icons/findFour.png'),
+    icon: require('@/assets/app_icons/findFour.png'),
     url: 'https://findfour.onelink.me/vurA/0tfteiuf',
   },
   {
     name: 'Dual Flashlight',
-    icon: require('../assets/app_icons/dualFlashlight.png'),
+    icon: require('@/assets/app_icons/dualFlashlight.png'),
     url: 'https://dualflashlight.onelink.me/7gkq/qpbc8y65',
   },
-  { name: 'Histree', icon: require('../assets/app_icons/histree.png'), url: 'https://histree.onelink.me/xyz7/abc123' },
+  { name: 'Histree', icon: require('@/assets/app_icons/histree.png'), url: 'https://histree.onelink.me/xyz7/abc123' },
   {
     name: 'Scanatory',
-    icon: require('../assets/app_icons/scanatory.png'),
+    icon: require('@/assets/app_icons/scanatory.png'),
     url: 'https://scanatory.onelink.me/zzpK/2tr21jtp',
   },
   {
     name: 'Decibella',
-    icon: require('../assets/app_icons/decibella.png'),
+    icon: require('@/assets/app_icons/decibella.png'),
     url: 'https://decibella.onelink.me/Ve6i/vydwhkh4',
   },
 ];

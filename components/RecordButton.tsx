@@ -26,11 +26,7 @@ export function RecordButton() {
       {isRunning ? (
         <Ionicons name="stop" size={32} color="#FFFFFF" />
       ) : (
-        <Image
-          source={require('../app/assets/icons/mic.png')}
-          style={{ height: 38, width: 120 }}
-          resizeMode="contain"
-        />
+        <Image source={require('@/assets/icons/mic.png')} style={{ height: 38, width: 120 }} resizeMode="contain" />
       )}
     </TouchableOpacity>
   );

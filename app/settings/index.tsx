@@ -1,22 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import { useLanguage, type LanguageCode } from '@/context/LanguageContext';
+import { useTheme } from '@/context/ThemeContext';
+import { navigateBackFromSettings } from '@/navigation/settings';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   Image,
-  View,
-  Text,
-  TouchableOpacity,
+  Linking,
   ScrollView,
   StyleSheet,
-  Linking,
-  Alert,
+  Text,
+  TouchableOpacity,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/context/ThemeContext';
-import { useLanguage, type LanguageCode } from '@/context/LanguageContext';
-import { navigateBackFromSettings } from '@/navigation/settings';
-import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
 
 const APP_VERSION = '1.0';
 
@@ -242,7 +242,7 @@ export default function SettingsPage() {
           <Ionicons name="chevron-back" size={28} color={colors.text} />
         </TouchableOpacity>
         <Image
-          source={require('../assets/icons/setting.png')}
+          source={require('@/assets/icons/setting.png')}
           style={[{ height: 24, width: 24, tintColor: colors.text }, styles.headerIcon]}
           resizeMode="contain"
         />
@@ -399,7 +399,7 @@ export default function SettingsPage() {
         {/* Sunny banner */}
         <View style={dynamicStyles.sunnyBanner}>
           <Image
-            source={require('../assets/SIL_logo_mini.png')}
+            source={require('@/assets/SIL_logo_mini.png')}
             style={dynamicStyles.sunnyBannerLogoImage}
             resizeMode="contain"
           />

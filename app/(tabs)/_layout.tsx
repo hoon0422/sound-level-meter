@@ -4,8 +4,8 @@ import { useRecordingLogger } from '@/hooks/useRecordingLogger';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Tabs, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Image, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Image, TouchableOpacity } from 'react-native';
 
 function Decibella() {
   const { logo } = useTheme();
@@ -19,7 +19,7 @@ function SettingsButton() {
   return (
     <TouchableOpacity onPress={() => router.push('/settings')} style={{ paddingRight: 16 }}>
       <Image
-        source={require('../assets/icons/setting.png')}
+        source={require('@/assets/icons/setting.png')}
         style={{ height: 24, width: 24, tintColor: colors.text }}
         resizeMode="contain"
       />
@@ -61,6 +61,7 @@ export default function TabsLayout() {
           alignItems: 'center',
           borderRadius: 10,
           borderWidth: 1,
+          borderColor: colors.border,
           shadowOffset: { width: 2, height: 1 },
           shadowOpacity: 1,
           shadowRadius: 0,
@@ -80,7 +81,7 @@ export default function TabsLayout() {
           title: t('tabs.dbTime'),
           tabBarIcon: ({ color, size }) => (
             <Image
-              source={require('../assets/icons/graph.png')}
+              source={require('@/assets/icons/graph.png')}
               style={{ height: size, width: size, tintColor: color }}
               resizeMode="contain"
             />
@@ -93,7 +94,7 @@ export default function TabsLayout() {
           title: t('tabs.dbFreq'),
           tabBarIcon: ({ color, size }) => (
             <Image
-              source={require('../assets/icons/chart.png')}
+              source={require('@/assets/icons/chart.png')}
               style={{ height: size, width: size, tintColor: color }}
               resizeMode="contain"
             />
@@ -106,7 +107,7 @@ export default function TabsLayout() {
           title: t('tabs.soundGuide'),
           tabBarIcon: ({ color, size }) => (
             <Image
-              source={require('../assets/icons/book.png')}
+              source={require('@/assets/icons/book.png')}
               style={{ height: size, width: size, tintColor: color }}
               resizeMode="contain"
             />
@@ -119,7 +120,7 @@ export default function TabsLayout() {
           title: t('tabs.log'),
           tabBarIcon: ({ color, size }) => (
             <Image
-              source={require('../assets/icons/list.png')}
+              source={require('@/assets/icons/list.png')}
               style={{ height: size, width: size, tintColor: color }}
               resizeMode="contain"
             />

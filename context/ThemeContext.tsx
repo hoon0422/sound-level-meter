@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Appearance } from 'react-native';
 import themes from '@/components/themes';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Appearance } from 'react-native';
 
 type ThemeName = 'light' | 'dark';
 
@@ -17,6 +17,7 @@ type ThemeColors = {
   inactive: string;
   quiet: string;
   moderate: string;
+  soundGuideSlot: string;
   loud: string;
   info: string;
 };

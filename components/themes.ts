@@ -1,6 +1,6 @@
 export const themes = {
   light: {
-    logo: require('../app/assets/icons/decibella.png') as number,
+    logo: require('@/assets/icons/decibella.png') as number,
     colors: {
       background: '#FEFAEE',
       surface: '#FDFCFA',
@@ -13,6 +13,7 @@ export const themes = {
       inactive: '#AAAAAA',
       quiet: '#4CB522',
       moderate: '#FBBF24',
+      soundGuideSlot: '#F8E5AC',
       loud: '#E23F3F',
       info: '#22D3EE',
     },
@@ -25,7 +26,7 @@ export const themes = {
   },
 
   dark: {
-    logo: require('../app/assets/icons/decibella_dark.png') as number,
+    logo: require('@/assets/icons/decibella_dark.png') as number,
     colors: {
       background: '#121212',
       surface: '#333333',
@@ -38,6 +39,7 @@ export const themes = {
       inactive: '#AAAAAA',
       quiet: '#4CB522',
       moderate: '#FBBF24',
+      soundGuideSlot: '#CCA543',
       loud: '#E23F3F',
       info: '#22D3EE',
     },
