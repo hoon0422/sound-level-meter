@@ -1,13 +1,10 @@
+import { DB_TIME_GRAPH_DB_MAX, DB_TIME_GRAPH_DB_MIN, type DbTimeGraphSample } from '@/audio/dbTimeGraph';
+import Surface from '@/components/Surface';
 import { useTheme } from '@/context/ThemeContext';
-import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
-import React, { useEffect, useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Surface from './Surface';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
-import Animated, { Easing, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import Svg, { Line, Polyline } from 'react-native-svg';
-
-const AnimatedLine = Animated.createAnimatedComponent(Line);
+import { Canvas, Circle, Path, Skia } from '@shopify/react-native-skia';
+import React, { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 const CONTAINER_HEIGHT = 180;
 const CONTAINER_VERTICAL_PADDING = 8;
@@ -15,179 +12,159 @@ const CONTAINER_HORIZONTAL_PADDING = 8;
 const CONTAINER_RIGHT_PADDING = 24;
 const CONTAINER_WIDTH = 320;
 const INNER_H = 110;
+const CHART_TOP_INSET = 10;
+const CHART_HEIGHT = INNER_H + CHART_TOP_INSET;
 const X_AXIS_H = 20;
 const Y_AXIS_WIDTH = 28;
 const CHART_WIDTH = CONTAINER_WIDTH - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING;
-const PX_PER_SEC = 30;
 
-const DB_MIN = 0;
-const DB_MAX = 120;
 const Y_LABELS = [120, 100, 80, 60, 40, 20, 0];
 const GRID_DBS = [40, 80, 120];
+const X_LABEL_COUNT = 6;
+const ACTIVE_COLOR = '#3bbfce';
+const CHART_RIGHT_INSET = 10;
 
-type DisplayPoint = { x: number; y: number };
+type ChartPoint = { x: number; y: number };
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
 
 function dbToY(db: number) {
-  return INNER_H - ((db - DB_MIN) / (DB_MAX - DB_MIN)) * INNER_H;
+  const clampedDb = clamp(db, DB_TIME_GRAPH_DB_MIN, DB_TIME_GRAPH_DB_MAX);
+  return (
+    CHART_TOP_INSET +
+    INNER_H -
+    ((clampedDb - DB_TIME_GRAPH_DB_MIN) / (DB_TIME_GRAPH_DB_MAX - DB_TIME_GRAPH_DB_MIN)) * INNER_H
+  );
 }
 
 function dbToTop(db: number) {
-  return ((DB_MAX - db) / (DB_MAX - DB_MIN)) * INNER_H;
+  return CHART_TOP_INSET + ((DB_TIME_GRAPH_DB_MAX - db) / (DB_TIME_GRAPH_DB_MAX - DB_TIME_GRAPH_DB_MIN)) * INNER_H;
+}
+
+function formatElapsedLabel(seconds: number) {
+  return `${Math.round(seconds)}`;
+}
+
+function toChartPoint(sample: DbTimeGraphSample, windowStartSeconds: number, windowEndSeconds: number): ChartPoint {
+  const durationSeconds = Math.max(windowEndSeconds - windowStartSeconds, 1);
+  return {
+    x: ((sample.sessionElapsedSeconds - windowStartSeconds) / durationSeconds) * (CHART_WIDTH - CHART_RIGHT_INSET),
+    y: dbToY(sample.db),
+  };
 }
 
 export default function SoundGraph() {
   const { typography, colors } = useTheme();
-  const samples = useAudioMeterStore(state => state.samples);
-  const isRunning = useAudioMeterStore(state => state.isRunning);
+  const { samples, isRunning, windowStartSeconds, windowEndSeconds } = useAudioMeterStore(state => ({
+    samples: state.dbTimeGraphSamples,
+    isRunning: state.dbTimeGraphIsRunning,
+    windowStartSeconds: state.dbTimeGraphWindowStartSeconds,
+    windowEndSeconds: state.dbTimeGraphWindowEndSeconds,
+  }));
 
-  const liveX = useSharedValue(0);
-  const liveY = useSharedValue(INNER_H / 2);
+  const chart = useMemo(() => {
+    const drawableSamples = samples.filter(
+      sample =>
+        !sample.isInitial &&
+        sample.sessionElapsedSeconds >= windowStartSeconds &&
+        sample.sessionElapsedSeconds <= windowEndSeconds
+    );
+    const chartStartSeconds =
+      windowStartSeconds === 0 ? (drawableSamples[0]?.sessionElapsedSeconds ?? windowStartSeconds) : windowStartSeconds;
+    const points = drawableSamples.map(sample => toChartPoint(sample, chartStartSeconds, windowEndSeconds));
+    const path = Skia.Path.Make();
 
-  const totalElapsed = samples.length > 0 ? samples[samples.length - 1].timestamp : 0;
-  const innerW = Math.max(CHART_WIDTH, totalElapsed * PX_PER_SEC);
-
-  const displayPoints = useMemo(() => {
-    const points: DisplayPoint[] = [];
-    for (const s of samples) {
-      const x = s.timestamp * PX_PER_SEC;
-      points.push({ x, y: dbToY(s.db) });
-    }
-    if (samples.length > 0) {
-      const last = samples[samples.length - 1];
-      const lastX2 = last.timestamp * PX_PER_SEC;
-      const prev = points[points.length - 1];
-      if (!prev || lastX2 - prev.x > 1) {
-        points.push({ x: lastX2, y: dbToY(last.db) });
+    points.forEach((point, index) => {
+      if (index === 0) {
+        path.moveTo(point.x, point.y);
+      } else {
+        path.lineTo(point.x, point.y);
       }
-    }
-    return points;
-  }, [samples]);
+    });
 
-  // Static x-axis labels: always show 0–10
-  const staticXLabels = Array.from({ length: 11 }, (_, i) => i);
+    return {
+      path,
+      currentPoint: points.at(-1) ?? null,
+    };
+  }, [samples, windowEndSeconds, windowStartSeconds]);
 
-  // Animate live endpoint smoothly to each new sample over the throttle interval
-  useEffect(() => {
-    if (displayPoints.length < 1) return;
-    const last = displayPoints[displayPoints.length - 1];
-    if (displayPoints.length === 1) {
-      liveX.value = last.x;
-      liveY.value = last.y;
-    } else {
-      liveX.value = withTiming(last.x, { duration: 300, easing: Easing.linear });
-      liveY.value = withTiming(last.y, { duration: 300, easing: Easing.linear });
-    }
-  }, [displayPoints.length]);
-
-  // Animated props for the live segment endpoint
-  const animatedLiveProps = useAnimatedProps(() => ({
-    x2: liveX.value,
-    y2: liveY.value,
-  }));
-
-  // Animated style for the current dot
-  const animatedDotStyle = useAnimatedStyle(() => ({
-    left: liveX.value - 3,
-    top: liveY.value - 3,
-  }));
-
-  // Smooth scroll: shift content left as liveX passes the chart width
-  const scrollAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: -Math.max(0, liveX.value - CHART_WIDTH) }],
-  }));
-
-  // Historical polyline: all points except the last (static, no animation)
-  const histPoints = displayPoints.slice(0, -1);
-  const historicalStr = histPoints.map(p => `${p.x},${p.y}`).join(' ');
-  const liveSegStart = displayPoints.length >= 2
-    ? displayPoints[displayPoints.length - 2]
-    : displayPoints[0];
+  const xLabels = useMemo(() => {
+    const durationSeconds = windowEndSeconds - windowStartSeconds;
+    return Array.from({ length: X_LABEL_COUNT }, (_, index) => {
+      const ratio = index / (X_LABEL_COUNT - 1);
+      return {
+        key: `${windowStartSeconds}-${windowEndSeconds}-${index}`,
+        left: ratio * CHART_WIDTH,
+        label: formatElapsedLabel(windowStartSeconds + durationSeconds * ratio),
+      };
+    });
+  }, [windowEndSeconds, windowStartSeconds]);
 
   return (
     <Surface style={styles.container}>
       <View style={styles.graphRow}>
-        {/* Fixed Y-axis */}
-        <View style={{ width: Y_AXIS_WIDTH, height: INNER_H }}>
-          <Text style={[styles.yLabelText, { top: dbToTop(145), color: colors.inactive, marginTop: 0, fontFamily: typography.fontFamily }]}>
-              dB
-            </Text>
+        <View style={styles.yAxisLabels}>
+          <Text
+            style={[
+              styles.yLabelText,
+              { top: dbToTop(145), color: colors.inactive, fontFamily: typography.fontFamily },
+            ]}
+          >
+            dB
+          </Text>
           {Y_LABELS.map(db => (
-            <Text key={`y-${db}`} style={[styles.yLabelText, { top: dbToTop(db) - 6, color: colors.inactive, marginTop: 0, fontFamily: typography.fontFamily }]}>
+            <Text
+              key={`y-${db}`}
+              style={[
+                styles.yLabelText,
+                { top: dbToTop(db) - 6, color: colors.inactive, fontFamily: typography.fontFamily },
+              ]}
+            >
               {db}
             </Text>
           ))}
         </View>
 
-        {/* Chart + x-axis column */}
-        <View style={{ flex: 1 }}>
-          {/* Y-axis line: extends from dB label down to bottom of chart */}
-          <View style={{
-            position: 'absolute',
-            top: dbToTop(140) + 3,
-            left: 0,
-            width: 1,
-            height: INNER_H - (dbToTop(140) + 3),
-            backgroundColor: '#d0d0d0',
-          }} />
-          {/* Scrollable chart area */}
-          <View style={{ height: INNER_H, overflow: 'hidden' }}>
-            <Animated.View style={[{ width: innerW, height: INNER_H }, scrollAnimStyle]}>
-              {/* Grid lines */}
-              {GRID_DBS.map(db => (
-                <View key={`grid-${db}`} style={[styles.gridLine, { top: dbToTop(db), width: innerW }]} />
-              ))}
-
-              {/* SVG line */}
-              <Svg width={innerW} height={INNER_H} style={{ position: 'absolute', top: 0, left: 0 }}>
-                {/* Static historical segments */}
-                {histPoints.length >= 2 && (
-                  <Polyline
-                    points={historicalStr}
-                    fill="none"
-                    stroke="#3bbfce"
-                    strokeWidth={2}
-                  />
-                )}
-                {/* Animated live segment */}
-                {displayPoints.length >= 1 && liveSegStart && (
-                  <AnimatedLine
-                    x1={liveSegStart.x}
-                    y1={liveSegStart.y}
-                    stroke="#3bbfce"
-                    strokeWidth={2}
-                    animatedProps={animatedLiveProps}
-                  />
-                )}
-              </Svg>
-
-              {/* Current point dot (follows live position) */}
-              {displayPoints.length > 0 && (
-                <Animated.View
-                  style={[
-                    {
-                      position: 'absolute',
-                      width: 6,
-                      height: 6,
-                      borderRadius: 3,
-                      backgroundColor: isRunning ? '#3bbfce' : colors.inactive,
-                    },
-                    animatedDotStyle,
-                  ]}
+        <View style={styles.chartColumn}>
+          <View style={[styles.yAxisLine, { backgroundColor: colors.inactive }]} />
+          <View style={styles.chartClip}>
+            {GRID_DBS.map(db => (
+              <View
+                key={`grid-${db}`}
+                style={[styles.gridLine, { backgroundColor: colors.inactive, top: dbToY(db) }]}
+              />
+            ))}
+            <Canvas style={styles.canvas}>
+              <Path path={chart.path} color={ACTIVE_COLOR} style="stroke" strokeWidth={2} />
+              {chart.currentPoint && (
+                <Circle
+                  cx={chart.currentPoint.x}
+                  cy={chart.currentPoint.y}
+                  r={3}
+                  color={isRunning ? ACTIVE_COLOR : colors.inactive}
                 />
               )}
-            </Animated.View>
-            {/* Fixed x-axis line */}
-            <View style={styles.xAxisLine} />
+            </Canvas>
+            <View style={[styles.xAxisLine, { backgroundColor: colors.inactive }]} />
           </View>
 
-          {/* Static x-axis labels: always show 0–10 */}
-          <View style={{ height: X_AXIS_H, position: 'relative' }}>
-            {staticXLabels.map(sec => (
+          <View style={styles.xLabels}>
+            {xLabels.map(({ key, label, left }, index) => (
               <Text
-                key={`x-${sec}`}
-                style={[styles.xLabel, { left: (sec / 10) * CHART_WIDTH - (sec > 0 ? 4 : 0), fontFamily: typography.fontFamily }]}
+                key={key}
+                style={[
+                  styles.xLabel,
+                  {
+                    left,
+                    color: colors.inactive,
+                    fontFamily: typography.fontFamily,
+                    transform: [{ translateX: index === 0 ? 0 : index === X_LABEL_COUNT - 1 ? -10 : -5 }],
+                  },
+                ]}
               >
-                {sec}
+                {label}
               </Text>
             ))}
           </View>
@@ -198,34 +175,51 @@ export default function SoundGraph() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
+  container: {
     height: CONTAINER_HEIGHT,
     paddingVertical: CONTAINER_VERTICAL_PADDING,
     paddingLeft: CONTAINER_HORIZONTAL_PADDING,
     paddingRight: CONTAINER_RIGHT_PADDING,
     width: CONTAINER_WIDTH,
   },
-  graphContainer: {
-    width: '100%',
-     height: '100%',
-     overflow: 'hidden',
-  },
   graphRow: {
     flexDirection: 'row',
     marginTop: 24,
+  },
+  yAxisLabels: {
+    width: Y_AXIS_WIDTH,
+    height: CHART_HEIGHT,
   },
   yLabelText: {
     position: 'absolute',
     right: 10,
     fontSize: 10,
-    color: '#888888',
     textAlign: 'right',
+  },
+  chartColumn: {
+    flex: 1,
+  },
+  yAxisLine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 1,
+    height: CHART_HEIGHT,
+  },
+  chartClip: {
+    height: CHART_HEIGHT,
+    overflow: 'hidden',
+    position: 'relative',
   },
   gridLine: {
     position: 'absolute',
     left: 0,
+    right: 0,
     height: 1,
-    backgroundColor: '#d0d0d0',
+  },
+  canvas: {
+    width: CHART_WIDTH,
+    height: CHART_HEIGHT,
   },
   xAxisLine: {
     position: 'absolute',
@@ -233,12 +227,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 1,
-    backgroundColor: '#d0d0d0',
+  },
+  xLabels: {
+    height: X_AXIS_H,
+    position: 'relative',
   },
   xLabel: {
     position: 'absolute',
     top: 4,
     fontSize: 10,
-    color: '#888888',
   },
 });

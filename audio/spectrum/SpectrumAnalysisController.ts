@@ -79,7 +79,7 @@ export class SpectrumAnalysisController {
   }
 
   private handleFrame = (frame: MicrophoneAudioFrame) => {
-    if (frame.elapsedSeconds === 0) {
+    if (frame.frameDurationSeconds === 0) {
       return;
     }
     const analysis = analyzeFrequencyFrame(frame.frequencyData, this.smoothedBars, {
