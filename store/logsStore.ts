@@ -1,3 +1,4 @@
+import { devtools } from '@csark0812/zustand-expo-devtools';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -42,21 +43,26 @@ function mergeLogs(currentLogs: RecordingLog[], persistedLogs: RecordingLog[]) {
 }
 
 const useLogsStore = create<LogsStore>()(
-  persist(
-    set => ({
-      logs: [],
-      addLog: log => set(state => ({ logs: [log, ...state.logs] })),
-      deleteLog: id => set(state => ({ logs: state.logs.filter(log => log.id !== id) })),
-      clearLogs: () => set({ logs: [] }),
-    }),
-    {
-      name: 'recording-logs-storage',
-      storage: createJSONStorage(() => AsyncStorage),
-      partialize: state => ({ logs: state.logs }),
-      merge: (persistedState, currentState) => ({
-        ...currentState,
-        logs: mergeLogs(currentState.logs, getPersistedLogs(persistedState)),
+  devtools(
+    persist(
+      set => ({
+        logs: [],
+        addLog: log => set(state => ({ logs: [log, ...state.logs] }), false, 'addLog'),
+        deleteLog: id => set(state => ({ logs: state.logs.filter(log => log.id !== id) }), false, 'deleteLog'),
+        clearLogs: () => set({ logs: [] }, false, 'clearLogs'),
       }),
+      {
+        name: 'recording-logs-storage',
+        storage: createJSONStorage(() => AsyncStorage),
+        partialize: state => ({ logs: state.logs }),
+        merge: (persistedState, currentState) => ({
+          ...currentState,
+          logs: mergeLogs(currentState.logs, getPersistedLogs(persistedState)),
+        }),
+      }
+    ),
+    {
+      name: 'LogsStore',
     }
   )
 );
