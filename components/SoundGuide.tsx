@@ -4,7 +4,7 @@ import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue
 import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import Surface from './Surface';
 
 const ROW_HEIGHT = 26;
@@ -48,7 +48,7 @@ export default function SoundGuide() {
       Animated.timing(animatedY, {
         toValue: nextY,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     }
   }, [activeIndex, animatedY, isFirstActiveIndex]);
@@ -70,7 +70,7 @@ export default function SoundGuide() {
         )}
         <Animated.View style={[styles.listContainer, { transform: [{ translateY: animatedY }] }]}>
           {ranges.map(range => {
-            const isActive = activeIndex === range.index;
+            const centeredY = CURRENT_SLOT_TOP - range.index * ROW_HEIGHT;
             const itemOpacityInterpolation = {
               opacity:
                 activeIndex !== undefined
@@ -87,41 +87,48 @@ export default function SoundGuide() {
                       extrapolate: 'clamp',
                     }),
             };
+            const centeredTextStyle =
+              activeIndex !== undefined
+                ? {
+                    color: animatedY.interpolate({
+                      inputRange: [centeredY - ROW_HEIGHT, centeredY, centeredY + ROW_HEIGHT],
+                      outputRange: [colors.inactive, colors.text, colors.inactive],
+                      extrapolate: 'clamp',
+                    }),
+                    fontSize: animatedY.interpolate({
+                      inputRange: [centeredY - ROW_HEIGHT, centeredY, centeredY + ROW_HEIGHT],
+                      outputRange: [14, 16, 14],
+                      extrapolate: 'clamp',
+                    }),
+                    lineHeight: animatedY.interpolate({
+                      inputRange: [centeredY - ROW_HEIGHT, centeredY, centeredY + ROW_HEIGHT],
+                      outputRange: [18, 20, 18],
+                      extrapolate: 'clamp',
+                    }),
+                  }
+                : { color: colors.inactive };
 
             return (
               <Animated.View key={range.index} style={[styles.row, itemOpacityInterpolation]}>
                 {/* DB Value Column */}
                 <View style={styles.dBLevelContainer}>
-                  <Text
-                    style={[
-                      isActive ? styles.activeText : styles.text,
-                      { color: isActive ? colors.text : colors.inactive },
-                    ]}
-                  >
-                    {range.display}dB
-                  </Text>
+                  <Animated.Text style={[styles.text, centeredTextStyle]}>{range.display}dB</Animated.Text>
                 </View>
 
                 {/* Description Label */}
                 <View style={styles.iconContainer}>
                   {React.isValidElement(range.icon)
                     ? React.cloneElement(range.icon, {
-                        color: isActive ? colors.text : colors.inactive,
-                        width: isActive ? 20 : 16,
-                        height: isActive ? 20 : 16,
+                        color: activeIndex !== undefined ? colors.text : colors.inactive,
+                        width: 16,
+                        height: 16,
                       } as { color: string; width: number; height: number })
                     : range.icon}
                 </View>
                 <View style={styles.descriptionContainer}>
-                  <Text
-                    style={[
-                      isActive ? styles.activeText : styles.text,
-                      { color: isActive ? colors.text : colors.inactive },
-                    ]}
-                    numberOfLines={1}
-                  >
+                  <Animated.Text style={[styles.text, centeredTextStyle]} numberOfLines={1}>
                     {range.label}
-                  </Text>
+                  </Animated.Text>
                 </View>
               </Animated.View>
             );
@@ -264,10 +271,5 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_500Medium',
     fontSize: 14,
     lineHeight: 18,
-  },
-  activeText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 16,
-    lineHeight: 20,
   },
 });
