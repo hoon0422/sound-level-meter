@@ -97,7 +97,7 @@ export default function SoundGuide() {
                     }),
                     fontSize: animatedY.interpolate({
                       inputRange: [centeredY - ROW_HEIGHT, centeredY, centeredY + ROW_HEIGHT],
-                      outputRange: [14, 16, 14],
+                      outputRange: [12, 13, 12],
                       extrapolate: 'clamp',
                     }),
                     lineHeight: animatedY.interpolate({
@@ -232,12 +232,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   listContainer: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
   },
   currentSoundSlot: {
     position: 'absolute',
-    left: 10,
-    right: 10,
+    left: 8,
+    right: 8,
     top: CURRENT_SLOT_TOP,
     height: ROW_HEIGHT,
     borderWidth: 0,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontFamily: 'DMSans_500Medium',
-    fontSize: 14,
+    fontSize: 12,
     lineHeight: 18,
   },
 });
