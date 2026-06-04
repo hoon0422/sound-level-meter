@@ -96,6 +96,22 @@
     "micTitle": "\"Decibella 2\" Would Like to Access the Microphone.",
     "micMessage": "This app requires microphone access to measure and display real-time ambient sound levels. Audio data is used only for decibel calculation and is never recorded or stored."
   },
+  "adAccess": {
+    "title": "Unlock every feature",
+    "reasons": {
+      "measurement": "Watch one rewarded ad to measure sound for more than 30 seconds.",
+      "soundGuide": "Watch one rewarded ad to use the sound guide.",
+      "log": "Watch one rewarded ad to open your measurement records."
+    },
+    "benefits": {
+      "measurement": "Measure for more than 30 seconds",
+      "soundGuide": "Use the sound guide",
+      "log": "Open measurement records"
+    },
+    "watchAd": "Watch Ad",
+    "notNow": "Not Now",
+    "error": "The ad is not ready yet. Please try again."
+  },
   "settings": {
     "title": "Settings",
     "howToUse": "How To Use",

@@ -96,6 +96,22 @@
     "micTitle": "\"Decibella 2\" desea acceder al micrófono.",
     "micMessage": "Esta aplicación requiere acceso al micrófono para medir y mostrar los niveles de sonido ambiental en tiempo real. Los datos de audio se utilizan solo para el cálculo de decibelios y nunca se graban ni se almacenan."
   },
+  "adAccess": {
+    "title": "Desbloquear funciones",
+    "reasons": {
+      "measurement": "Mira un anuncio recompensado para medir durante más de 30 segundos.",
+      "soundGuide": "Mira un anuncio recompensado para usar la descripción del sonido.",
+      "log": "Mira un anuncio recompensado para abrir tus registros de medición."
+    },
+    "benefits": {
+      "measurement": "Medir durante más de 30 segundos",
+      "soundGuide": "Usar la descripción del sonido",
+      "log": "Abrir registros de medición"
+    },
+    "watchAd": "Ver anuncio",
+    "notNow": "Ahora no",
+    "error": "El anuncio aún no está listo. Inténtalo de nuevo."
+  },
   "settings": {
     "title": "Ajustes",
     "howToUse": "Cómo usar",
