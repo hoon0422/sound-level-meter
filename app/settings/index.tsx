@@ -399,7 +399,11 @@ export default function SettingsPage() {
         {/* Sunny banner */}
         <View style={dynamicStyles.sunnyBanner}>
           <Image
-            source={require('@/assets/SIL_logo_mini.png')}
+            source={
+              isDark
+                ? require('@/assets/SIL_logo_mini.png')
+                : require('@/assets/SIL_logo_setting_mini_black_text.png')
+            }
             style={dynamicStyles.sunnyBannerLogoImage}
             resizeMode="contain"
           />
