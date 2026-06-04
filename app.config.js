@@ -40,7 +40,15 @@ module.exports = {
           androidPermissions: ['android.permission.RECORD_AUDIO'],
         },
       ],
-      'expo-localization',
+      [
+        'expo-localization',
+        {
+          supportedLocales: {
+            ios: ['en', 'ko', 'ja', 'zh-CN', 'zh-TW', 'fr', 'es'],
+            android: ['en', 'ko', 'ja', 'zh-rCN', 'zh-rTW', 'fr', 'es'],
+          },
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
