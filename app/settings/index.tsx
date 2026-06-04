@@ -403,7 +403,11 @@ export default function SettingsPage() {
             onPress={() => handleLinkPress('https://ssongyc.github.io/sunny-homepage/')}
           >
             <Image
-              source={require('@/assets/SIL_logo_mini.png')}
+              source={
+                isDark
+                  ? require('@/assets/SIL_logo_mini.png')
+                  : require('@/assets/SIL_logo_setting_mini_black_text.png')
+              }
               style={dynamicStyles.sunnyBannerLogoImage}
               resizeMode="contain"
             />
