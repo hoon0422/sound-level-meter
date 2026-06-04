@@ -6,10 +6,12 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import Surface from './Surface';
 
-const NEEDLE_BASE_WRAPPER_SIZE = 18;
+const NEEDLE_BASE_WRAPPER_SIZE = 20;
 const NEEDLE_BASE_SIZE = 10;
 const NEEDLE_LENGTH = 65;
-const NEEDLE_WIDTH = 1.5;
+const NEEDLE_WIDTH = 2.5;
+const NEEDLE_COLOR = '#F2B839';
+const NEEDLE_BASE_COLOR = '#E28B3E';
 const MIN_DEGREE = 5;
 const MAX_DEGREE = 175;
 const INNER_STROKE_OFFSET = 4;
@@ -17,6 +19,7 @@ const TICK_LENGTH = 8;
 const TICK_RADIUS_A = 125;
 const TICK_RADIUS_B = 125;
 const TICK_GAP = 13;
+const TICK_WIDTH = 1.5;
 const TICK_COLORS = [
   '#00ABC5',
   '#00A4BD',
@@ -130,14 +133,14 @@ function Meter() {
           fill="none"
         />
       </Svg>
-      <View style={[styles.needleBaseWrapper, { borderColor: colors.divider }]}>
-        <View style={[styles.needleBase, { backgroundColor: colors.primary }]} />
+      <View style={[styles.needleBaseWrapper, { borderColor: NEEDLE_COLOR }]}>
+        <View style={[styles.needleBase, { backgroundColor: NEEDLE_BASE_COLOR }]} />
       </View>
       <GaugeTicks />
       <Animated.View
         style={[
           styles.needle,
-          { borderColor: colors.divider },
+          { borderColor: NEEDLE_COLOR },
           {
             transform: [
               { translateX: -NEEDLE_WIDTH / 2 },
@@ -264,7 +267,7 @@ const styles = StyleSheet.create({
     width: NEEDLE_BASE_WRAPPER_SIZE,
     height: NEEDLE_BASE_WRAPPER_SIZE,
     borderRadius: NEEDLE_BASE_WRAPPER_SIZE / 2,
-    borderWidth: 1.5,
+    borderWidth: NEEDLE_WIDTH,
     left: '50%',
     top: '100%',
     transform: [{ translateX: -NEEDLE_BASE_WRAPPER_SIZE / 2 }, { translateY: -NEEDLE_BASE_WRAPPER_SIZE / 2 }],
@@ -291,9 +294,9 @@ const styles = StyleSheet.create({
   tick: {
     borderRadius: 2,
     height: TICK_LENGTH,
-    width: NEEDLE_WIDTH,
-    borderLeftWidth: NEEDLE_WIDTH / 2,
-    borderRightWidth: NEEDLE_WIDTH / 2,
+    width: TICK_WIDTH,
+    borderLeftWidth: TICK_WIDTH / 2,
+    borderRightWidth: TICK_WIDTH / 2,
   },
   numberContainer: {
     position: 'absolute',
