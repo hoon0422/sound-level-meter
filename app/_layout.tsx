@@ -1,3 +1,4 @@
+import { AdAccessProvider } from '@/context/AdAccessContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import '@/i18n';
@@ -44,7 +45,9 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <LanguageProvider>
-          <RootNavigator />
+          <AdAccessProvider>
+            <RootNavigator />
+          </AdAccessProvider>
         </LanguageProvider>
       </ThemeProvider>
     </GestureHandlerRootView>

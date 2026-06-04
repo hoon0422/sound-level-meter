@@ -40,6 +40,15 @@ module.exports = {
           androidPermissions: ['android.permission.RECORD_AUDIO'],
         },
       ],
+      [
+        'react-native-google-mobile-ads',
+        {
+          androidAppId: process.env.ADMOB_ANDROID_APP_ID,
+          iosAppId: process.env.ADMOB_IOS_APP_ID,
+          optimizeInitialization: true,
+          optimizeAdLoading: true,
+        },
+      ],
       'expo-localization',
     ],
     experiments: {
@@ -48,6 +57,12 @@ module.exports = {
     },
     extra: {
       agentName,
+      adMob: {
+        rewardedAdUnitIds: {
+          android: process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID || '',
+          ios: process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID || '',
+        },
+      },
       router: {},
       eas: {
         projectId: 'fb9855b4-962b-4ef4-8939-83af8cd3b259',

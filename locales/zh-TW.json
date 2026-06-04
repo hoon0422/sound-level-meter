@@ -96,6 +96,22 @@
     "micTitle": "「Decibella 2」想要存取您的麥克風。",
     "micMessage": "此應用程式需要麥克風權限以即時測量並顯示環境噪音水平。音訊資料僅用於計算分貝，絕不會被錄製或儲存。"
   },
+  "adAccess": {
+    "title": "解鎖所有功能",
+    "reasons": {
+      "measurement": "觀看一次獎勵廣告，即可測量超過30秒。",
+      "soundGuide": "觀看一次獎勵廣告，即可使用聲音說明。",
+      "log": "觀看一次獎勵廣告，即可開啟測量記錄。"
+    },
+    "benefits": {
+      "measurement": "測量超過30秒",
+      "soundGuide": "使用聲音說明",
+      "log": "使用記錄"
+    },
+    "watchAd": "觀看廣告",
+    "notNow": "稍後",
+    "error": "廣告尚未準備好。請重試。"
+  },
   "settings": {
     "title": "設定",
     "howToUse": "使用說明",

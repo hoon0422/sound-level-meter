@@ -96,6 +96,22 @@
     "micTitle": "« Decibella 2 » souhaite accéder au micro.",
     "micMessage": "Cette application nécessite l'accès au micro pour mesurer et afficher les niveaux sonores ambiants en temps réel. Les données audio sont utilisées uniquement pour le calcul des décibels et ne sont jamais enregistrées ni stockées."
   },
+  "adAccess": {
+    "title": "Débloquer les fonctions",
+    "reasons": {
+      "measurement": "Regardez une publicité récompensée pour mesurer pendant plus de 30 secondes.",
+      "soundGuide": "Regardez une publicité récompensée pour utiliser le guide sonore.",
+      "log": "Regardez une publicité récompensée pour ouvrir vos mesures."
+    },
+    "benefits": {
+      "measurement": "Mesurer plus de 30 secondes",
+      "soundGuide": "Utiliser le guide sonore",
+      "log": "Ouvrir les mesures"
+    },
+    "watchAd": "Voir la pub",
+    "notNow": "Plus tard",
+    "error": "La publicité n'est pas encore prête. Réessayez."
+  },
   "settings": {
     "title": "Paramètres",
     "howToUse": "Mode d'emploi",
