@@ -398,11 +398,16 @@ export default function SettingsPage() {
 
         {/* Sunny banner */}
         <View style={dynamicStyles.sunnyBanner}>
-          <Image
-            source={require('@/assets/SIL_logo_mini.png')}
-            style={dynamicStyles.sunnyBannerLogoImage}
-            resizeMode="contain"
-          />
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => handleLinkPress('https://ssongyc.github.io/sunny-homepage/')}
+          >
+            <Image
+              source={require('@/assets/SIL_logo_mini.png')}
+              style={dynamicStyles.sunnyBannerLogoImage}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
           <View style={dynamicStyles.sunnyBannerFooterLinks}>
             <TouchableOpacity
               onPress={() =>
