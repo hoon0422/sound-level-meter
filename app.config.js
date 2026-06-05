@@ -1,4 +1,6 @@
 const agentName = process.env.EXPO_AGENT_NAME || process.env.AGENT_NAME || '';
+const defaultAdMobAndroidAppId = 'ca-app-pub-3940256099942544~3347511713';
+const defaultAdMobIosAppId = 'ca-app-pub-3940256099942544~1458002511';
 
 module.exports = {
   expo: {
@@ -43,8 +45,8 @@ module.exports = {
       [
         'react-native-google-mobile-ads',
         {
-          androidAppId: process.env.ADMOB_ANDROID_APP_ID,
-          iosAppId: process.env.ADMOB_IOS_APP_ID,
+          androidAppId: process.env.ADMOB_ANDROID_APP_ID || defaultAdMobAndroidAppId,
+          iosAppId: process.env.ADMOB_IOS_APP_ID || defaultAdMobIosAppId,
           optimizeInitialization: true,
           optimizeAdLoading: true,
         },
