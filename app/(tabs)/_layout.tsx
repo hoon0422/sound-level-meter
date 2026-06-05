@@ -1,3 +1,4 @@
+import { APP_ANALYTICS_EVENTS, trackAppEvent } from '@/analytics/events';
 import { DEFAULT_CONFIG } from '@/audio/constants';
 import { useTheme } from '@/context/ThemeContext';
 import { useRecordingLogger } from '@/hooks/useRecordingLogger';
@@ -15,9 +16,13 @@ function Decibella() {
 function SettingsButton() {
   const router = useRouter();
   const { colors } = useTheme();
+  const openSettings = () => {
+    trackAppEvent(APP_ANALYTICS_EVENTS.settingClicked);
+    router.push('/settings');
+  };
 
   return (
-    <TouchableOpacity onPress={() => router.push('/settings')} style={{ paddingRight: 16 }}>
+    <TouchableOpacity onPress={openSettings} style={{ paddingRight: 16 }}>
       <Image
         source={require('@/assets/icons/setting.png')}
         style={{ height: 24, width: 24, tintColor: colors.text }}
@@ -77,6 +82,9 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="db-time"
+        listeners={{
+          tabPress: () => trackAppEvent(APP_ANALYTICS_EVENTS.dbTimeClicked),
+        }}
         options={{
           title: t('tabs.dbTime'),
           tabBarIcon: ({ color, size }) => (
@@ -90,6 +98,9 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="db-freq"
+        listeners={{
+          tabPress: () => trackAppEvent(APP_ANALYTICS_EVENTS.fqButtonClicked),
+        }}
         options={{
           title: t('tabs.dbFreq'),
           tabBarIcon: ({ color, size }) => (
@@ -103,6 +114,9 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="sound-guide"
+        listeners={{
+          tabPress: () => trackAppEvent(APP_ANALYTICS_EVENTS.gdButtonClicked),
+        }}
         options={{
           title: t('tabs.soundGuide'),
           tabBarIcon: ({ color, size }) => (
@@ -116,6 +130,9 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="log"
+        listeners={{
+          tabPress: () => trackAppEvent(APP_ANALYTICS_EVENTS.recordButtonClicked),
+        }}
         options={{
           title: t('tabs.log'),
           tabBarIcon: ({ color, size }) => (

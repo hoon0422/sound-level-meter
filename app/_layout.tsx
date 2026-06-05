@@ -1,3 +1,4 @@
+import { initializeAnalytics } from '@/analytics/events';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import '@/i18n';
@@ -37,6 +38,10 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    initializeAnalytics();
+  }, []);
 
   if (!fontsLoaded) return null;
 

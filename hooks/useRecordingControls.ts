@@ -1,5 +1,6 @@
 import { DEFAULT_CONFIG } from '@/audio/constants';
 import { requestRecordingSession } from '@/audio/recordingSession';
+import { APP_ANALYTICS_EVENTS, trackAppEvent } from '@/analytics/events';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { useCallback, useState } from 'react';
 
@@ -46,10 +47,12 @@ export function useRecordingControls() {
 
   const toggleRecording = useCallback(() => {
     if (isRunning) {
+      trackAppEvent(APP_ANALYTICS_EVENTS.stopButtonClicked);
       void stop();
       return;
     }
 
+    trackAppEvent(APP_ANALYTICS_EVENTS.startButtonClicked);
     void startRecording();
   }, [isRunning, startRecording, stop]);
 
