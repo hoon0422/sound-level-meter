@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, InteractionManager, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import mobileAds, { AdEventType, RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
 
 const ACCESS_DURATION_MS = 2 * 60 * 60 * 1000;
@@ -48,9 +48,11 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
   const [promptReason, setPromptReason] = useState<AdAccessReason | null>(null);
   const [isAdLoading, setIsAdLoading] = useState(false);
   const [adError, setAdError] = useState<string | null>(null);
+  const [adCycle, setAdCycle] = useState(0);
   const pendingGrantActionRef = useRef<(() => void) | undefined>(undefined);
   const rewardedAdRef = useRef<RewardedAd | null>(null);
   const adLoadedRef = useRef(false);
+  const didEarnRewardRef = useRef(false);
   const shouldShowWhenLoadedRef = useRef(false);
 
   const hasAccess = accessUntil > now;
@@ -102,6 +104,8 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       requestNonPersonalizedAdsOnly: true,
     });
     rewardedAdRef.current = rewardedAd;
+    adLoadedRef.current = false;
+    didEarnRewardRef.current = false;
 
     const unsubscribeLoaded = rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
       adLoadedRef.current = true;
@@ -114,17 +118,28 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    const unsubscribeEarnedReward = rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, grantAccess);
+    const unsubscribeEarnedReward = rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+      didEarnRewardRef.current = true;
+    });
 
     const unsubscribeClosed = rewardedAd.addAdEventListener(AdEventType.CLOSED, () => {
+      const didEarnReward = didEarnRewardRef.current;
       adLoadedRef.current = false;
+      didEarnRewardRef.current = false;
       shouldShowWhenLoadedRef.current = false;
       setIsAdLoading(false);
-      rewardedAd.load();
+      setAdCycle(cycle => cycle + 1);
+
+      if (didEarnReward) {
+        InteractionManager.runAfterInteractions(() => {
+          grantAccess();
+        });
+      }
     });
 
     const unsubscribeError = rewardedAd.addAdEventListener(AdEventType.ERROR, error => {
       adLoadedRef.current = false;
+      didEarnRewardRef.current = false;
       shouldShowWhenLoadedRef.current = false;
       setIsAdLoading(false);
       setAdError(error.message);
@@ -139,7 +154,7 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       unsubscribeError();
       rewardedAd.removeAllListeners();
     };
-  }, [grantAccess]);
+  }, [adCycle, grantAccess]);
 
   const ensureAccess = useCallback(
     (reason: AdAccessReason, onGranted?: () => void) => {
