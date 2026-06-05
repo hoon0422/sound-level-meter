@@ -1,19 +1,18 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
 import { navigateBackFromSettings } from '@/navigation/settings';
-import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const CREDITS: { role: string; names: string[] }[] = [
-  { role: 'Producer', names: ['R.S.'] },
-  { role: 'Programmers', names: ['A', 'B'] },
-  { role: 'UI/UX Designer', names: ['A', 'B'] },
-  { role: 'QA Testers', names: ['A'] },
-  { role: 'Localization Managers', names: ['A'] },
-  { role: 'Special Thanks', names: ['A'] },
+  { role: 'Programmers', names: ['Younghoon', 'Damin'] },
+  { role: 'UI/UX Designer', names: ['Emily'] },
+  { role: 'Rocket Artist', names: ['Chloe'] },
+  { role: 'QA Testers', names: ['SJ', 'JA'] },
+  { role: 'Special Thanks', names: ['Thomas', 'Eunsun', 'Jun'] },
 ];
 
 export default function CreditsPage() {

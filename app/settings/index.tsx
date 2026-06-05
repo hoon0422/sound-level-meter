@@ -398,15 +398,20 @@ export default function SettingsPage() {
 
         {/* Sunny banner */}
         <View style={dynamicStyles.sunnyBanner}>
-          <Image
-            source={
-              isDark
-                ? require('@/assets/SIL_logo_mini.png')
-                : require('@/assets/SIL_logo_setting_mini_black_text.png')
-            }
-            style={dynamicStyles.sunnyBannerLogoImage}
-            resizeMode="contain"
-          />
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => handleLinkPress('https://ssongyc.github.io/sunny-homepage/')}
+          >
+            <Image
+              source={
+                isDark
+                  ? require('@/assets/SIL_logo_mini.png')
+                  : require('@/assets/SIL_logo_setting_mini_black_text.png')
+              }
+              style={dynamicStyles.sunnyBannerLogoImage}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
           <View style={dynamicStyles.sunnyBannerFooterLinks}>
             <TouchableOpacity
               onPress={() =>
