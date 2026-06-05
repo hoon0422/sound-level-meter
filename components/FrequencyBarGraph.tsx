@@ -3,6 +3,8 @@ import { SPECTRUM_BANDS } from '@/audio/spectrum';
 import Surface from '@/components/Surface';
 import { useTheme } from '@/context/ThemeContext';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
+import { Canvas, Circle, RoundedRect } from '@shopify/react-native-skia';
+import { Fragment } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 const CONTAINER_HEIGHT = 180;
@@ -15,6 +17,16 @@ const CHART_TOP_INSET = 10;
 const CHART_HEIGHT = INNER_H + CHART_TOP_INSET;
 const X_AXIS_H = 20;
 const Y_AXIS_WIDTH = 28;
+const CHART_WIDTH = CONTAINER_WIDTH - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING;
+const TRACK_WIDTH = 8;
+const TRACK_GAP = 14;
+const TRACK_TOP = CHART_TOP_INSET;
+const TRACK_HEIGHT = CHART_HEIGHT - TRACK_TOP;
+const TRACK_BOTTOM = TRACK_TOP + TRACK_HEIGHT;
+const MIN_TRACK_HEIGHT = 2;
+const THUMB_OUTER_RADIUS = 10;
+const THUMB_INNER_RADIUS = 7;
+const TRACK_COLOR = '#FDBD22';
 
 const MIN_DB = 0;
 const MAX_DB = 120;
@@ -24,6 +36,11 @@ const DB_GRID_LINES = [40, 80, 120];
 
 function dbToTop(db: number) {
   return CHART_TOP_INSET + ((MAX_DB - db) / DB_RANGE) * INNER_H;
+}
+
+function dbToY(db: number) {
+  const clampedDb = Math.min(MAX_DB, Math.max(db, MIN_DB));
+  return TRACK_BOTTOM - ((clampedDb - MIN_DB) / DB_RANGE) * TRACK_HEIGHT;
 }
 
 function calibrate(dbfs: number) {
@@ -36,16 +53,10 @@ function calibrate(dbfs: number) {
   return dbfs + CALIBRATION_PEAK_DBFS;
 }
 
-function dbToHeight(db: number) {
-  if (db <= MIN_DB) return 0;
-  const clampedDb = Math.min(MAX_DB, Math.max(db, MIN_DB));
-  return Math.max(2, ((clampedDb - MIN_DB) / DB_RANGE) * INNER_H);
-}
-
-function meterColorDb(db: number, colors: ReturnType<typeof useTheme>['colors']) {
-  if (db < 40) return colors.quiet;
-  if (db < 80) return colors.moderate;
-  return colors.loud;
+function trackX(index: number) {
+  const totalTrackWidth = SPECTRUM_BANDS.length * TRACK_WIDTH + (SPECTRUM_BANDS.length - 1) * TRACK_GAP;
+  const startX = Math.max(THUMB_OUTER_RADIUS, (CHART_WIDTH - totalTrackWidth) / 2);
+  return startX + index * (TRACK_WIDTH + TRACK_GAP) + TRACK_WIDTH / 2;
 }
 
 export default function FrequencyBarGraph() {
@@ -86,42 +97,37 @@ function SpectrumBars() {
       </View>
 
       <View style={styles.chartColumn}>
-        <View style={[styles.chartArea, { borderColor: colors.inactive }]}>
+        <View style={styles.chartArea}>
+          <View style={[styles.yAxisLine, { backgroundColor: colors.inactive }]} />
           {DB_GRID_LINES.map(db => (
             <View key={db} style={[styles.gridLine, { backgroundColor: colors.inactive, top: dbToTop(db) }]} />
           ))}
 
-          <View style={styles.barsRow}>
-            {bars.map((rawDbfs, index) => {
-              const db = calibrate(rawDbfs);
-              const peakDb = calibrate(barPeaks[index]);
-              const barHeight = hasSignal ? dbToHeight(db) : 0;
-              const peakHeight = hasSignal ? dbToHeight(peakDb) : 0;
+          <Canvas style={styles.canvas}>
+            {SPECTRUM_BANDS.map((band, index) => {
+              const x = trackX(index);
+              const y = dbToY(hasSignal ? calibrate(bars[index] ?? MIN_DB) : MIN_DB);
+              const peakY = dbToY(hasSignal ? calibrate(barPeaks[index] ?? MIN_DB) : MIN_DB);
+              const trackY = Math.min(peakY, TRACK_BOTTOM - MIN_TRACK_HEIGHT);
+              const trackHeight = TRACK_BOTTOM - trackY;
+
               return (
-                <View style={styles.barContainer} key={SPECTRUM_BANDS[index]?.label ?? String(index)}>
-                  <View
-                    style={[
-                      styles.bar,
-                      styles.barPeak,
-                      {
-                        height: peakHeight,
-                        backgroundColor: colors.inactive,
-                      },
-                    ]}
+                <Fragment key={band.label}>
+                  <RoundedRect
+                    x={x - TRACK_WIDTH / 2}
+                    y={trackY}
+                    width={TRACK_WIDTH}
+                    height={trackHeight}
+                    r={TRACK_WIDTH / 2}
+                    color={TRACK_COLOR}
                   />
-                  <View
-                    style={[
-                      styles.bar,
-                      {
-                        height: barHeight,
-                        backgroundColor: meterColorDb(db, colors),
-                      },
-                    ]}
-                  />
-                </View>
+                  <Circle cx={x} cy={y} r={THUMB_OUTER_RADIUS} color={TRACK_COLOR} />
+                  <Circle cx={x} cy={y} r={THUMB_INNER_RADIUS} color={colors.primary} />
+                </Fragment>
               );
             })}
-          </View>
+          </Canvas>
+          <View style={[styles.xAxisLine, { backgroundColor: colors.inactive }]} />
         </View>
 
         <View style={styles.freqLabelsRow}>
@@ -168,8 +174,14 @@ const styles = StyleSheet.create({
   chartArea: {
     height: CHART_HEIGHT,
     position: 'relative',
-    borderLeftWidth: 1,
-    borderBottomWidth: 1,
+    overflow: 'hidden',
+  },
+  yAxisLine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 1,
+    height: CHART_HEIGHT,
   },
   gridLine: {
     position: 'absolute',
@@ -177,27 +189,17 @@ const styles = StyleSheet.create({
     right: 0,
     height: 1,
   },
-  barsRow: {
-    height: CHART_HEIGHT,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 4,
-    paddingHorizontal: 4,
-  },
-  barContainer: {
-    position: 'relative',
-    flex: 1,
+  canvas: {
+    width: CHART_WIDTH,
     height: CHART_HEIGHT,
   },
-  bar: {
+  xAxisLine: {
     position: 'absolute',
     bottom: 0,
-    borderRadius: 2,
-    width: 10,
-    left: '50%',
-    transform: [{ translateX: -5 }],
+    left: 0,
+    right: 0,
+    height: 1,
   },
-  barPeak: {},
   freqLabelsRow: {
     flexDirection: 'row',
     width: '100%',
@@ -207,7 +209,7 @@ const styles = StyleSheet.create({
   freqLabel: {
     flex: 1,
     top: 4,
-    fontSize: 10,
+    fontSize: 9,
     textAlign: 'center',
   },
 });
