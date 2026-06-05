@@ -40,6 +40,15 @@ module.exports = {
           androidPermissions: ['android.permission.RECORD_AUDIO'],
         },
       ],
+      [
+        'react-native-google-mobile-ads',
+        {
+          androidAppId: process.env.ADMOB_ANDROID_APP_ID,
+          iosAppId: process.env.ADMOB_IOS_APP_ID,
+          optimizeInitialization: true,
+          optimizeAdLoading: true,
+        },
+      ],
       'expo-localization',
     ],
     experiments: {
@@ -50,6 +59,12 @@ module.exports = {
       agentName,
       amplitude: {
         apiKey: process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY || '',
+      },
+      adMob: {
+        rewardedAdUnitIds: {
+          android: process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID || '',
+          ios: process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID || '',
+        },
       },
       router: {},
       eas: {

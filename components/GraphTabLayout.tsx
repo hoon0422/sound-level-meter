@@ -1,6 +1,8 @@
+import { useAdAccess } from '@/context/AdAccessContext';
 import { RecordButton } from '@/components/RecordButton';
 import { SoundMeter } from '@/components/SoundMeter';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
+import { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -10,7 +12,30 @@ type Props = {
 
 export default function GraphsLayout({ children }: Props) {
   const { colors } = useTheme();
-  const elapsedSeconds = useAudioMeterStore(state => state.elapsedSeconds);
+  const { ensureAccess, hasAccess } = useAdAccess();
+  const { elapsedSeconds, isRunning, stop } = useAudioMeterStore(state => ({
+    elapsedSeconds: state.elapsedSeconds,
+    isRunning: state.isRunning,
+    stop: state.stop,
+  }));
+  const didPromptForLongMeasurementRef = useRef(false);
+
+  useEffect(() => {
+    if (!isRunning) {
+      didPromptForLongMeasurementRef.current = false;
+      return;
+    }
+
+    if (hasAccess) {
+      return;
+    }
+
+    if (elapsedSeconds >= 30 && !didPromptForLongMeasurementRef.current) {
+      didPromptForLongMeasurementRef.current = true;
+      stop();
+      ensureAccess('measurement');
+    }
+  }, [elapsedSeconds, ensureAccess, hasAccess, isRunning, stop]);
 
   return (
     <View style={[styles.page, { backgroundColor: colors.background }]}>

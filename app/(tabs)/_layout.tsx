@@ -1,5 +1,6 @@
 import { APP_ANALYTICS_EVENTS, trackAppEvent } from '@/analytics/events';
 import { DEFAULT_CONFIG } from '@/audio/constants';
+import { useAdAccess } from '@/context/AdAccessContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useRecordingLogger } from '@/hooks/useRecordingLogger';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
@@ -48,6 +49,8 @@ export default function TabsLayout() {
 
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const router = useRouter();
+  const { ensureAccess, hasAccess } = useAdAccess();
 
   return (
     <Tabs
@@ -115,7 +118,15 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="sound-guide"
         listeners={{
-          tabPress: () => trackAppEvent(APP_ANALYTICS_EVENTS.gdButtonClicked),
+          tabPress: event => {
+            trackAppEvent(APP_ANALYTICS_EVENTS.gdButtonClicked);
+            if (hasAccess) {
+              return;
+            }
+
+            event.preventDefault();
+            ensureAccess('soundGuide', () => router.push('/sound-guide'));
+          },
         }}
         options={{
           title: t('tabs.soundGuide'),
@@ -131,7 +142,15 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="log"
         listeners={{
-          tabPress: () => trackAppEvent(APP_ANALYTICS_EVENTS.recordButtonClicked),
+          tabPress: event => {
+            trackAppEvent(APP_ANALYTICS_EVENTS.recordButtonClicked);
+            if (hasAccess) {
+              return;
+            }
+
+            event.preventDefault();
+            ensureAccess('log', () => router.push('/log'));
+          },
         }}
         options={{
           title: t('tabs.log'),
