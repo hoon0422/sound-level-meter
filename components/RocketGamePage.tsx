@@ -8,16 +8,13 @@ const ROCKET_W = 24;
 const ROCKET_H = 35;
 const FLAME_W = 24;
 const MOON_SIZE = 24;
-const LANDING_SIZE = 50;
+const LANDING_SIZE = 45;
 const CONGRATS_W = 24;
 
 // ─── Physics ─────────────────────────────────────────────────────────────────
-// speed(dB) × trackHeight / 3600 = px/sec
-// → 60 dB × 60 s = 3600 → full track ✓
-// → 80 dB × 45 s = 3600 → full track ✓
 const SPEED_DIVISOR = 3600;
 const DESCENT_DB = 100;
-const FRAME_MS = 16; // ~60 fps
+const FRAME_MS = 16;
 
 // ─── Flame assets ────────────────────────────────────────────────────────────
 const FLAME_SOURCES = [
@@ -140,7 +137,7 @@ export function RocketGamePage() {
         topAnim.setValue(h - ROCKET_H - posRef.current);
       }}
     >
-      {/* Moon at top (hidden once landed) */}
+      {/* Moon at top (hidden only during landing) */}
       {!isLanded && (
         <Image
           source={require('@/assets/rocket/moon.png')}
@@ -149,22 +146,22 @@ export function RocketGamePage() {
         />
       )}
 
-      {/* Landing scene + congrats overlay */}
-      {isLanded && (
-        <View style={styles.landingContainer}>
-          <Image
-            source={require('@/assets/rocket/landing.gif')}
-            style={styles.landing}
-            resizeMode="contain"
-          />
-          {showCongrats && (
-            <Image
-              source={require('@/assets/rocket/congrats.gif')}
-              style={styles.congrats}
-              resizeMode="contain"
-            />
-          )}
-        </View>
+      {/* Congrats: shown first for 3s when rocket reaches moon */}
+      {isLanded && showCongrats && (
+        <Image
+          source={require('@/assets/rocket/congrats.gif')}
+          style={styles.congrats}
+          resizeMode="contain"
+        />
+      )}
+
+      {/* Landing: shown after congrats finishes */}
+      {isLanded && !showCongrats && (
+        <Image
+          source={require('@/assets/rocket/landing.gif')}
+          style={styles.landing}
+          resizeMode="contain"
+        />
       )}
 
       {/* Rocket + flame */}
@@ -174,7 +171,6 @@ export function RocketGamePage() {
           <Image
             source={require('@/assets/rocket/rocket.png')}
             style={styles.rocket}
-            resizeMode="contain"
           />
           {isAscending && (
             <Image
@@ -199,19 +195,12 @@ const styles = StyleSheet.create({
     width: MOON_SIZE,
     height: MOON_SIZE,
   },
-  landingContainer: {
+  landing: {
     marginTop: -10,
     width: LANDING_SIZE,
     height: LANDING_SIZE,
   },
-  landing: {
-    width: LANDING_SIZE,
-    height: LANDING_SIZE,
-  },
-  congrats: {
-    position: 'absolute',
-    top: (LANDING_SIZE - CONGRATS_W) / 2 - ROCKET_H,
-    left: (LANDING_SIZE - CONGRATS_W) / 2,
+  congrats: {  
     width: CONGRATS_W,
     height: CONGRATS_W,
   },
@@ -228,5 +217,6 @@ const styles = StyleSheet.create({
   flame: {
     width: FLAME_W,
     height: FLAME_W,
+    marginTop: -8,
   },
 });
