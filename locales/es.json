@@ -99,14 +99,14 @@
   "adAccess": {
     "title": "Desbloquear funciones",
     "reasons": {
-      "measurement": "Mira un anuncio recompensado para medir durante más de 30 segundos.",
-      "soundGuide": "Mira un anuncio recompensado para usar la descripción del sonido.",
-      "log": "Mira un anuncio recompensado para abrir tus registros de medición."
+      "measurement": "Mira un anuncio\npara usar todas las funciones\ndurante 2 horas.",
+      "soundGuide": "Mira un anuncio\npara usar todas las funciones\ndurante 2 horas.",
+      "log": "Mira un anuncio\npara usar todas las funciones\ndurante 2 horas."
     },
     "benefits": {
-      "measurement": "Medir durante más de 30 segundos",
-      "soundGuide": "Usar la descripción del sonido",
-      "log": "Abrir registros de medición"
+      "measurement": "- Medir el sonido durante más de 30 segundos",
+      "soundGuide": "- Función de explicación del sonido disponible",
+      "log": "- Guardar/ver el historial de mediciones"
     },
     "watchAd": "Ver anuncio",
     "notNow": "Ahora no",

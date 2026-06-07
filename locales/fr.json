@@ -99,14 +99,14 @@
   "adAccess": {
     "title": "Débloquer les fonctions",
     "reasons": {
-      "measurement": "Regardez une publicité récompensée pour mesurer pendant plus de 30 secondes.",
-      "soundGuide": "Regardez une publicité récompensée pour utiliser le guide sonore.",
-      "log": "Regardez une publicité récompensée pour ouvrir vos mesures."
+      "measurement": "Regardez une publicité\npour utiliser toutes les fonctionnalités\npendant 2 heures.",
+      "soundGuide": "Regardez une publicité\npour utiliser toutes les fonctionnalités\npendant 2 heures.",
+      "log": "Regardez une publicité\npour utiliser toutes les fonctionnalités\npendant 2 heures."
     },
     "benefits": {
-      "measurement": "Mesurer plus de 30 secondes",
-      "soundGuide": "Utiliser le guide sonore",
-      "log": "Ouvrir les mesures"
+      "measurement": "- Mesurer le son pendant plus de 30 secondes",
+      "soundGuide": "- Fonction d’explication du son disponible",
+      "log": "- Enregistrer/consulter l’historique des mesures"
     },
     "watchAd": "Voir la pub",
     "notNow": "Plus tard",

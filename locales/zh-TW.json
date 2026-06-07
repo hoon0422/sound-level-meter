@@ -99,14 +99,14 @@
   "adAccess": {
     "title": "解鎖所有功能",
     "reasons": {
-      "measurement": "觀看一次獎勵廣告，即可測量超過30秒。",
-      "soundGuide": "觀看一次獎勵廣告，即可使用聲音說明。",
-      "log": "觀看一次獎勵廣告，即可開啟測量記錄。"
+      "measurement": "觀看廣告後，\n即可在2小時內\n使用所有功能。",
+      "soundGuide": "觀看廣告後，\n即可在2小時內\n使用所有功能。",
+      "log": "觀看廣告後，\n即可在2小時內\n使用所有功能。"
     },
     "benefits": {
-      "measurement": "測量超過30秒",
-      "soundGuide": "使用聲音說明",
-      "log": "使用記錄"
+      "measurement": "- 測量聲音超過30秒",
+      "soundGuide": "- 可使用聲音說明功能",
+      "log": "- 儲存／查看測量記錄"
     },
     "watchAd": "觀看廣告",
     "notNow": "稍後",

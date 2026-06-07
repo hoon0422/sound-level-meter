@@ -99,14 +99,14 @@
   "adAccess": {
     "title": "Unlock every feature",
     "reasons": {
-      "measurement": "Watch one rewarded ad to measure sound for more than 30 seconds.",
-      "soundGuide": "Watch one rewarded ad to use the sound guide.",
-      "log": "Watch one rewarded ad to open your measurement records."
+      "measurement": "Watch an ad to unlock\nall features for 2 hours.",
+      "soundGuide": "Watch an ad to unlock\nall features for 2 hours.",
+      "log": "Watch an ad to unlock\nall features for 2 hours."
     },
     "benefits": {
-      "measurement": "Measure for more than 30 seconds",
-      "soundGuide": "Use the sound guide",
-      "log": "Open measurement records"
+      "measurement": "- Measure sound for over 30 seconds",
+      "soundGuide": "- View sound explanations",
+      "log": "- Save/View measurement history"
     },
     "watchAd": "Watch Ad",
     "notNow": "Not Now",
