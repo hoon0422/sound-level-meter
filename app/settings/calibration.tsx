@@ -258,12 +258,7 @@ export default function CalibrationPage() {
 
       <ScrollView contentContainerStyle={dynamicStyles.content}>
         <View style={dynamicStyles.infoPanel}>
-          <Text style={dynamicStyles.infoText}>{t('settings.calibration.instructions.reference')}</Text>
-          <Text style={dynamicStyles.infoText}>{t('settings.calibration.instructions.location')}</Text>
-          <Text style={dynamicStyles.infoText}>{t('settings.calibration.instructions.soundSource')}</Text>
-          <Text style={dynamicStyles.infoText}>{t('settings.calibration.instructions.compare')}</Text>
-          <Text style={dynamicStyles.infoText}>{t('settings.calibration.instructions.example')}</Text>
-          <Text style={dynamicStyles.infoText}>{t('settings.calibration.instructions.freqExcluded')}</Text>
+          <Text style={dynamicStyles.infoText}>{t('settings.calibration.description')}</Text>
         </View>
 
         <View style={dynamicStyles.panel}>

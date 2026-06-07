@@ -130,19 +130,12 @@
     "link": "Link",
     "linkErrorTitle": "Could not open link",
     "calibration": {
-      "title": "Calibration",
+      "title": "Mic Calibration",
       "currentDb": "Current dB",
       "offset": "Offset",
       "decrease": "Decrease offset",
       "increase": "Increase offset",
-      "instructions": {
-        "reference": "• Use a professional decibel meter as reference",
-        "location": "• Place both devices in the same location",
-        "soundSource": "• Generate a steady sound source (e.g., tone generator)",
-        "compare": "• Compare readings and enter the difference as offset",
-        "example": "• Example: If reference shows 60dB and app shows 55dB, enter +5.0",
-        "freqExcluded": "• This offset does not affect the dB/Freq graph"
-      }
+      "description": "Microphone performance may vary slightly depending on the smartphone.\nIf needed, fine-tune the measurement value to match your current device."
     }
   }
 }

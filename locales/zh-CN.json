@@ -130,19 +130,12 @@
     "link": "链接",
     "linkErrorTitle": "无法打开链接",
     "calibration": {
-      "title": "校准",
+      "title": "麦克风校准",
       "currentDb": "当前 dB",
       "offset": "偏移值",
       "decrease": "降低偏移值",
       "increase": "提高偏移值",
-      "instructions": {
-        "reference": "• 使用专业分贝计作为参考",
-        "location": "• 将两台设备放在同一位置",
-        "soundSource": "• 产生稳定的声源（例如音调发生器）",
-        "compare": "• 比较读数，并将差值输入为偏移值",
-        "example": "• 示例：参考值为60dB，应用为55dB，则输入 +5.0",
-        "freqExcluded": "• 此偏移值不会影响 dB/频率图表"
-      }
+      "description": "不同智能手机的麦克风性能可能会略有差异。\n如有需要，请根据当前设备微调测量值。"
     }
   }
 }
