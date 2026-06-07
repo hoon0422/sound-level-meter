@@ -130,19 +130,12 @@
     "link": "링크",
     "linkErrorTitle": "링크를 열 수 없습니다",
     "calibration": {
-      "title": "캘리브레이션",
+      "title": "마이크 보정",
       "currentDb": "현재 dB",
       "offset": "조정값",
       "decrease": "조정값 낮추기",
       "increase": "조정값 높이기",
-      "instructions": {
-        "reference": "• 전문 데시벨 미터를 기준으로 사용하세요",
-        "location": "• 두 기기를 같은 위치에 놓으세요",
-        "soundSource": "• 일정한 소리 소스(예: 톤 생성기)를 재생하세요",
-        "compare": "• 측정값을 비교하고 차이를 조정값으로 입력하세요",
-        "example": "• 예: 기준 장비가 60dB, 앱이 55dB이면 +5.0을 입력하세요",
-        "freqExcluded": "• 이 조정값은 dB/주파수 그래프에는 적용되지 않습니다"
-      }
+      "description": "스마트폰마다 마이크 성능이 조금씩 다를 수 있습니다.\n필요한 경우, 현재 기기에 맞게 측정값을 미세 조정하세요."
     }
   }
 }
