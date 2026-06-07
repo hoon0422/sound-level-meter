@@ -93,7 +93,7 @@
     "dangerZone": "危险区域"
   },
   "permissions": {
-    "micTitle": "\"Decibella 2\"想访问您的麦克风。",
+    "micTitle": "“Decibella 2”想访问您的麦克风。",
     "micMessage": "此应用需要麦克风权限来实时测量并显示环境噪音水平。音频数据仅用于计算分贝，绝不会被录制或存储。"
   },
   "adAccess": {

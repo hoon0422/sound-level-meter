@@ -2,6 +2,8 @@ const agentName = process.env.EXPO_AGENT_NAME || process.env.AGENT_NAME || '';
 const appEnvironment = process.env.APP_ENV || process.env.EAS_BUILD_PROFILE || 'development';
 const sentryOrganization = process.env.SENTRY_ORG || 'yh-sil-sound-meter';
 const sentryProject = process.env.SENTRY_PROJECT || 'sound-level-meter';
+const microphonePermissionMessage =
+  'This app requires microphone access to measure and display real-time ambient sound levels. Audio data is used only for decibel calculation and is never recorded or stored.';
 
 module.exports = {
   expo: {
@@ -15,6 +17,9 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: process.env.IOS_BUNDLE_IDENTIFIER || 'com.sunnyinnolab.decibella2',
+      infoPlist: {
+        NSMicrophoneUsageDescription: microphonePermissionMessage,
+      },
     },
     android: {
       adaptiveIcon: {
@@ -36,6 +41,7 @@ module.exports = {
     },
     plugins: [
       'expo-router',
+      './plugins/withLocalizedMicrophonePermissions',
       [
         '@sentry/react-native/expo',
         {
@@ -46,7 +52,7 @@ module.exports = {
       [
         'react-native-audio-api',
         {
-          iosMicrophonePermission: 'This app needs microphone access for audio analysis.',
+          iosMicrophonePermission: microphonePermissionMessage,
           androidPermissions: ['android.permission.RECORD_AUDIO'],
         },
       ],

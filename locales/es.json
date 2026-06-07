@@ -93,7 +93,7 @@
     "dangerZone": "Zona peligrosa"
   },
   "permissions": {
-    "micTitle": "\"Decibella 2\" desea acceder al micrófono.",
+    "micTitle": "“Decibella 2” desea acceder al micrófono.",
     "micMessage": "Esta aplicación requiere acceso al micrófono para medir y mostrar los niveles de sonido ambiental en tiempo real. Los datos de audio se utilizan solo para el cálculo de decibelios y nunca se graban ni se almacenan."
   },
   "adAccess": {

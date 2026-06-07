@@ -1,5 +1,9 @@
 import { captureSentryException, getSentryErrorAttributes, logSentryError, logSentryWarning } from '@/analytics/sentry';
-import { Alert, Linking } from 'react-native';
+import {
+  showMicrophonePermissionDeniedAlert,
+  showMicrophonePermissionRationale,
+} from '@/audio/microphonePermissionAlerts';
+import { Alert } from 'react-native';
 import { AudioManager } from 'react-native-audio-api';
 
 export async function hasRecordingPermission() {
@@ -9,6 +13,8 @@ export async function hasRecordingPermission() {
 
 export async function requestRecordingSession(options: { showDeniedAlert?: boolean } = {}) {
   if (!(await hasRecordingPermission())) {
+    await showMicrophonePermissionRationale();
+
     const permission = await AudioManager.requestRecordingPermissions();
     if (permission !== 'Granted') {
       logSentryWarning('Microphone permission denied', {
@@ -16,23 +22,10 @@ export async function requestRecordingSession(options: { showDeniedAlert?: boole
       });
 
       if (options.showDeniedAlert) {
-        Alert.alert('Permission to access microphone was denied', undefined, [
-          { text: 'OK' },
-          {
-            text: 'Open settings',
-            onPress: () => {
-              Linking.openSettings().catch(error => {
-                logSentryError(
-                  'Failed to open app settings from microphone permission alert',
-                  getSentryErrorAttributes(error)
-                );
-                captureSentryException(error, 'Failed to open app settings from microphone permission alert', {
-                  source: 'recording_permission_alert',
-                });
-              });
-            },
-          },
-        ]);
+        showMicrophonePermissionDeniedAlert({
+          errorMessage: 'Failed to open app settings from microphone permission alert',
+          source: 'recording_permission_alert',
+        });
       }
       return false;
     }
