@@ -43,9 +43,8 @@ function dbToHeight(db: number) {
 }
 
 function meterColorDb(db: number, colors: ReturnType<typeof useTheme>['colors']) {
-  if (db < 40) return colors.quiet;
-  if (db < 80) return colors.moderate;
-  return colors.loud;
+  if (db <= 60) return colors.quiet;
+  return colors.moderate;
 }
 
 export default function FrequencyBarGraph() {
