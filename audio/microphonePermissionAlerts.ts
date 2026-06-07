@@ -1,6 +1,6 @@
 import { captureSentryException, getSentryErrorAttributes, logSentryError } from '@/analytics/sentry';
 import i18n from '@/i18n';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 
 type DeniedAlertOptions = {
   errorMessage: string;
@@ -15,6 +15,10 @@ function getMicrophonePermissionCopy() {
 }
 
 export function showMicrophonePermissionRationale() {
+  if (Platform.OS !== 'android') {
+    return Promise.resolve();
+  }
+
   const { title, message } = getMicrophonePermissionCopy();
 
   return new Promise<void>(resolve => {

@@ -8,8 +8,7 @@ const readSampleRate = (value, fallback) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= 0 && parsed <= 1 ? parsed : fallback;
 };
-const microphonePermissionMessage =
-  'This app requires microphone access to measure and display real-time ambient sound levels. Audio data is used only for decibel calculation and is never recorded or stored.';
+const microphonePermissionMessage = require('./locales/en.json').permissions.micMessage;
 
 module.exports = {
   expo: {
