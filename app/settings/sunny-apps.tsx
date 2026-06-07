@@ -14,6 +14,7 @@ import {
   Alert,
   Image,
   Linking,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,7 +24,15 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const APPS: { name: string; icon?: ReturnType<typeof require>; url: string }[] = [
+type SunnyApp = {
+  name: string;
+  icon?: ReturnType<typeof require>;
+  url: string;
+  iosUrl?: string;
+  androidUrl?: string;
+};
+
+const APPS: SunnyApp[] = [
   {
     name: 'Sky Peacemaker - Finger Force',
     icon: require('@/assets/app_icons/skyPeacemaker.png'),
@@ -75,7 +84,26 @@ const APPS: { name: string; icon?: ReturnType<typeof require>; url: string }[] =
     icon: require('@/assets/app_icons/decibella.png'),
     url: 'https://decibella.onelink.me/Ve6i/vydwhkh4',
   },
+  {
+    name: 'Watermelon Check',
+    icon: require('@/assets/app_icons/watermelonCheck.jpg'),
+    url: 'https://apps.apple.com/us/app/watermelon-checker/id6771640605',
+    iosUrl: 'https://apps.apple.com/us/app/watermelon-checker/id6771640605',
+    androidUrl: 'https://play.google.com/store/apps/details?id=com.sunny.watermelonchecker&pli=1',
+  },
 ];
+
+const getAppUrl = (app: SunnyApp) => {
+  if (Platform.OS === 'ios' && app.iosUrl) {
+    return app.iosUrl;
+  }
+
+  if (Platform.OS === 'android' && app.androidUrl) {
+    return app.androidUrl;
+  }
+
+  return app.url;
+};
 
 export default function SunnyAppsPage() {
   const { colors: themeColors } = useTheme();
@@ -139,7 +167,7 @@ export default function SunnyAppsPage() {
             key={app.name}
             style={[styles.appItem, { paddingHorizontal: basePadding, borderBottomColor: colors.border }]}
             activeOpacity={0.7}
-            onPress={() => handleAppPress(app.url)}
+            onPress={() => handleAppPress(getAppUrl(app))}
           >
             {app.icon ? (
               <Image
