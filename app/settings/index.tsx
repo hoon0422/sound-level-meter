@@ -200,6 +200,8 @@ export default function SettingsPage() {
       sunnyBannerLogoImage: {
         height: 70,
         width: sunnyBannerLogoWidth,
+      },
+      sunnyBannerLogoLink: {
         marginRight: 'auto',
       },
       sunnyBanner: {
@@ -400,6 +402,7 @@ export default function SettingsPage() {
         <View style={dynamicStyles.sunnyBanner}>
           <TouchableOpacity
             activeOpacity={0.7}
+            style={dynamicStyles.sunnyBannerLogoLink}
             onPress={() => handleLinkPress('https://ssongyc.github.io/sunny-homepage/')}
           >
             <Image
