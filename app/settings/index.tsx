@@ -1,3 +1,9 @@
+import {
+  addSentryBreadcrumb,
+  captureSentryException,
+  getSentryErrorAttributes,
+  logSentryError,
+} from '@/analytics/sentry';
 import { useLanguage, type LanguageCode } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
 import { navigateBackFromSettings } from '@/navigation/settings';
@@ -62,10 +68,21 @@ export default function SettingsPage() {
   const insets = useSafeAreaInsets();
 
   const handleLinkPress = async (url: string) => {
+    addSentryBreadcrumb('Settings external link pressed', {
+      url,
+    });
+
     try {
       await Linking.openURL(url);
-    } catch (error: any) {
-      Alert.alert(t('settings.linkErrorTitle'), error.message);
+    } catch (error: unknown) {
+      logSentryError('Failed to open settings external link', {
+        ...getSentryErrorAttributes(error),
+        url,
+      });
+      captureSentryException(error, 'Failed to open settings external link', {
+        url,
+      });
+      Alert.alert(t('settings.linkErrorTitle'), error instanceof Error ? error.message : t('settings.linkErrorTitle'));
     }
   };
 

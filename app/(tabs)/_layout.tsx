@@ -1,4 +1,5 @@
 import { APP_ANALYTICS_EVENTS, trackAppEvent } from '@/analytics/events';
+import { captureSentryException, getSentryErrorAttributes, logSentryError } from '@/analytics/sentry';
 import { DEFAULT_CONFIG } from '@/audio/constants';
 import { useAdAccess } from '@/context/AdAccessContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -41,9 +42,15 @@ export default function TabsLayout() {
   useRecordingLogger();
 
   useEffect(() => {
-    void connect(DEFAULT_CONFIG);
+    connect(DEFAULT_CONFIG).catch(error => {
+      logSentryError('Initial microphone connect failed', getSentryErrorAttributes(error));
+      captureSentryException(error, 'Initial microphone connect failed');
+    });
     return () => {
-      void disconnect();
+      disconnect().catch(error => {
+        logSentryError('Microphone disconnect during tab cleanup failed', getSentryErrorAttributes(error));
+        captureSentryException(error, 'Microphone disconnect during tab cleanup failed');
+      });
     };
   }, [connect, disconnect]);
 

@@ -46,3 +46,4 @@ app-example
 .vscode
 .zed
 .idea
+.env.local

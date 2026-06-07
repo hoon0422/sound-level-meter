@@ -1,3 +1,4 @@
+import { captureSentryException, getSentryErrorAttributes, logSentryError, logSentryWarning } from '@/analytics/sentry';
 import {
   AnalyserNode,
   AudioContext,
@@ -30,6 +31,10 @@ export type MicrophoneEngine = {
 };
 
 let microphoneEngine: MicrophoneEngine | null = null;
+
+function logCleanupWarning(message: string, error: unknown) {
+  logSentryWarning(message, getSentryErrorAttributes(error));
+}
 
 export async function createMicrophoneEngine(options: CreateMicrophoneEngineOptions): Promise<MicrophoneEngine> {
   if (microphoneEngine) {
@@ -130,7 +135,9 @@ export function stopMicrophoneEngine() {
 
   try {
     microphoneEngine.recorder.stop();
-  } catch {}
+  } catch (error) {
+    logCleanupWarning('Microphone recorder stop failed', error);
+  }
 }
 
 export async function disconnectMicrophoneEngine() {
@@ -143,30 +150,48 @@ export async function disconnectMicrophoneEngine() {
 
   try {
     engine.recorder.stop();
-  } catch {}
+  } catch (error) {
+    logCleanupWarning('Microphone recorder stop during disconnect failed', error);
+  }
 
   try {
     engine.recorder.disconnect();
-  } catch {}
+  } catch (error) {
+    logCleanupWarning('Microphone recorder disconnect failed', error);
+  }
 
   try {
     engine.adapter.disconnect();
-  } catch {}
+  } catch (error) {
+    logCleanupWarning('Microphone adapter disconnect failed', error);
+  }
 
   try {
     engine.analyser.disconnect();
-  } catch {}
+  } catch (error) {
+    logCleanupWarning('Microphone analyser disconnect failed', error);
+  }
 
   try {
     engine.workletNode.disconnect();
-  } catch {}
+  } catch (error) {
+    logCleanupWarning('Microphone worklet node disconnect failed', error);
+  }
 
   try {
     engine.muteGain.disconnect();
-  } catch {}
+  } catch (error) {
+    logCleanupWarning('Microphone mute gain disconnect failed', error);
+  }
 
   await Promise.all([
-    engine.audioContext.close().catch(() => {}),
-    AudioManager.setAudioSessionActivity(false).catch(() => {}),
+    engine.audioContext.close().catch(error => {
+      logSentryError('Audio context close failed', getSentryErrorAttributes(error));
+      captureSentryException(error, 'Audio context close failed');
+    }),
+    AudioManager.setAudioSessionActivity(false).catch(error => {
+      logSentryError('Audio session deactivation failed', getSentryErrorAttributes(error));
+      captureSentryException(error, 'Audio session deactivation failed');
+    }),
   ]);
 }

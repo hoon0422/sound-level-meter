@@ -1,3 +1,9 @@
+import {
+  addSentryBreadcrumb,
+  captureSentryException,
+  getSentryErrorAttributes,
+  logSentryError,
+} from '@/analytics/sentry';
 import { useTheme } from '@/context/ThemeContext';
 import { navigateBackFromSettings } from '@/navigation/settings';
 import { Ionicons } from '@expo/vector-icons';
@@ -51,10 +57,21 @@ export default function CreditsPage() {
   const footerLogoWidth = isTablet ? 120 : Math.min(screenWidth * 0.25, 100);
 
   const handleLinkPress = async (url: string) => {
+    addSentryBreadcrumb('Credits external link pressed', {
+      url,
+    });
+
     try {
       await Linking.openURL(url);
-    } catch (error: any) {
-      Alert.alert(t('settings.linkErrorTitle'), error.message);
+    } catch (error: unknown) {
+      logSentryError('Failed to open credits external link', {
+        ...getSentryErrorAttributes(error),
+        url,
+      });
+      captureSentryException(error, 'Failed to open credits external link', {
+        url,
+      });
+      Alert.alert(t('settings.linkErrorTitle'), error instanceof Error ? error.message : t('settings.linkErrorTitle'));
     }
   };
 

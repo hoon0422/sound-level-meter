@@ -1,3 +1,4 @@
+import { initializeSentry } from '@/analytics/sentry';
 import { initializeAnalytics } from '@/analytics/events';
 import { AdAccessProvider } from '@/context/AdAccessContext';
 import { LanguageProvider } from '@/context/LanguageContext';
@@ -9,6 +10,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+initializeSentry();
 
 SplashScreen.preventAutoHideAsync();
 
