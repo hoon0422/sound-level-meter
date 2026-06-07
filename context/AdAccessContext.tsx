@@ -14,7 +14,6 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
-  InteractionManager,
   Modal,
   Platform,
   Pressable,
@@ -177,7 +176,7 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
 
       if (didEarnReward) {
         logSentryInfo('Rewarded ad completed');
-        InteractionManager.runAfterInteractions(() => {
+        setImmediate(() => {
           grantAccess();
         });
       }
