@@ -20,8 +20,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const APP_VERSION = '1.0';
 
-type LanguageOptionValue = 'system' | LanguageCode;
-
 const LANGUAGE_OPTIONS: { label: string; value: LanguageCode }[] = [
   { label: 'English', value: 'en' },
   { label: '한국어', value: 'ko' },
@@ -34,7 +32,7 @@ const LANGUAGE_OPTIONS: { label: string; value: LanguageCode }[] = [
 
 export default function SettingsPage() {
   const { colors: themeColors, themeName, setTheme } = useTheme();
-  const { language, languageMode, setLanguage, setSystemLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const { t } = useTranslation();
   const router = useRouter();
   const isDark = themeName === 'dark';
@@ -69,24 +67,6 @@ export default function SettingsPage() {
     } catch (error: any) {
       Alert.alert(t('settings.linkErrorTitle'), error.message);
     }
-  };
-
-  const getLanguageOptionLabel = (value: LanguageOptionValue) => {
-    if (value === 'system') {
-      return t('settings.systemLanguage');
-    }
-
-    return LANGUAGE_OPTIONS.find(option => option.value === value)?.label ?? value;
-  };
-
-  const handleLanguageOptionPress = (value: LanguageOptionValue) => {
-    if (value === 'system') {
-      setSystemLanguage();
-    } else {
-      setLanguage(value);
-    }
-
-    setIsLanguageOpen(false);
   };
 
   const dynamicStyles = useMemo(() => {
@@ -304,34 +284,36 @@ export default function SettingsPage() {
           >
             <Text style={dynamicStyles.settingLabel}>{t('settings.language')}</Text>
             <View style={styles.languageContainer}>
-              <Text style={dynamicStyles.languageValue}>
-                {languageMode === 'system' ? t('settings.systemLanguage') : getLanguageOptionLabel(language)}
-              </Text>
+              <Text style={dynamicStyles.languageValue}>{LANGUAGE_OPTIONS.find(o => o.value === language)?.label}</Text>
               <Ionicons name={isLanguageOpen ? 'chevron-up' : 'chevron-down'} size={20} color={colors.arrows} />
             </View>
           </TouchableOpacity>
 
           {isLanguageOpen && (
             <View style={dynamicStyles.languageList}>
-              {[{ label: t('settings.systemLanguage'), value: 'system' as const }, ...LANGUAGE_OPTIONS].map(option => {
-                const isSelected =
-                  option.value === 'system'
-                    ? languageMode === 'system'
-                    : languageMode === 'manual' && language === option.value;
-
-                return (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={[dynamicStyles.languageOptionItem, isSelected && dynamicStyles.selectedLanguageOption]}
-                    onPress={() => handleLanguageOptionPress(option.value)}
+              {LANGUAGE_OPTIONS.map(option => (
+                <TouchableOpacity
+                  key={option.label}
+                  style={[
+                    dynamicStyles.languageOptionItem,
+                    language === option.value && dynamicStyles.selectedLanguageOption,
+                  ]}
+                  onPress={() => {
+                    setLanguage(option.value);
+                    setIsLanguageOpen(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      dynamicStyles.languageOptionText,
+                      language === option.value && dynamicStyles.selectedLanguageText,
+                    ]}
                   >
-                    <Text style={[dynamicStyles.languageOptionText, isSelected && dynamicStyles.selectedLanguageText]}>
-                      {option.label}
-                    </Text>
-                    {isSelected && <Ionicons name="checkmark" size={20} color={colors.arrows} />}
-                  </TouchableOpacity>
-                );
-              })}
+                    {option.label}
+                  </Text>
+                  {language === option.value && <Ionicons name="checkmark" size={20} color={colors.arrows} />}
+                </TouchableOpacity>
+              ))}
             </View>
           )}
         </View>
