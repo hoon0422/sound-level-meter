@@ -79,7 +79,6 @@ export function SoundMeter() {
 }
 
 function Meter() {
-  const { colors } = useTheme();
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const dbfs = useThrottledAudioMeterValue(state => (state.elapsedSeconds > 0 ? state.dbfs : 0), ANIMATION_DURATION);
   const displayDb = dbfs > 0 ? applyCalibrationOffset(dbfs, offsetDb) : 0;
