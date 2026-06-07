@@ -32,18 +32,6 @@ const preferenceSpecifiers = [
     Key: 'preferred_language',
     DefaultValue: 'Managed by iOS',
   },
-  {
-    Type: 'PSGroupSpecifier',
-    Title: 'Background Measurement',
-    FooterText:
-      'Background microphone processing is enabled through the iOS audio background mode while measurement is running.',
-  },
-  {
-    Type: 'PSToggleSwitchSpecifier',
-    Title: 'Allow Background Measurement',
-    Key: 'allow_background_measurement',
-    DefaultValue: true,
-  },
 ];
 
 const localizedStrings = {
@@ -57,10 +45,6 @@ const localizedStrings = {
     'Preferred Language is managed by iOS because this app declares its supported languages.':
       'Preferred Language is managed by iOS because this app declares its supported languages.',
     'Preferred Language': 'Preferred Language',
-    'Background Measurement': 'Background Measurement',
-    'Background microphone processing is enabled through the iOS audio background mode while measurement is running.':
-      'Background microphone processing is enabled through the iOS audio background mode while measurement is running.',
-    'Allow Background Measurement': 'Allow Background Measurement',
   },
   ko: {
     Privacy: '개인정보 보호',
@@ -72,10 +56,6 @@ const localizedStrings = {
     'Preferred Language is managed by iOS because this app declares its supported languages.':
       '이 앱은 지원 언어를 선언하므로 선호 언어는 iOS가 관리합니다.',
     'Preferred Language': '선호 언어',
-    'Background Measurement': '백그라운드 측정',
-    'Background microphone processing is enabled through the iOS audio background mode while measurement is running.':
-      '측정 중 백그라운드 마이크 처리는 iOS 오디오 백그라운드 모드로 활성화됩니다.',
-    'Allow Background Measurement': '백그라운드 측정 허용',
   },
   ja: {
     Privacy: 'プライバシー',
@@ -87,10 +67,6 @@ const localizedStrings = {
     'Preferred Language is managed by iOS because this app declares its supported languages.':
       'このアプリは対応言語を宣言しているため、優先言語はiOSが管理します。',
     'Preferred Language': '優先言語',
-    'Background Measurement': 'バックグラウンド測定',
-    'Background microphone processing is enabled through the iOS audio background mode while measurement is running.':
-      '測定中のバックグラウンドでのマイク処理は、iOSのオーディオバックグラウンドモードで有効になります。',
-    'Allow Background Measurement': 'バックグラウンド測定を許可',
   },
   'zh-Hans': {
     Privacy: '隐私',
@@ -102,10 +78,6 @@ const localizedStrings = {
     'Preferred Language is managed by iOS because this app declares its supported languages.':
       '由于此应用声明了支持的语言，首选语言由 iOS 管理。',
     'Preferred Language': '首选语言',
-    'Background Measurement': '后台测量',
-    'Background microphone processing is enabled through the iOS audio background mode while measurement is running.':
-      '测量运行时，后台麦克风处理会通过 iOS 音频后台模式启用。',
-    'Allow Background Measurement': '允许后台测量',
   },
   'zh-Hant': {
     Privacy: '隱私權',
@@ -117,10 +89,6 @@ const localizedStrings = {
     'Preferred Language is managed by iOS because this app declares its supported languages.':
       '由於此 App 宣告了支援語言，偏好語言由 iOS 管理。',
     'Preferred Language': '偏好語言',
-    'Background Measurement': '背景測量',
-    'Background microphone processing is enabled through the iOS audio background mode while measurement is running.':
-      '測量執行時，背景麥克風處理會透過 iOS 音訊背景模式啟用。',
-    'Allow Background Measurement': '允許背景測量',
   },
   fr: {
     Privacy: 'Confidentialité',
@@ -132,10 +100,6 @@ const localizedStrings = {
     'Preferred Language is managed by iOS because this app declares its supported languages.':
       "La langue préférée est gérée par iOS, car cette app déclare ses langues prises en charge.",
     'Preferred Language': 'Langue préférée',
-    'Background Measurement': 'Mesure en arrière-plan',
-    'Background microphone processing is enabled through the iOS audio background mode while measurement is running.':
-      "Le traitement du micro en arrière-plan est activé par le mode audio en arrière-plan d'iOS pendant la mesure.",
-    'Allow Background Measurement': 'Autoriser la mesure en arrière-plan',
   },
   es: {
     Privacy: 'Privacidad',
@@ -147,10 +111,6 @@ const localizedStrings = {
     'Preferred Language is managed by iOS because this app declares its supported languages.':
       'El idioma preferido lo gestiona iOS porque esta app declara sus idiomas compatibles.',
     'Preferred Language': 'Idioma preferido',
-    'Background Measurement': 'Medición en segundo plano',
-    'Background microphone processing is enabled through the iOS audio background mode while measurement is running.':
-      'El procesamiento del micrófono en segundo plano se activa mediante el modo de audio en segundo plano de iOS durante la medición.',
-    'Allow Background Measurement': 'Permitir medición en segundo plano',
   },
 };
 

@@ -8,13 +8,13 @@ import {
 import { DEFAULT_CONFIG } from '@/audio/constants';
 import { useAdAccess } from '@/context/AdAccessContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useRecordingAppLifecycle } from '@/hooks/useRecordingAppLifecycle';
 import { useRecordingLogger } from '@/hooks/useRecordingLogger';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Tabs, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, TouchableOpacity } from 'react-native';
-import { useBackgroundRecordingNotification } from '../../hooks/useBackgroundRecordingNotification';
 
 function Decibella() {
   const { logo } = useTheme();
@@ -49,7 +49,7 @@ export default function TabsLayout() {
     disconnect: state.disconnect,
   }));
   useRecordingLogger();
-  useBackgroundRecordingNotification();
+  useRecordingAppLifecycle();
 
   useEffect(() => {
     connect(DEFAULT_CONFIG).catch(error => {
