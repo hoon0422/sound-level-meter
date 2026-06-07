@@ -48,6 +48,9 @@ module.exports = {
     },
     extra: {
       agentName,
+      amplitude: {
+        apiKey: process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY || '',
+      },
       router: {},
       eas: {
         projectId: 'fb9855b4-962b-4ef4-8939-83af8cd3b259',
