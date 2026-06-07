@@ -4,19 +4,18 @@ import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue
 import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import Surface from './Surface';
 
-const ROW_HEIGHT = 24;
+const ROW_HEIGHT = 26;
 const GUIDE_WIDTH = 320;
 const GUIDE_HEIGHT = 180;
-const GUIDE_VERTICAL_PADDING = 10;
-const GUIDE_CONTENT_HEIGHT = GUIDE_HEIGHT - GUIDE_VERTICAL_PADDING * 2;
+const GUIDE_CONTENT_HEIGHT = GUIDE_HEIGHT;
 const CURRENT_SLOT_TOP = (GUIDE_CONTENT_HEIGHT - ROW_HEIGHT) / 2;
 const RANGE_COUNT = 10;
 const DEFAULT_WHEEL_Y = (GUIDE_CONTENT_HEIGHT - RANGE_COUNT * ROW_HEIGHT) / 2;
-const OPACITY_INPUT_OFFSETS = [3, 2, 1, 0, -1, -2, -3];
-const OPACITY_OUTPUT_RANGE = [0.16, 0.3, 0.55, 1, 0.55, 0.3, 0.16];
+const OPACITY_INPUT_OFFSETS = [4, 3, 2, 1, 0, -1, -2, -3, -4];
+const OPACITY_OUTPUT_RANGE = [0, 0.2, 0.4, 0.6, 1, 0.8, 0.6, 0.2, 0];
 
 export default function SoundGuide() {
   const { colors } = useTheme();
@@ -49,7 +48,7 @@ export default function SoundGuide() {
       Animated.timing(animatedY, {
         toValue: nextY,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     }
   }, [activeIndex, animatedY, isFirstActiveIndex]);
@@ -71,6 +70,7 @@ export default function SoundGuide() {
         )}
         <Animated.View style={[styles.listContainer, { transform: [{ translateY: animatedY }] }]}>
           {ranges.map(range => {
+            const centeredY = CURRENT_SLOT_TOP - range.index * ROW_HEIGHT;
             const itemOpacityInterpolation = {
               opacity:
                 activeIndex !== undefined
@@ -87,30 +87,50 @@ export default function SoundGuide() {
                       extrapolate: 'clamp',
                     }),
             };
+            const centeredTextStyle =
+              activeIndex !== undefined
+                ? {
+                    color: animatedY.interpolate({
+                      inputRange: [centeredY - ROW_HEIGHT, centeredY, centeredY + ROW_HEIGHT],
+                      outputRange: [colors.inactive, colors.text, colors.inactive],
+                      extrapolate: 'clamp',
+                    }),
+                    fontSize: animatedY.interpolate({
+                      inputRange: [centeredY - ROW_HEIGHT, centeredY, centeredY + ROW_HEIGHT],
+                      outputRange: [12, 13, 12],
+                      extrapolate: 'clamp',
+                    }),
+                    lineHeight: animatedY.interpolate({
+                      inputRange: [centeredY - ROW_HEIGHT, centeredY, centeredY + ROW_HEIGHT],
+                      outputRange: [18, 20, 18],
+                      extrapolate: 'clamp',
+                    }),
+                  }
+                : { color: colors.inactive };
 
             return (
-              <View key={range.index} style={styles.row}>
+              <Animated.View key={range.index} style={[styles.row, itemOpacityInterpolation]}>
                 {/* DB Value Column */}
                 <View style={styles.dBLevelContainer}>
-                  <Animated.Text
-                    style={[styles.text, { color: colors.text }, itemOpacityInterpolation].filter(Boolean)}
-                  >
-                    {range.display}dB
-                  </Animated.Text>
+                  <Animated.Text style={[styles.text, centeredTextStyle]}>{range.display}dB</Animated.Text>
                 </View>
 
                 {/* Description Label */}
-                <Animated.View style={[styles.descriptionContainer, ...[itemOpacityInterpolation].filter(Boolean)]}>
-                  <View style={styles.iconContainer}>
-                    {React.isValidElement(range.icon)
-                      ? React.cloneElement(range.icon, { color: colors.text } as { color: string })
-                      : range.icon}
-                  </View>
-                  <Text style={[styles.text, { color: colors.text }]} numberOfLines={1}>
+                <View style={styles.iconContainer}>
+                  {React.isValidElement(range.icon)
+                    ? React.cloneElement(range.icon, {
+                        color: activeIndex !== undefined ? colors.text : colors.inactive,
+                        width: 16,
+                        height: 16,
+                      } as { color: string; width: number; height: number })
+                    : range.icon}
+                </View>
+                <View style={styles.descriptionContainer}>
+                  <Animated.Text style={[styles.text, centeredTextStyle]} numberOfLines={1}>
                     {range.label}
-                  </Text>
-                </Animated.View>
-              </View>
+                  </Animated.Text>
+                </View>
+              </Animated.View>
             );
           })}
         </Animated.View>
@@ -203,24 +223,24 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: GUIDE_WIDTH,
     height: GUIDE_HEIGHT,
-    paddingVertical: GUIDE_VERTICAL_PADDING,
+    borderRadius: 10,
+    padding: 10,
   },
   viewport: {
     flex: 1,
     overflow: 'hidden',
-    borderRadius: 11,
+    borderRadius: 10,
   },
   listContainer: {
-    paddingLeft: 68,
-    paddingRight: 20,
+    paddingHorizontal: 10,
   },
   currentSoundSlot: {
     position: 'absolute',
-    left: 7,
-    right: 7,
-    top: CURRENT_SLOT_TOP + 1,
-    height: ROW_HEIGHT - 1,
-    borderWidth: 1,
+    left: 8,
+    right: 8,
+    top: CURRENT_SLOT_TOP,
+    height: ROW_HEIGHT,
+    borderWidth: 0,
     shadowOffset: { width: 2, height: 1 },
     shadowOpacity: 1,
     shadowRadius: 0,
@@ -229,31 +249,27 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 0,
-    borderRadius: 6,
-    gap: 18,
     height: ROW_HEIGHT,
   },
   dBLevelContainer: {
-    width: 38,
+    width: 52,
     alignItems: 'flex-end',
+  },
+  iconContainer: {
+    width: 20,
+    height: 20,
+    marginLeft: 18,
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   descriptionContainer: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  iconContainer: {
-    width: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    minWidth: 0,
   },
   text: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 12,
-    lineHeight: 16,
+    lineHeight: 18,
   },
 });
