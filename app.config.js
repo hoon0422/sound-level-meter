@@ -2,6 +2,12 @@ const agentName = process.env.EXPO_AGENT_NAME || process.env.AGENT_NAME || '';
 const appEnvironment = process.env.APP_ENV || process.env.EAS_BUILD_PROFILE || 'development';
 const sentryOrganization = process.env.SENTRY_ORG || 'yh-sil-sound-meter';
 const sentryProject = process.env.SENTRY_PROJECT || 'sound-level-meter';
+const enableSentryInDev = process.env.EXPO_PUBLIC_SENTRY_ENABLE_IN_DEV === 'true';
+
+const readSampleRate = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 1 ? parsed : fallback;
+};
 const microphonePermissionMessage =
   'This app requires microphone access to measure and display real-time ambient sound levels. Audio data is used only for decibel calculation and is never recorded or stored.';
 
@@ -104,7 +110,12 @@ module.exports = {
         dsn:
           process.env.EXPO_PUBLIC_SENTRY_DSN ||
           'https://d0315ec2938cdade7fd57a030b9b291e@o4511522000142336.ingest.us.sentry.io/4511522001059840',
-        enabled: ['preview', 'production'].includes(appEnvironment),
+        enabled: enableSentryInDev || ['preview', 'production'].includes(appEnvironment),
+        enableInDev: enableSentryInDev,
+        tracesSampleRate: readSampleRate(
+          process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE,
+          appEnvironment === 'preview' ? 1 : 0.2
+        ),
       },
       adMob: {
         rewardedAdUnitIds: {

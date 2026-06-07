@@ -12,6 +12,7 @@ import {
   getSentryErrorAttributes,
   getSentryErrorMessage,
   logSentryError,
+  traceSentrySpan,
 } from '@/analytics/sentry';
 
 export type { AudioEngineConfig };
@@ -210,18 +211,41 @@ export class MicrophoneController {
     });
 
     try {
-      this.engine = await createMicrophoneEngine({
-        sampleRate: config.sampleRate,
-        fftSize: config.fftSize,
-        smoothingTimeConstant: config.smoothingTimeConstant,
-        minDecibels: config.minDecibels,
-        maxDecibels: config.maxDecibels,
-        autoResumeContext: config.autoResumeContext,
-        onAudioMetrics: this.handleAudioMetrics,
-      });
+      this.engine = await traceSentrySpan(
+        {
+          name: 'Create microphone engine',
+          op: 'audio.engine.create',
+          attributes: {
+            stateKey,
+            sampleRate: config.sampleRate,
+            fftSize: config.fftSize,
+          },
+        },
+        () =>
+          createMicrophoneEngine({
+            sampleRate: config.sampleRate,
+            fftSize: config.fftSize,
+            smoothingTimeConstant: config.smoothingTimeConstant,
+            minDecibels: config.minDecibels,
+            maxDecibels: config.maxDecibels,
+            autoResumeContext: config.autoResumeContext,
+            onAudioMetrics: this.handleAudioMetrics,
+          })
+      );
 
-      this.freqData = new Float32Array(this.engine.analyser.frequencyBinCount);
-      this.elapsedAccumulator = 0;
+      traceSentrySpan(
+        {
+          name: 'Allocate frequency buffer',
+          op: 'audio.engine.allocate',
+          attributes: {
+            frequencyBinCount: this.engine.analyser.frequencyBinCount,
+          },
+        },
+        () => {
+          this.freqData = new Float32Array(this.engine?.analyser.frequencyBinCount ?? 0);
+          this.elapsedAccumulator = 0;
+        }
+      );
 
       if (stateKey === 'isConnecting') {
         this.emitState(createIdleMicrophoneState(this.measurementSessionId));
@@ -261,7 +285,17 @@ export class MicrophoneController {
     }
 
     try {
-      startMicrophoneEngine();
+      traceSentrySpan(
+        {
+          name: 'Start native microphone recorder',
+          op: 'audio.engine.recorder.start',
+          attributes: {
+            sampleRate: config.sampleRate,
+            fftSize: config.fftSize,
+          },
+        },
+        () => startMicrophoneEngine()
+      );
       this.elapsedAccumulator = 0;
       this.measurementSessionId++;
       this.running = true;

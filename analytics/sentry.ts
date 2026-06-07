@@ -1,9 +1,13 @@
 import * as Sentry from '@sentry/react-native';
+import { isRunningInExpoGo } from 'expo';
 import Constants from 'expo-constants';
+import type { ComponentType } from 'react';
 
 type SentryExtraConfig = {
   dsn?: string;
+  enableInDev?: boolean;
   enabled?: boolean;
+  tracesSampleRate?: number;
 };
 
 type ExpoExtraConfig = {
@@ -13,16 +17,28 @@ type ExpoExtraConfig = {
 
 type SentryAttributeValue = string | number | boolean | null | undefined;
 type SentryAttributes = Record<string, SentryAttributeValue>;
+type SentrySpanAttributes = Record<string, string | number | boolean | undefined>;
 
 const extra = Constants.expoConfig?.extra as ExpoExtraConfig | undefined;
 const sentryConfig = extra?.sentry;
 const appEnvironment = extra?.appEnvironment ?? 'development';
-const isSentryEnabled = !__DEV__ && sentryConfig?.enabled === true && Boolean(sentryConfig.dsn);
+const isSentryEnabled =
+  (!__DEV__ || sentryConfig?.enableInDev === true) && sentryConfig?.enabled === true && Boolean(sentryConfig.dsn);
+const isExpoGo = isRunningInExpoGo();
+const navigationIntegration = Sentry.reactNavigationIntegration({
+  enableTimeToInitialDisplay: !isExpoGo,
+});
 
 let initialized = false;
 
 function compactAttributes(attributes: SentryAttributes = {}) {
   return Object.fromEntries(Object.entries(attributes).filter(([, value]) => value !== undefined));
+}
+
+function compactSpanAttributes(attributes: SentryAttributes = {}): SentrySpanAttributes {
+  return Object.fromEntries(
+    Object.entries(attributes).filter(([, value]) => value !== undefined && value !== null)
+  ) as SentrySpanAttributes;
 }
 
 function safeStringify(value: unknown) {
@@ -134,6 +150,11 @@ export function initializeSentry() {
   Sentry.init({
     dsn: sentryConfig?.dsn,
     environment: appEnvironment,
+    tracesSampleRate: sentryConfig?.tracesSampleRate ?? 0.2,
+    profilesSampleRate: 0,
+    enableNativeFramesTracking: !isExpoGo,
+    enableStallTracking: true,
+    enableUserInteractionTracing: true,
 
     // Adds more context data to events (IP address, cookies, user, etc.)
     // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
@@ -152,11 +173,22 @@ export function initializeSentry() {
     // Configure Session Replay
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1,
-    integrations: [Sentry.mobileReplayIntegration()],
+    integrations: [navigationIntegration, Sentry.mobileReplayIntegration()],
   });
 
   Sentry.setTag('app_environment', appEnvironment);
+  Sentry.setTag('expo_go', String(isExpoGo));
   initialized = true;
+}
+
+export function registerSentryNavigationContainer(ref: unknown) {
+  if (!isSentryEnabled || !ref) return;
+
+  navigationIntegration.registerNavigationContainer(ref);
+}
+
+export function wrapWithSentryRoot(Component: ComponentType<any>): ComponentType<any> {
+  return isSentryEnabled ? Sentry.wrap(Component) : Component;
 }
 
 export function addSentryBreadcrumb(message: string, attributes?: SentryAttributes) {
@@ -168,6 +200,43 @@ export function addSentryBreadcrumb(message: string, attributes?: SentryAttribut
     message,
     data: compactAttributes(attributes),
   });
+}
+
+type SentryTraceOptions = {
+  attributes?: SentryAttributes;
+  forceTransaction?: boolean;
+  name: string;
+  op?: string;
+};
+
+export function traceSentrySpan<T>(options: SentryTraceOptions, callback: () => T): T {
+  if (!isSentryEnabled) return callback();
+
+  return Sentry.startSpan(
+    {
+      name: options.name,
+      op: options.op,
+      forceTransaction: options.forceTransaction,
+      attributes: compactSpanAttributes(options.attributes),
+    },
+    callback
+  );
+}
+
+export function markSentryInteraction(name: string, attributes?: SentryAttributes) {
+  if (!isSentryEnabled) return;
+
+  addSentryBreadcrumb(name, attributes);
+
+  Sentry.startSpan(
+    {
+      name,
+      op: 'ui.action',
+      forceTransaction: true,
+      attributes: compactSpanAttributes(attributes),
+    },
+    () => undefined
+  );
 }
 
 export function logSentryInfo(message: string, attributes?: SentryAttributes) {

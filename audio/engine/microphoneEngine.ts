@@ -1,4 +1,10 @@
-import { captureSentryException, getSentryErrorAttributes, logSentryError, logSentryWarning } from '@/analytics/sentry';
+import {
+  captureSentryException,
+  getSentryErrorAttributes,
+  logSentryError,
+  logSentryWarning,
+  traceSentrySpan,
+} from '@/analytics/sentry';
 import {
   AnalyserNode,
   AudioContext,
@@ -41,50 +47,81 @@ export async function createMicrophoneEngine(options: CreateMicrophoneEngineOpti
     return microphoneEngine;
   }
 
-  const recordingInitialized = await initRecording();
+  const recordingInitialized = await traceSentrySpan(
+    {
+      name: 'Initialize recording permissions',
+      op: 'audio.permission.init',
+    },
+    () => initRecording()
+  );
   if (!recordingInitialized) {
     throw new Error('Failed to initialize recording');
   }
 
-  const audioContext = new AudioContext({ sampleRate: options.sampleRate });
-  const recorder = new AudioRecorder();
+  const audioContext = traceSentrySpan(
+    {
+      name: 'Create audio context',
+      op: 'audio.context.create',
+      attributes: {
+        sampleRate: options.sampleRate,
+      },
+    },
+    () => new AudioContext({ sampleRate: options.sampleRate })
+  );
+  const recorder = traceSentrySpan(
+    {
+      name: 'Create audio recorder',
+      op: 'audio.recorder.create',
+    },
+    () => new AudioRecorder()
+  );
   const analyser = audioContext.createAnalyser();
   const adapter = audioContext.createRecorderAdapter();
-  const workletNode = audioContext.createWorkletNode(
-    (audioData, inputChannelCount) => {
-      'worklet';
-
-      const channelCount = Math.max(inputChannelCount, 1);
-      const frameCount = audioData[0]?.length ?? 0;
-      if (frameCount === 0) {
-        return;
-      }
-
-      let sum = 0;
-      for (let channel = 0; channel < channelCount; channel++) {
-        const samples = audioData[channel];
-        if (!samples) {
-          continue;
-        }
-
-        for (let i = 0; i < samples.length; i++) {
-          const sample = samples[i];
-          sum += sample * sample;
-        }
-      }
-
-      const rms = Math.sqrt(sum / (frameCount * channelCount));
-      const dbfs = rms <= 1e-8 ? -100 : Math.max(20 * Math.log10(rms), -100);
-      const elapsedSeconds = frameCount / options.sampleRate;
-
-      scheduleOnRN(options.onAudioMetrics, {
-        dbfs,
-        elapsedSeconds,
-      });
+  const workletNode = traceSentrySpan(
+    {
+      name: 'Create audio worklet node',
+      op: 'audio.worklet.create',
+      attributes: {
+        fftSize: options.fftSize,
+      },
     },
-    options.fftSize,
-    1,
-    'AudioRuntime'
+    () =>
+      audioContext.createWorkletNode(
+        (audioData, inputChannelCount) => {
+          'worklet';
+
+          const channelCount = Math.max(inputChannelCount, 1);
+          const frameCount = audioData[0]?.length ?? 0;
+          if (frameCount === 0) {
+            return;
+          }
+
+          let sum = 0;
+          for (let channel = 0; channel < channelCount; channel++) {
+            const samples = audioData[channel];
+            if (!samples) {
+              continue;
+            }
+
+            for (let i = 0; i < samples.length; i++) {
+              const sample = samples[i];
+              sum += sample * sample;
+            }
+          }
+
+          const rms = Math.sqrt(sum / (frameCount * channelCount));
+          const dbfs = rms <= 1e-8 ? -100 : Math.max(20 * Math.log10(rms), -100);
+          const elapsedSeconds = frameCount / options.sampleRate;
+
+          scheduleOnRN(options.onAudioMetrics, {
+            dbfs,
+            elapsedSeconds,
+          });
+        },
+        options.fftSize,
+        1,
+        'AudioRuntime'
+      )
   );
   const muteGain = audioContext.createGain();
 
@@ -101,7 +138,13 @@ export async function createMicrophoneEngine(options: CreateMicrophoneEngineOpti
   muteGain.connect(audioContext.destination);
 
   if (options.autoResumeContext && audioContext.state === 'suspended') {
-    await audioContext.resume();
+    await traceSentrySpan(
+      {
+        name: 'Resume audio context',
+        op: 'audio.context.resume',
+      },
+      () => audioContext.resume()
+    );
   }
 
   // const startResult = recorder.start();

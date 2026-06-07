@@ -1,4 +1,10 @@
-import { captureSentryException, getSentryErrorAttributes, logSentryError, logSentryWarning } from '@/analytics/sentry';
+import {
+  captureSentryException,
+  getSentryErrorAttributes,
+  logSentryError,
+  logSentryWarning,
+  traceSentrySpan,
+} from '@/analytics/sentry';
 import {
   showMicrophonePermissionDeniedAlert,
   showMicrophonePermissionRationale,
@@ -7,7 +13,13 @@ import { Alert, Linking, Platform } from 'react-native';
 import { AudioManager } from 'react-native-audio-api';
 
 export async function hasRecordingPermission() {
-  const status = await AudioManager.checkRecordingPermissions();
+  const status = await traceSentrySpan(
+    {
+      name: 'Check microphone permission',
+      op: 'audio.permission.check',
+    },
+    () => AudioManager.checkRecordingPermissions()
+  );
   return status === 'Granted';
 }
 
@@ -15,7 +27,13 @@ export async function requestRecordingSession(options: { showDeniedAlert?: boole
   if (!(await hasRecordingPermission())) {
     await showMicrophonePermissionRationale();
 
-    const permission = await AudioManager.requestRecordingPermissions();
+    const permission = await traceSentrySpan(
+      {
+        name: 'Request microphone permission',
+        op: 'audio.permission.request',
+      },
+      () => AudioManager.requestRecordingPermissions()
+    );
     if (permission !== 'Granted') {
       logSentryWarning('Microphone permission denied', {
         permission,
@@ -32,7 +50,13 @@ export async function requestRecordingSession(options: { showDeniedAlert?: boole
   }
 
   if (Platform.OS === 'android') {
-    const notificationPermission = await AudioManager.requestNotificationPermissions();
+    const notificationPermission = await traceSentrySpan(
+      {
+        name: 'Request notification permission',
+        op: 'notification.permission.request',
+      },
+      () => AudioManager.requestNotificationPermissions()
+    );
     if (notificationPermission !== 'Granted') {
       logSentryWarning('Notification permission denied for background recording', {
         permission: notificationPermission,
@@ -61,12 +85,26 @@ export async function requestRecordingSession(options: { showDeniedAlert?: boole
     }
   }
 
-  AudioManager.setAudioSessionOptions({
-    iosCategory: 'playAndRecord',
-    iosMode: 'measurement',
-  });
+  traceSentrySpan(
+    {
+      name: 'Set audio session options',
+      op: 'audio.session.configure',
+    },
+    () => {
+      AudioManager.setAudioSessionOptions({
+        iosCategory: 'playAndRecord',
+        iosMode: 'measurement',
+      });
+    }
+  );
 
-  const sessionActivated = await AudioManager.setAudioSessionActivity(true);
+  const sessionActivated = await traceSentrySpan(
+    {
+      name: 'Activate audio session',
+      op: 'audio.session.activate',
+    },
+    () => AudioManager.setAudioSessionActivity(true)
+  );
   if (!sessionActivated) {
     logSentryWarning('Audio session activation failed');
 

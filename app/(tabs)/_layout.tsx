@@ -1,5 +1,10 @@
 import { APP_ANALYTICS_EVENTS, trackAppEvent } from '@/analytics/events';
-import { captureSentryException, getSentryErrorAttributes, logSentryError } from '@/analytics/sentry';
+import {
+  captureSentryException,
+  getSentryErrorAttributes,
+  logSentryError,
+  markSentryInteraction,
+} from '@/analytics/sentry';
 import { DEFAULT_CONFIG } from '@/audio/constants';
 import { useAdAccess } from '@/context/AdAccessContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -21,6 +26,9 @@ function SettingsButton() {
   const { colors } = useTheme();
   const openSettings = () => {
     trackAppEvent(APP_ANALYTICS_EVENTS.settingClicked);
+    markSentryInteraction('Settings button pressed', {
+      target: 'settings',
+    });
     router.push('/settings');
   };
 
@@ -95,7 +103,13 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="db-time"
         listeners={{
-          tabPress: () => trackAppEvent(APP_ANALYTICS_EVENTS.dbTimeClicked),
+          tabPress: () => {
+            trackAppEvent(APP_ANALYTICS_EVENTS.dbTimeClicked);
+            markSentryInteraction('Tab button pressed', {
+              target: 'db-time',
+              gated: false,
+            });
+          },
         }}
         options={{
           title: t('tabs.dbTime'),
@@ -111,7 +125,13 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="db-freq"
         listeners={{
-          tabPress: () => trackAppEvent(APP_ANALYTICS_EVENTS.fqButtonClicked),
+          tabPress: () => {
+            trackAppEvent(APP_ANALYTICS_EVENTS.fqButtonClicked);
+            markSentryInteraction('Tab button pressed', {
+              target: 'db-freq',
+              gated: false,
+            });
+          },
         }}
         options={{
           title: t('tabs.dbFreq'),
@@ -129,6 +149,11 @@ export default function TabsLayout() {
         listeners={{
           tabPress: event => {
             trackAppEvent(APP_ANALYTICS_EVENTS.gdButtonClicked);
+            markSentryInteraction('Tab button pressed', {
+              target: 'sound-guide',
+              gated: true,
+              hasAccess,
+            });
 
             if (hasAccess) {
               return;
@@ -154,6 +179,11 @@ export default function TabsLayout() {
         listeners={{
           tabPress: event => {
             trackAppEvent(APP_ANALYTICS_EVENTS.recordButtonClicked);
+            markSentryInteraction('Tab button pressed', {
+              target: 'log',
+              gated: true,
+              hasAccess,
+            });
 
             if (hasAccess) {
               return;
