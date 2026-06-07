@@ -1,5 +1,5 @@
 import { captureSentryException, getSentryErrorAttributes, logSentryError, logSentryWarning } from '@/analytics/sentry';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import { AudioManager } from 'react-native-audio-api';
 
 export async function hasRecordingPermission() {
@@ -28,6 +28,36 @@ export async function requestRecordingSession(options: { showDeniedAlert?: boole
                 );
                 captureSentryException(error, 'Failed to open app settings from microphone permission alert', {
                   source: 'recording_permission_alert',
+                });
+              });
+            },
+          },
+        ]);
+      }
+      return false;
+    }
+  }
+
+  if (Platform.OS === 'android') {
+    const notificationPermission = await AudioManager.requestNotificationPermissions();
+    if (notificationPermission !== 'Granted') {
+      logSentryWarning('Notification permission denied for background recording', {
+        permission: notificationPermission,
+      });
+
+      if (options.showDeniedAlert) {
+        Alert.alert('Notification permission is required for background recording.', undefined, [
+          { text: 'OK' },
+          {
+            text: 'Open settings',
+            onPress: () => {
+              Linking.openSettings().catch(error => {
+                logSentryError(
+                  'Failed to open app settings from notification permission alert',
+                  getSentryErrorAttributes(error)
+                );
+                captureSentryException(error, 'Failed to open app settings from notification permission alert', {
+                  source: 'notification_permission_alert',
                 });
               });
             },
