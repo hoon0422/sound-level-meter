@@ -1,3 +1,12 @@
+import {
+  addSentryBreadcrumb,
+  captureSentryException,
+  getSentryErrorAttributes,
+  getSentryErrorMessage,
+  logSentryError,
+  logSentryInfo,
+  logSentryWarning,
+} from '@/analytics/sentry';
 import { useTheme } from '@/context/ThemeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -66,10 +75,28 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
 
   const hasAccess = accessUntil > now;
 
+  const showRewardedAd = useCallback((rewardedAd: RewardedAd, source: string) => {
+    rewardedAd.show({ immersiveModeEnabled: true }).catch(error => {
+      const message = getSentryErrorMessage(error, 'Failed to show rewarded ad');
+      logSentryError('Rewarded ad show failed', {
+        source,
+        ...getSentryErrorAttributes(error),
+      });
+      captureSentryException(error, 'Failed to show rewarded ad', {
+        source,
+      });
+      setIsAdLoading(false);
+      setAdError(message);
+    });
+  }, []);
+
   const grantAccess = useCallback(() => {
     const nextAccessUntil = Date.now() + ACCESS_DURATION_MS;
     setAccessUntil(nextAccessUntil);
-    void AsyncStorage.setItem(ACCESS_UNTIL_KEY, String(nextAccessUntil));
+    AsyncStorage.setItem(ACCESS_UNTIL_KEY, String(nextAccessUntil)).catch(error => {
+      logSentryWarning('Failed to persist ad access grant', getSentryErrorAttributes(error));
+      captureSentryException(error, 'Failed to persist ad access grant');
+    });
     setPromptReason(null);
     setAdError(null);
 
@@ -90,7 +117,12 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void mobileAds().initialize();
+    mobileAds()
+      .initialize()
+      .catch(error => {
+        logSentryWarning('Google Mobile Ads initialization failed', getSentryErrorAttributes(error));
+        captureSentryException(error, 'Google Mobile Ads initialization failed');
+      });
 
     const storedAccess = async () => {
       const stored = await AsyncStorage.getItem(ACCESS_UNTIL_KEY);
@@ -100,7 +132,10 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    void storedAccess();
+    storedAccess().catch(error => {
+      logSentryWarning('Failed to restore ad access grant', getSentryErrorAttributes(error));
+      captureSentryException(error, 'Failed to restore ad access grant');
+    });
   }, []);
 
   useEffect(() => {
@@ -123,11 +158,12 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
 
       if (shouldShowWhenLoadedRef.current) {
         shouldShowWhenLoadedRef.current = false;
-        void rewardedAd.show({ immersiveModeEnabled: true });
+        showRewardedAd(rewardedAd, 'loaded_event');
       }
     });
 
     const unsubscribeEarnedReward = rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+      addSentryBreadcrumb('Rewarded ad reward earned');
       didEarnRewardRef.current = true;
     });
 
@@ -140,6 +176,7 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       setAdCycle(cycle => cycle + 1);
 
       if (didEarnReward) {
+        logSentryInfo('Rewarded ad completed');
         InteractionManager.runAfterInteractions(() => {
           grantAccess();
         });
@@ -147,11 +184,19 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
     });
 
     const unsubscribeError = rewardedAd.addAdEventListener(AdEventType.ERROR, error => {
+      const adUnitId = getRewardedAdUnitId();
+      logSentryWarning('Rewarded ad error', {
+        ...getSentryErrorAttributes(error),
+        adUnitId,
+      });
+      captureSentryException(error, 'Rewarded ad error', {
+        adUnitId,
+      });
       adLoadedRef.current = false;
       didEarnRewardRef.current = false;
       shouldShowWhenLoadedRef.current = false;
       setIsAdLoading(false);
-      setAdError(error.message);
+      setAdError(getSentryErrorMessage(error, t('adAccess.error')));
     });
 
     rewardedAd.load();
@@ -163,7 +208,7 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       unsubscribeError();
       rewardedAd.removeAllListeners();
     };
-  }, [adCycle, grantAccess]);
+  }, [adCycle, grantAccess, showRewardedAd, t]);
 
   const ensureAccess = useCallback(
     (reason: AdAccessReason, onGranted?: () => void) => {
@@ -182,18 +227,25 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
   const handleWatchAd = () => {
     const rewardedAd = rewardedAdRef.current;
     if (!rewardedAd) {
+      logSentryWarning('Rewarded ad unavailable when user requested access');
       setAdError(t('adAccess.error'));
       return;
     }
 
     if (adLoadedRef.current) {
+      addSentryBreadcrumb('Rewarded ad show requested', {
+        state: 'loaded',
+      });
       adLoadedRef.current = false;
       setAdError(null);
-      void rewardedAd.show({ immersiveModeEnabled: true });
+      showRewardedAd(rewardedAd, 'watch_button');
       return;
     }
 
     shouldShowWhenLoadedRef.current = true;
+    addSentryBreadcrumb('Rewarded ad load requested', {
+      state: 'not_loaded',
+    });
     loadRewardedAd();
   };
 

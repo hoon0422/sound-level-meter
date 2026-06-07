@@ -1,3 +1,9 @@
+import {
+  addSentryBreadcrumb,
+  captureSentryException,
+  getSentryErrorAttributes,
+  logSentryError,
+} from '@/analytics/sentry';
 import { useTheme } from '@/context/ThemeContext';
 import { navigateBackFromSettings } from '@/navigation/settings';
 import { Ionicons } from '@expo/vector-icons';
@@ -93,10 +99,21 @@ export default function SunnyAppsPage() {
   const iconSize = isTablet ? 60 : 52;
 
   const handleAppPress = async (url: string) => {
+    addSentryBreadcrumb('Sunny app link pressed', {
+      url,
+    });
+
     try {
       await Linking.openURL(url);
-    } catch (error: any) {
-      Alert.alert(t('settings.linkErrorTitle'), error.message);
+    } catch (error: unknown) {
+      logSentryError('Failed to open Sunny app link', {
+        ...getSentryErrorAttributes(error),
+        url,
+      });
+      captureSentryException(error, 'Failed to open Sunny app link', {
+        url,
+      });
+      Alert.alert(t('settings.linkErrorTitle'), error instanceof Error ? error.message : t('settings.linkErrorTitle'));
     }
   };
 

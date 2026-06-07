@@ -7,6 +7,12 @@ import {
   startMicrophoneEngine,
   stopMicrophoneEngine,
 } from './engine';
+import {
+  captureSentryException,
+  getSentryErrorAttributes,
+  getSentryErrorMessage,
+  logSentryError,
+} from '@/analytics/sentry';
 
 export type { AudioEngineConfig };
 
@@ -222,7 +228,16 @@ export class MicrophoneController {
       }
       return true;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      const message = getSentryErrorMessage(error, 'Unknown microphone engine preparation error occurred');
+      logSentryError('Microphone engine preparation failed', {
+        ...getSentryErrorAttributes(error),
+        stateKey,
+      });
+      captureSentryException(error, 'Microphone engine preparation failed', {
+        stateKey,
+        sampleRate: config.sampleRate,
+        fftSize: config.fftSize,
+      });
       this.emitState({
         ...createIdleMicrophoneState(this.measurementSessionId, this.elapsedAccumulator),
         error: message,
@@ -257,11 +272,22 @@ export class MicrophoneController {
       });
       return true;
     } catch (error) {
-      console.error(error);
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      const message = getSentryErrorMessage(error, 'Unknown microphone engine start error occurred');
+      logSentryError('Microphone engine start failed', {
+        ...getSentryErrorAttributes(error),
+      });
+      captureSentryException(error, 'Microphone engine start failed', {
+        sampleRate: config.sampleRate,
+        fftSize: config.fftSize,
+      });
       const heldElapsedSeconds = this.elapsedAccumulator;
       this.running = false;
-      await disconnectMicrophoneEngine();
+      try {
+        await disconnectMicrophoneEngine();
+      } catch (disconnectError) {
+        logSentryError('Microphone cleanup after start failure failed', getSentryErrorAttributes(disconnectError));
+        captureSentryException(disconnectError, 'Microphone cleanup after start failure failed');
+      }
       this.engine = null;
       this.freqData = null;
       this.elapsedAccumulator = heldElapsedSeconds;

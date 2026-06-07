@@ -1,4 +1,7 @@
 const agentName = process.env.EXPO_AGENT_NAME || process.env.AGENT_NAME || '';
+const appEnvironment = process.env.APP_ENV || process.env.EAS_BUILD_PROFILE || 'development';
+const sentryOrganization = process.env.SENTRY_ORG || 'yh-sil-sound-meter';
+const sentryProject = process.env.SENTRY_PROJECT || 'sound-level-meter';
 
 module.exports = {
   expo: {
@@ -34,6 +37,13 @@ module.exports = {
     plugins: [
       'expo-router',
       [
+        '@sentry/react-native/expo',
+        {
+          organization: sentryOrganization,
+          project: sentryProject,
+        },
+      ],
+      [
         'react-native-audio-api',
         {
           iosMicrophonePermission: 'This app needs microphone access for audio analysis.',
@@ -64,9 +74,16 @@ module.exports = {
       reactCompiler: true,
     },
     extra: {
+      appEnvironment,
       agentName,
       amplitude: {
         apiKey: process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY || '',
+      },
+      sentry: {
+        dsn:
+          process.env.EXPO_PUBLIC_SENTRY_DSN ||
+          'https://d0315ec2938cdade7fd57a030b9b291e@o4511522000142336.ingest.us.sentry.io/4511522001059840',
+        enabled: ['preview', 'production'].includes(appEnvironment),
       },
       adMob: {
         rewardedAdUnitIds: {

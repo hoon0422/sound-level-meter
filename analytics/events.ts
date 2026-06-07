@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { init, track } from '@amplitude/analytics-react-native';
+import { addSentryBreadcrumb } from './sentry';
 
 export const APP_ANALYTICS_EVENTS = {
   startButtonClicked: 'Start_button_clicked',
@@ -41,6 +42,10 @@ export function initializeAnalytics() {
 }
 
 export function trackAppEvent(eventType: AppAnalyticsEvent) {
+  addSentryBreadcrumb(eventType, {
+    app_environment: analyticsEnvironment,
+  });
+
   if (!initialized) initializeAnalytics();
   if (!initialized) return;
 

@@ -1,3 +1,9 @@
+import {
+  addSentryBreadcrumb,
+  captureSentryException,
+  getSentryErrorAttributes,
+  logSentryError,
+} from '@/analytics/sentry';
 import React from 'react';
 import {
   View,
@@ -71,10 +77,21 @@ export default function OpenSourcePage() {
   const nameFontSize = isTablet ? 17 : 15;
 
   const handleLinkPress = async (url: string) => {
+    addSentryBreadcrumb('Open source package link pressed', {
+      url,
+    });
+
     try {
       await Linking.openURL(url);
-    } catch (error: any) {
-      Alert.alert(t('settings.linkErrorTitle'), error.message);
+    } catch (error: unknown) {
+      logSentryError('Failed to open open-source package link', {
+        ...getSentryErrorAttributes(error),
+        url,
+      });
+      captureSentryException(error, 'Failed to open open-source package link', {
+        url,
+      });
+      Alert.alert(t('settings.linkErrorTitle'), error instanceof Error ? error.message : t('settings.linkErrorTitle'));
     }
   };
 

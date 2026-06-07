@@ -1,3 +1,4 @@
+import { captureSentryException, getSentryErrorAttributes, logSentryError } from '@/analytics/sentry';
 import { DEFAULT_CONFIG } from '@/audio/constants';
 import { requestRecordingSession } from '@/audio/recordingSession';
 import { useTheme } from '@/context/ThemeContext';
@@ -197,32 +198,43 @@ export default function CalibrationPage() {
     let isActive = true;
 
     async function startTemporaryMeasurementIfNeeded() {
-      if (audioMeterStore.getState().isRunning) {
-        return;
-      }
-
-      const canRecord = await requestRecordingSession();
-      if (!isActive) return;
-      setHasMicAccess(canRecord);
-      if (!canRecord) {
-        return;
-      }
-
-      configureSpectrum(DEFAULT_CONFIG);
-      configureAudioMetrics(DEFAULT_CONFIG);
-      const didStart = await start(DEFAULT_CONFIG);
-      if (!isActive) {
-        if (didStart) {
-          markNextRecordingStopAsTemporary();
-          stop();
+      try {
+        if (audioMeterStore.getState().isRunning) {
+          return;
         }
-        return;
-      }
 
-      startedTemporaryMeasurementRef.current = didStart;
+        const canRecord = await requestRecordingSession();
+        if (!isActive) return;
+        setHasMicAccess(canRecord);
+        if (!canRecord) {
+          return;
+        }
+
+        configureSpectrum(DEFAULT_CONFIG);
+        configureAudioMetrics(DEFAULT_CONFIG);
+        const didStart = await start(DEFAULT_CONFIG);
+        if (!isActive) {
+          if (didStart) {
+            markNextRecordingStopAsTemporary();
+            stop();
+          }
+          return;
+        }
+
+        startedTemporaryMeasurementRef.current = didStart;
+      } catch (error) {
+        logSentryError('Calibration temporary measurement start failed', getSentryErrorAttributes(error));
+        captureSentryException(error, 'Calibration temporary measurement start failed');
+        if (isActive) {
+          setHasMicAccess(false);
+        }
+      }
     }
 
-    void startTemporaryMeasurementIfNeeded();
+    startTemporaryMeasurementIfNeeded().catch(error => {
+      logSentryError('Calibration temporary measurement task failed', getSentryErrorAttributes(error));
+      captureSentryException(error, 'Calibration temporary measurement task failed');
+    });
 
     return () => {
       isActive = false;
