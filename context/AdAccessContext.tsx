@@ -8,6 +8,7 @@ import {
   logSentryWarning,
 } from '@/analytics/sentry';
 import { useTheme } from '@/context/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -272,6 +273,15 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
               },
             ]}
           >
+            <Pressable
+              accessibilityLabel="Close ad prompt"
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={handleClosePrompt}
+              style={styles.closeButton}
+            >
+              <Ionicons name="close" size={24} color={colors.text} />
+            </Pressable>
             <View style={[styles.badge, { backgroundColor: colors.soundGuideSlot, borderColor: colors.border }]}>
               <Text style={styles.badgeIcon}>AD</Text>
             </View>
@@ -283,13 +293,6 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
             </View>
             {adError && <Text style={[styles.errorText, { color: colors.loud }]}>{t('adAccess.error')}</Text>}
             <View style={styles.actions}>
-              <Pressable
-                accessibilityRole="button"
-                onPress={handleClosePrompt}
-                style={[styles.secondaryButton, { borderColor: colors.border }]}
-              >
-                <Text style={[styles.secondaryButtonText, { color: colors.text }]}>{t('adAccess.notNow')}</Text>
-              </Pressable>
               <Pressable
                 accessibilityRole="button"
                 onPress={handleWatchAd}
@@ -329,10 +332,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 18,
     padding: 22,
+    paddingTop: 28,
     gap: 12,
+    position: 'relative',
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
   },
   badge: {
     width: 52,
@@ -391,18 +406,6 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  secondaryButton: {
-    flex: 1,
-    minHeight: 46,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  secondaryButtonText: {
     fontSize: 15,
     fontWeight: '700',
   },
