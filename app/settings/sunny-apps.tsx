@@ -14,7 +14,6 @@ import {
   Alert,
   Image,
   Linking,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -28,8 +27,6 @@ type SunnyApp = {
   name: string;
   icon?: ReturnType<typeof require>;
   url: string;
-  iosUrl?: string;
-  androidUrl?: string;
 };
 
 const APPS: SunnyApp[] = [
@@ -52,6 +49,11 @@ const APPS: SunnyApp[] = [
     name: 'Simply Multi Timer',
     icon: require('@/assets/app_icons/simplyMultiTimer.png'),
     url: 'https://simplymultitimer.onelink.me/6kU2/v7i9ke1m',
+  },
+  {
+    name: 'Watermelon Check',
+    icon: require('@/assets/app_icons/watermelonCheck.jpg'),
+    url: 'https://watermelonchecker.onelink.me/zF1F/obulncrt',
   },
   {
     name: 'Wisdom Qclock',
@@ -84,24 +86,9 @@ const APPS: SunnyApp[] = [
     icon: require('@/assets/app_icons/decibella.png'),
     url: 'https://decibella.onelink.me/Ve6i/vydwhkh4',
   },
-  {
-    name: 'Watermelon Check',
-    icon: require('@/assets/app_icons/watermelonCheck.jpg'),
-    url: 'https://apps.apple.com/us/app/watermelon-checker/id6771640605',
-    iosUrl: 'https://apps.apple.com/us/app/watermelon-checker/id6771640605',
-    androidUrl: 'https://play.google.com/store/apps/details?id=com.sunny.watermelonchecker&pli=1',
-  },
 ];
 
 const getAppUrl = (app: SunnyApp) => {
-  if (Platform.OS === 'ios' && app.iosUrl) {
-    return app.iosUrl;
-  }
-
-  if (Platform.OS === 'android' && app.androidUrl) {
-    return app.androidUrl;
-  }
-
   return app.url;
 };
 
