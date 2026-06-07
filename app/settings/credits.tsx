@@ -211,6 +211,7 @@ const styles = StyleSheet.create({
   longNameText: {
     flex: 0,
     width: '100%',
+    textAlign: 'left',
   },
   sunnyBannerLogoImage: {
     height: 70,
