@@ -36,9 +36,8 @@ function getFlameIdx(db: number): number {
 // ─── Types ───────────────────────────────────────────────────────────────────
 type GamePhase = 'idle' | 'ascending' | 'descending' | 'landed';
 
-// Module-level state — survives tab switches (remounts)
 let _phase: GamePhase = 'idle';
-let _position = 0; // 0 = ground, trackHeight = moon
+let _position = 0;
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export function RocketGamePage() {
@@ -51,9 +50,7 @@ export function RocketGamePage() {
   const posRef = useRef(_position);
   const trackRef = useRef(0);
   const containerHRef = useRef(0);
-  // top = containerH - ROCKET_H - position
-  //   pos=0 → rocket at bottom (ground)
-  //   pos=trackH → rocket just below moon
+
   const topAnim = useRef(new Animated.Value(0)).current;
   const congratsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -137,7 +134,7 @@ export function RocketGamePage() {
         topAnim.setValue(h - ROCKET_H - posRef.current);
       }}
     >
-      {/* Moon at top (hidden only during landing) */}
+      {/* Moon: hidden during congrats & landing */}
       {!isLanded && (
         <Image
           source={require('@/assets/rocket/moon.png')}
