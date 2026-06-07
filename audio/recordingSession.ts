@@ -4,7 +4,6 @@ import {
 } from '@/analytics/sentry';
 import {
   showMicrophonePermissionDeniedAlert,
-  showMicrophonePermissionRationale,
 } from '@/audio/microphonePermissionAlerts';
 import { Alert } from 'react-native';
 import { AudioManager } from 'react-native-audio-api';
@@ -22,8 +21,6 @@ export async function hasRecordingPermission() {
 
 export async function requestRecordingSession(options: { showDeniedAlert?: boolean } = {}) {
   if (!(await hasRecordingPermission())) {
-    await showMicrophonePermissionRationale();
-
     const permission = await traceSentrySpan(
       {
         name: 'Request microphone permission',
