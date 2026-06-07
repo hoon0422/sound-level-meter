@@ -15,6 +15,7 @@ import {
   Alert,
   Image,
   Linking,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -61,7 +62,7 @@ export default function SettingsPage() {
 
   const updateTheme = (val: 'Dark' | 'Light') => setTheme(val === 'Dark' ? 'dark' : 'light');
 
-  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
 
   const { width: screenWidth } = useWindowDimensions();
   const isTablet = screenWidth >= 768;
@@ -178,14 +179,16 @@ export default function SettingsPage() {
         fontWeight: '600',
       },
       languageList: {
-        backgroundColor: colors.background,
+        backgroundColor: colors.surface,
+        borderRadius: 8,
+        overflow: 'hidden',
       },
       languageOptionItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingVertical: isTablet ? 16 : 12,
-        paddingHorizontal: basePadding,
+        paddingHorizontal: isTablet ? 24 : 20,
         borderBottomWidth: 1,
         borderBottomColor: colors.border,
       },
@@ -198,6 +201,29 @@ export default function SettingsPage() {
       },
       selectedLanguageText: {
         color: colors.primary,
+        fontWeight: '600',
+      },
+      languageModalContent: {
+        width: '100%',
+        maxWidth: isTablet ? 420 : 340,
+        backgroundColor: colors.surface,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: colors.border,
+        overflow: 'hidden',
+      },
+      languageModalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: isTablet ? 24 : 20,
+        paddingVertical: isTablet ? 18 : 16,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+      },
+      languageModalTitle: {
+        fontSize: labelFontSize,
+        color: colors.text,
         fontWeight: '600',
       },
       versionText: {
@@ -295,47 +321,17 @@ export default function SettingsPage() {
         </TouchableOpacity>
 
         {/* Language */}
-        <View>
-          <TouchableOpacity
-            style={dynamicStyles.settingItem}
-            activeOpacity={0.7}
-            onPress={() => setIsLanguageOpen(!isLanguageOpen)}
-          >
-            <Text style={dynamicStyles.settingLabel}>{t('settings.language')}</Text>
-            <View style={styles.languageContainer}>
-              <Text style={dynamicStyles.languageValue}>{LANGUAGE_OPTIONS.find(o => o.value === language)?.label}</Text>
-              <Ionicons name={isLanguageOpen ? 'chevron-up' : 'chevron-down'} size={20} color={colors.arrows} />
-            </View>
-          </TouchableOpacity>
-
-          {isLanguageOpen && (
-            <View style={dynamicStyles.languageList}>
-              {LANGUAGE_OPTIONS.map(option => (
-                <TouchableOpacity
-                  key={option.label}
-                  style={[
-                    dynamicStyles.languageOptionItem,
-                    language === option.value && dynamicStyles.selectedLanguageOption,
-                  ]}
-                  onPress={() => {
-                    setLanguage(option.value);
-                    setIsLanguageOpen(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      dynamicStyles.languageOptionText,
-                      language === option.value && dynamicStyles.selectedLanguageText,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                  {language === option.value && <Ionicons name="checkmark" size={20} color={colors.arrows} />}
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
+        <TouchableOpacity
+          style={dynamicStyles.settingItem}
+          activeOpacity={0.7}
+          onPress={() => setIsLanguageModalOpen(true)}
+        >
+          <Text style={dynamicStyles.settingLabel}>{t('settings.language')}</Text>
+          <View style={styles.languageContainer}>
+            <Text style={dynamicStyles.languageValue}>{LANGUAGE_OPTIONS.find(o => o.value === language)?.label}</Text>
+            <Ionicons name="chevron-forward" size={24} color={colors.arrows} />
+          </View>
+        </TouchableOpacity>
 
         {/* Theme */}
         <View style={dynamicStyles.settingItem}>
@@ -459,6 +455,60 @@ export default function SettingsPage() {
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={isLanguageModalOpen}
+        onRequestClose={() => setIsLanguageModalOpen(false)}
+      >
+        <View style={styles.languageModalOverlay}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            activeOpacity={1}
+            style={StyleSheet.absoluteFill}
+            onPress={() => setIsLanguageModalOpen(false)}
+          />
+          <View style={dynamicStyles.languageModalContent}>
+            <View style={dynamicStyles.languageModalHeader}>
+              <Text style={dynamicStyles.languageModalTitle}>{t('settings.language')}</Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                activeOpacity={0.7}
+                style={styles.languageModalCloseButton}
+                onPress={() => setIsLanguageModalOpen(false)}
+              >
+                <Ionicons name="close" size={22} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            <View style={dynamicStyles.languageList}>
+              {LANGUAGE_OPTIONS.map(option => (
+                <TouchableOpacity
+                  key={option.label}
+                  style={[
+                    dynamicStyles.languageOptionItem,
+                    language === option.value && dynamicStyles.selectedLanguageOption,
+                  ]}
+                  onPress={() => {
+                    setLanguage(option.value);
+                    setIsLanguageModalOpen(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      dynamicStyles.languageOptionText,
+                      language === option.value && dynamicStyles.selectedLanguageText,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {language === option.value && <Ionicons name="checkmark" size={20} color={colors.arrows} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -480,6 +530,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  languageModalOverlay: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  },
+  languageModalCloseButton: {
+    padding: 4,
+    marginRight: -4,
   },
   linkButton: {
     paddingHorizontal: 16,
