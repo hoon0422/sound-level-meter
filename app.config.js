@@ -32,10 +32,10 @@ module.exports = {
       permissions: [
         'android.permission.RECORD_AUDIO',
         'android.permission.MODIFY_AUDIO_SETTINGS',
+        'android.permission.POST_NOTIFICATIONS',
         'android.permission.FOREGROUND_SERVICE',
         'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
         'android.permission.FOREGROUND_SERVICE_MICROPHONE',
-        'android.permission.POST_NOTIFICATIONS',
       ],
       package: process.env.ANDROID_PACKAGE || 'com.sunnyinnolab.decibella2',
     },
@@ -59,15 +59,16 @@ module.exports = {
         {
           iosMicrophonePermission: microphonePermissionMessage,
           iosBackgroundMode: true,
+          androidForegroundService: true,
+          androidFSTypes: ['mediaPlayback', 'microphone'],
           androidPermissions: [
             'android.permission.RECORD_AUDIO',
+            'android.permission.MODIFY_AUDIO_SETTINGS',
+            'android.permission.POST_NOTIFICATIONS',
             'android.permission.FOREGROUND_SERVICE',
             'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
             'android.permission.FOREGROUND_SERVICE_MICROPHONE',
-            'android.permission.POST_NOTIFICATIONS',
           ],
-          androidForegroundService: true,
-          androidFSTypes: ['mediaPlayback', 'microphone'],
         },
       ],
       [

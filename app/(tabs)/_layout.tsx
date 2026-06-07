@@ -9,6 +9,7 @@ import { Tabs, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, TouchableOpacity } from 'react-native';
+import { useBackgroundRecordingNotification } from '../../hooks/useBackgroundRecordingNotification';
 
 function Decibella() {
   const { logo } = useTheme();
@@ -40,6 +41,7 @@ export default function TabsLayout() {
     disconnect: state.disconnect,
   }));
   useRecordingLogger();
+  useBackgroundRecordingNotification();
 
   useEffect(() => {
     connect(DEFAULT_CONFIG).catch(error => {
