@@ -12,18 +12,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import mobileAds, { AdEventType, RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
 
-const ACCESS_DURATION_MS = 2 * 60 * 60 * 1000;
+// const ACCESS_DURATION_MS = 2 * 60 * 60 * 1000;
+const ACCESS_DURATION_MS = 120 * 1000;
 const ACCESS_UNTIL_KEY = 'ad-access-until';
 
 type AdAccessReason = 'measurement' | 'soundGuide' | 'log';
@@ -283,9 +276,6 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
               <Text style={styles.badgeIcon}>AD</Text>
             </View>
             <Text style={[styles.title, { color: colors.text }]}>{t('adAccess.title')}</Text>
-            <Text style={[styles.message, { color: colors.mutedText }]}>
-              {promptReason ? t(`adAccess.reasons.${promptReason}`) : ''}
-            </Text>
             <View style={[styles.benefits, { borderColor: colors.divider }]}>
               <Text style={[styles.benefitText, { color: colors.text }]}>{t('adAccess.benefits.measurement')}</Text>
               <Text style={[styles.benefitText, { color: colors.text }]}>{t('adAccess.benefits.soundGuide')}</Text>
