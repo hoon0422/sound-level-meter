@@ -19,6 +19,8 @@ module.exports = {
       bundleIdentifier: process.env.IOS_BUNDLE_IDENTIFIER || 'com.sunnyinnolab.decibella2',
       infoPlist: {
         NSMicrophoneUsageDescription: microphonePermissionMessage,
+        UIBackgroundModes: ['audio'],
+        CFBundleAllowMixedLocalizations: true,
       },
     },
     android: {
@@ -32,6 +34,8 @@ module.exports = {
         'android.permission.MODIFY_AUDIO_SETTINGS',
         'android.permission.FOREGROUND_SERVICE',
         'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
+        'android.permission.FOREGROUND_SERVICE_MICROPHONE',
+        'android.permission.POST_NOTIFICATIONS',
       ],
       package: process.env.ANDROID_PACKAGE || 'com.sunnyinnolab.decibella2',
     },
@@ -42,6 +46,7 @@ module.exports = {
     plugins: [
       'expo-router',
       './plugins/withLocalizedMicrophonePermissions',
+      './plugins/withIosSettingsBundle',
       [
         '@sentry/react-native/expo',
         {
@@ -53,7 +58,16 @@ module.exports = {
         'react-native-audio-api',
         {
           iosMicrophonePermission: microphonePermissionMessage,
-          androidPermissions: ['android.permission.RECORD_AUDIO'],
+          iosBackgroundMode: true,
+          androidPermissions: [
+            'android.permission.RECORD_AUDIO',
+            'android.permission.FOREGROUND_SERVICE',
+            'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
+            'android.permission.FOREGROUND_SERVICE_MICROPHONE',
+            'android.permission.POST_NOTIFICATIONS',
+          ],
+          androidForegroundService: true,
+          androidFSTypes: ['mediaPlayback', 'microphone'],
         },
       ],
       [
