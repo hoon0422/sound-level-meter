@@ -25,6 +25,9 @@ type CreateMicrophoneEngineOptions = AudioEngineConfig & {
 export type AudioRuntimeMetrics = {
   dbfs: number;
   elapsedSeconds: number;
+  rms: number;
+  peakAbs: number;
+  zeroRatio: number;
 };
 
 export type MicrophoneEngine = {
@@ -97,6 +100,9 @@ export async function createMicrophoneEngine(options: CreateMicrophoneEngineOpti
           }
 
           let sum = 0;
+          let peakAbs = 0;
+          let zeroSampleCount = 0;
+          let sampleCount = 0;
           for (let channel = 0; channel < channelCount; channel++) {
             const samples = audioData[channel];
             if (!samples) {
@@ -105,17 +111,27 @@ export async function createMicrophoneEngine(options: CreateMicrophoneEngineOpti
 
             for (let i = 0; i < samples.length; i++) {
               const sample = samples[i];
+              const absSample = Math.abs(sample);
               sum += sample * sample;
+              peakAbs = Math.max(peakAbs, absSample);
+              if (absSample <= 1e-8) {
+                zeroSampleCount++;
+              }
+              sampleCount++;
             }
           }
 
-          const rms = Math.sqrt(sum / (frameCount * channelCount));
+          const rms = sampleCount > 0 ? Math.sqrt(sum / sampleCount) : 0;
           const dbfs = rms <= 1e-8 ? -100 : Math.max(20 * Math.log10(rms), -100);
           const elapsedSeconds = frameCount / options.sampleRate;
+          const zeroRatio = sampleCount > 0 ? zeroSampleCount / sampleCount : 1;
 
           scheduleOnRN(options.onAudioMetrics, {
             dbfs,
             elapsedSeconds,
+            rms,
+            peakAbs,
+            zeroRatio,
           });
         },
         options.fftSize,

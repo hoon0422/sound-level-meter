@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import useLogsStore from '@/store/logsStore';
-import { useAudioMeterStore } from '@/store/audioMeterStore';
+import { audioMeterStore } from '@/store/audioMeterStore';
 import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
 import useRecordingLogControlStore from '@/store/recordingLogControlStore';
 
@@ -9,6 +9,7 @@ type LogStatsSnapshot = {
   elapsedSeconds: number;
   maximumDbfs: number;
   minimumDbfs: number;
+  validFrameCount: number;
 };
 
 function formatDuration(elapsedSeconds: number) {
@@ -24,49 +25,52 @@ function roundDb(dbfs: number) {
 }
 
 export function useRecordingLogger() {
-  const { addLog } = useLogsStore();
+  const addLog = useLogsStore(state => state.addLog);
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const consumeSkipNextRecordingLog = useRecordingLogControlStore(state => state.consumeSkipNextRecordingLog);
-  const { averageDbfs, elapsedSeconds, isRunning, maximumDbfs, minimumDbfs } = useAudioMeterStore(state => ({
-    averageDbfs: state.averageDbfs,
-    elapsedSeconds: state.elapsedSeconds,
-    isRunning: state.isRunning,
-    maximumDbfs: state.maximumDbfs,
-    minimumDbfs: state.minimumDbfs,
-  }));
 
   const lastRunningStatsRef = useRef<LogStatsSnapshot | null>(null);
   const prevIsRunningRef = useRef(false);
+  const offsetDbRef = useRef(offsetDb);
 
   useEffect(() => {
-    if (isRunning) {
-      lastRunningStatsRef.current = {
-        averageDbfs,
-        elapsedSeconds,
-        maximumDbfs,
-        minimumDbfs,
-      };
-    }
+    offsetDbRef.current = offsetDb;
+  }, [offsetDb]);
 
-    if (!isRunning && prevIsRunningRef.current) {
-      const stats = lastRunningStatsRef.current;
-      const shouldSkipLog = consumeSkipNextRecordingLog();
-      if (stats && !shouldSkipLog) {
-        const now = new Date();
-        addLog({
-          id: `${now.getTime()}`,
-          date: now.toLocaleDateString(),
-          time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          duration: formatDuration(stats.elapsedSeconds),
-          maxDb: roundDb(applyCalibrationOffset(stats.maximumDbfs, offsetDb)),
-          minDb: roundDb(applyCalibrationOffset(stats.minimumDbfs, offsetDb)),
-          avgDb: roundDb(applyCalibrationOffset(stats.averageDbfs, offsetDb)),
-        });
+  useEffect(() => {
+    return audioMeterStore.subscribe(state => {
+      if (state.isRunning) {
+        lastRunningStatsRef.current = {
+          averageDbfs: state.averageDbfs,
+          elapsedSeconds: state.elapsedSeconds,
+          maximumDbfs: state.maximumDbfs,
+          minimumDbfs: state.minimumDbfs,
+          validFrameCount: state.validFrameCount,
+        };
       }
 
-      lastRunningStatsRef.current = null;
-    }
+      if (!state.isRunning && prevIsRunningRef.current) {
+        const stats = lastRunningStatsRef.current;
+        const shouldSkipLog = consumeSkipNextRecordingLog();
+        if (stats && !shouldSkipLog) {
+          const now = new Date();
+          const activeOffsetDb = offsetDbRef.current;
+          const minimumDbfs = stats.validFrameCount > 0 ? stats.minimumDbfs : -100;
+          addLog({
+            id: `${now.getTime()}`,
+            date: now.toLocaleDateString(),
+            time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            duration: formatDuration(stats.elapsedSeconds),
+            maxDb: roundDb(applyCalibrationOffset(stats.maximumDbfs, activeOffsetDb)),
+            minDb: roundDb(applyCalibrationOffset(minimumDbfs, activeOffsetDb)),
+            avgDb: roundDb(applyCalibrationOffset(stats.averageDbfs, activeOffsetDb)),
+          });
+        }
 
-    prevIsRunningRef.current = isRunning;
-  }, [addLog, averageDbfs, consumeSkipNextRecordingLog, elapsedSeconds, isRunning, maximumDbfs, minimumDbfs, offsetDb]);
+        lastRunningStatsRef.current = null;
+      }
+
+      prevIsRunningRef.current = state.isRunning;
+    });
+  }, [addLog, consumeSkipNextRecordingLog]);
 }

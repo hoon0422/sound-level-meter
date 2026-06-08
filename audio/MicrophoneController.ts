@@ -14,6 +14,15 @@ import {
   logSentryError,
   traceSentrySpan,
 } from '@/analytics/sentry';
+import {
+  holdAudioVisualFrame,
+  markAudioVisualNoSignal,
+  resetAudioVisualValues,
+  startAudioVisualValues,
+  stopAudioVisualValues,
+  updateAudioVisualFrame,
+} from './visual/audioVisualValues';
+import { classifyAudioFrameQuality, type AudioFrameQuality } from './quality/audioFrameQuality';
 
 export type { AudioEngineConfig };
 
@@ -37,6 +46,7 @@ export type MicrophoneAudioFrame = {
   fftSize: number;
   minDecibels: number;
   maxDecibels: number;
+  quality: AudioFrameQuality;
 };
 
 export type MicrophoneStateListener = (state: MicrophoneState) => void;
@@ -57,6 +67,8 @@ export function createIdleMicrophoneState(measurementSessionId = 0, elapsedSecon
   };
 }
 
+const INVALID_AUDIO_FRAME_GRACE_SECONDS = 0.5;
+
 export class MicrophoneController {
   private static instance: MicrophoneController | null = null;
 
@@ -71,6 +83,7 @@ export class MicrophoneController {
   private frameDisposeListeners = new Map<MicrophoneFrameListener, MicrophoneFrameDisposeListener>();
   private lastState = createIdleMicrophoneState();
   private lastFrame: MicrophoneAudioFrame | null = null;
+  private invalidFrameElapsedSeconds = 0;
 
   private constructor() {}
 
@@ -135,6 +148,27 @@ export class MicrophoneController {
     if (!this.running || !this.engine || !this.freqData) return;
 
     this.elapsedAccumulator += metrics.elapsedSeconds;
+    const quality = classifyAudioFrameQuality({
+      rawDbfs: metrics.dbfs,
+      rms: metrics.rms,
+      peakAbs: metrics.peakAbs,
+      zeroRatio: metrics.zeroRatio,
+      frameDurationSeconds: metrics.elapsedSeconds,
+    });
+
+    if (!quality.isValid) {
+      this.invalidFrameElapsedSeconds += Math.max(0, metrics.elapsedSeconds);
+      if (this.invalidFrameElapsedSeconds >= INVALID_AUDIO_FRAME_GRACE_SECONDS) {
+        markAudioVisualNoSignal(this.elapsedAccumulator);
+        this.emitRunningState();
+      } else {
+        holdAudioVisualFrame(this.elapsedAccumulator);
+      }
+      return;
+    }
+
+    this.invalidFrameElapsedSeconds = 0;
+    updateAudioVisualFrame(metrics.dbfs, this.elapsedAccumulator);
     this.engine.analyser.getFloatFrequencyData(this.freqData);
 
     this.emitFrame({
@@ -146,8 +180,13 @@ export class MicrophoneController {
       fftSize: this.engine.analyser.fftSize,
       minDecibels: this.engine.analyser.minDecibels,
       maxDecibels: this.engine.analyser.maxDecibels,
+      quality,
     });
 
+    this.emitRunningState();
+  };
+
+  private emitRunningState() {
     this.emitState({
       isRunning: true,
       isConnecting: false,
@@ -158,10 +197,12 @@ export class MicrophoneController {
       measurementSessionId: this.measurementSessionId,
       error: null,
     });
-  };
+  }
 
   stop() {
     this.running = false;
+    this.invalidFrameElapsedSeconds = 0;
+    stopAudioVisualValues(this.elapsedAccumulator);
     stopMicrophoneEngine();
 
     this.emitState(createIdleMicrophoneState(this.measurementSessionId, this.elapsedAccumulator));
@@ -178,6 +219,8 @@ export class MicrophoneController {
     this.engine = null;
     this.freqData = null;
     this.elapsedAccumulator = 0;
+    this.invalidFrameElapsedSeconds = 0;
+    resetAudioVisualValues();
 
     this.emitState(createIdleMicrophoneState(this.measurementSessionId));
   }
@@ -244,6 +287,7 @@ export class MicrophoneController {
         () => {
           this.freqData = new Float32Array(this.engine?.analyser.frequencyBinCount ?? 0);
           this.elapsedAccumulator = 0;
+          this.invalidFrameElapsedSeconds = 0;
         }
       );
 
@@ -299,6 +343,8 @@ export class MicrophoneController {
       this.elapsedAccumulator = 0;
       this.measurementSessionId++;
       this.running = true;
+      this.invalidFrameElapsedSeconds = 0;
+      startAudioVisualValues();
 
       this.emitState({
         ...createIdleMicrophoneState(this.measurementSessionId),
