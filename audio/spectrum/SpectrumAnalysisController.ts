@@ -1,6 +1,9 @@
 import { type MicrophoneAudioFrame, type MicrophoneController, type MicrophoneState } from '../MicrophoneController';
+import { updateAudioVisualSpectrum } from '../visual/audioVisualValues';
 import { analyzeFrequencyFrame } from './spectrumAnalysis';
 import { SpectrumDisplayConfig } from './types';
+
+const SPECTRUM_PUBLISH_INTERVAL_MS = 250;
 
 export type SpectrumSnapshot = {
   bars: number[];
@@ -25,6 +28,7 @@ export class SpectrumAnalysisController {
   private disposeListeners = new Map<SpectrumSnapshotListener, SpectrumDisposeListener>();
   private lastSnapshot: SpectrumSnapshot;
   private lastMeasurementSessionId = 0;
+  private lastPublishTimeMs = 0;
   private unsubscribeFrame: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
 
@@ -64,8 +68,13 @@ export class SpectrumAnalysisController {
     this.maximumBars = [];
   }
 
-  private emit(snapshot: SpectrumSnapshot) {
+  private emit(snapshot: SpectrumSnapshot, force = false) {
     this.lastSnapshot = snapshot;
+    const now = Date.now();
+    if (!force && now - this.lastPublishTimeMs < SPECTRUM_PUBLISH_INTERVAL_MS) {
+      return;
+    }
+    this.lastPublishTimeMs = now;
 
     for (const listener of this.listeners) {
       listener(snapshot);
@@ -100,10 +109,16 @@ export class SpectrumAnalysisController {
       this.maximumBars = analysis.bars;
     }
 
-    this.emit({
+    const snapshot = {
       bars: analysis.bars,
       maximumBars: this.maximumBars,
-    });
+    };
+    updateAudioVisualSpectrum(
+      snapshot.bars,
+      snapshot.maximumBars,
+      frame.sessionElapsedSeconds > 0 && frame.dbfs > -100
+    );
+    this.emit(snapshot);
   };
 
   private handleMicState = (state: MicrophoneState) => {
@@ -111,7 +126,9 @@ export class SpectrumAnalysisController {
       this.lastMeasurementSessionId = state.measurementSessionId;
       this.smoothedBars = [];
       this.maximumBars = [];
-      this.emit(createIdleSpectrumSnapshot(this.config.barCount));
+      const snapshot = createIdleSpectrumSnapshot(this.config.barCount);
+      updateAudioVisualSpectrum(snapshot.bars, snapshot.maximumBars, false);
+      this.emit(snapshot, true);
     }
   };
 
