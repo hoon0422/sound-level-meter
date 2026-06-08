@@ -14,8 +14,8 @@ type Props = {
 export default function GraphsLayout({ children }: Props) {
   const { colors } = useTheme();
   const { ensureAccess, hasAccess } = useAdAccess();
-  const { elapsedSeconds, isRunning, stop } = useAudioMeterStore(state => ({
-    elapsedSeconds: state.elapsedSeconds,
+  const { elapsedTimeSeconds, isRunning, stop } = useAudioMeterStore(state => ({
+    elapsedTimeSeconds: Math.floor(state.elapsedSeconds),
     isRunning: state.isRunning,
     stop: state.stop,
   }));
@@ -31,12 +31,12 @@ export default function GraphsLayout({ children }: Props) {
       return;
     }
 
-    if (elapsedSeconds >= 30 && !didPromptForLongMeasurementRef.current) {
+    if (elapsedTimeSeconds >= 30 && !didPromptForLongMeasurementRef.current) {
       didPromptForLongMeasurementRef.current = true;
       stop();
       ensureAccess('measurement');
     }
-  }, [elapsedSeconds, ensureAccess, hasAccess, isRunning, stop]);
+  }, [elapsedTimeSeconds, ensureAccess, hasAccess, isRunning, stop]);
 
   return (
     <View style={[styles.page, { backgroundColor: colors.background }]}>
@@ -44,7 +44,7 @@ export default function GraphsLayout({ children }: Props) {
         <SoundMeter />
         {children}
         <View style={styles.recordingControlContainer}>
-          <Text style={[styles.elapsedTimeText, { color: colors.text }]}>{secondsToTime(elapsedSeconds)}</Text>
+          <Text style={[styles.elapsedTimeText, { color: colors.text }]}>{secondsToTime(elapsedTimeSeconds)}</Text>
           <RecordButton />
         </View>
       </View>
