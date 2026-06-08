@@ -1,6 +1,7 @@
 import { useAdAccess } from '@/context/AdAccessContext';
 import { RecordButton } from '@/components/RecordButton';
 import { SoundMeter } from '@/components/SoundMeter';
+import { RocketGamePage } from '@/components/RocketGamePage';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -47,7 +48,9 @@ export default function GraphsLayout({ children }: Props) {
           <RecordButton />
         </View>
       </View>
-      <View style={styles.rocketPlaceholder}>{/* View Placeholder for rocket */}</View>
+      <View style={styles.rocketPlaceholder}>
+        <RocketGamePage />
+      </View>
     </View>
   );
 }
@@ -72,7 +75,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flex: 1,
     gap: 10,
-    paddingHorizontal: 20,
+    paddingLeft: 20,
+    paddingRight: 16,
     paddingVertical: 24,
   },
   graphContainer: {
@@ -99,7 +103,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   rocketPlaceholder: {
-    width: 23,
+    width: 24,
     height: '100%',
   },
 });
