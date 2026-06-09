@@ -1,7 +1,16 @@
-import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
-import { audioMeterStore } from '@/store/audioMeterStore';
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Image, StyleSheet, View } from 'react-native';
+import { audioVisualValues } from '@/audio/visual/audioVisualValues';
+import useCalibrationStore from '@/store/calibrationStore';
+import React, { memo, useCallback, useEffect } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
+import Animated, {
+  makeMutable,
+  runOnJS,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useFrameCallback,
+  useSharedValue,
+  type SharedValue,
+} from 'react-native-reanimated';
 
 // ─── Sizing (all images have square canvases → aspectRatio: 1) ───────────────
 const ROCKET_W = 24;
@@ -15,6 +24,8 @@ const CONGRATS_W = 24;
 const SPEED_DIVISOR = 3600;
 const DESCENT_DB = 100;
 const FRAME_MS = 16;
+const MAX_FRAME_DT_SECONDS = 0.05;
+const FLAME_HYSTERESIS_DB = 1.5;
 
 // ─── Flame assets ────────────────────────────────────────────────────────────
 const FLAME_SOURCES = [
@@ -25,7 +36,34 @@ const FLAME_SOURCES = [
   require('@/assets/rocket/flames/level5.png'), // 100+ dB
 ];
 
-function getFlameIdx(db: number): number {
+const PHASE_IDLE = 0;
+const PHASE_ASCENDING = 1;
+const PHASE_DESCENDING = 2;
+const PHASE_LANDED = 3;
+type PhaseValue = typeof PHASE_IDLE | typeof PHASE_ASCENDING | typeof PHASE_DESCENDING | typeof PHASE_LANDED;
+
+const LANDING_VISUAL_NONE = 0;
+const LANDING_VISUAL_CONGRATS = 1;
+const LANDING_VISUAL_LANDING = 2;
+
+const rocketValues = {
+  phase: makeMutable<PhaseValue>(PHASE_IDLE),
+  position: makeMutable(0),
+  containerHeight: makeMutable(0),
+  trackHeight: makeMutable(0),
+  flameLevel: makeMutable(0),
+  landingVisual: makeMutable(LANDING_VISUAL_NONE),
+};
+
+let landingTimer: ReturnType<typeof setTimeout> | null = null;
+
+function getFrameDeltaSeconds(timeSincePreviousFrame: number | null) {
+  'worklet';
+  return Math.min((timeSincePreviousFrame ?? FRAME_MS) / 1000, MAX_FRAME_DT_SECONDS);
+}
+
+function getFlameLevel(db: number) {
+  'worklet';
   if (db < 40) return 0;
   if (db < 60) return 1;
   if (db < 80) return 2;
@@ -33,154 +71,216 @@ function getFlameIdx(db: number): number {
   return 4;
 }
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-type GamePhase = 'idle' | 'ascending' | 'descending' | 'landed';
+function getFlameLevelWithHysteresis(db: number, currentLevel: number) {
+  'worklet';
+  if (currentLevel === 0 && db < 40 + FLAME_HYSTERESIS_DB) return 0;
+  if (currentLevel === 1 && db >= 40 - FLAME_HYSTERESIS_DB && db < 60 + FLAME_HYSTERESIS_DB) return 1;
+  if (currentLevel === 2 && db >= 60 - FLAME_HYSTERESIS_DB && db < 80 + FLAME_HYSTERESIS_DB) return 2;
+  if (currentLevel === 3 && db >= 80 - FLAME_HYSTERESIS_DB && db < 100 + FLAME_HYSTERESIS_DB) return 3;
+  if (currentLevel === 4 && db >= 100 - FLAME_HYSTERESIS_DB) return 4;
+  return getFlameLevel(db);
+}
 
-let _phase: GamePhase = 'idle';
-let _position = 0;
+function clearLandingTimer() {
+  if (landingTimer) {
+    clearTimeout(landingTimer);
+    landingTimer = null;
+  }
+}
+
+function resetRocketToIdle() {
+  clearLandingTimer();
+  rocketValues.position.value = 0;
+  rocketValues.flameLevel.value = 0;
+  rocketValues.landingVisual.value = LANDING_VISUAL_NONE;
+  rocketValues.phase.value = PHASE_IDLE;
+}
+
+function showLandingSequence() {
+  clearLandingTimer();
+  rocketValues.landingVisual.value = LANDING_VISUAL_CONGRATS;
+  landingTimer = setTimeout(() => {
+    landingTimer = null;
+    rocketValues.landingVisual.value = LANDING_VISUAL_LANDING;
+  }, 3000);
+}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export function RocketGamePage() {
-  const [phase, setPhase] = useState<GamePhase>(_phase);
-  const [flameIdx, setFlameIdx] = useState(0);
-  const [showCongrats, setShowCongrats] = useState(false);
+  const offsetDb = useCalibrationStore(state => state.offsetDb);
+  const calibrationOffset = useSharedValue(offsetDb);
 
-  // Refs used inside setInterval (avoid stale closures)
-  const phaseRef = useRef<GamePhase>(_phase);
-  const posRef = useRef(_position);
-  const trackRef = useRef(0);
-  const containerHRef = useRef(0);
+  const resetToIdle = useCallback(() => {
+    resetRocketToIdle();
+  }, []);
 
-  const topAnim = useRef(new Animated.Value(0)).current;
-  const congratsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // ── Store subscriptions ──────────────────────────────────────────────────
   useEffect(() => {
-    return audioMeterStore.subscribe(state => {
-      const running = state.isRunning;
-      const cur = phaseRef.current;
+    calibrationOffset.value = offsetDb;
+  }, [calibrationOffset, offsetDb]);
 
-      if (running && (cur === 'idle' || cur === 'descending')) {
-        phaseRef.current = _phase = 'ascending';
-        setPhase('ascending');
-      } else if (!running && cur === 'ascending') {
-        phaseRef.current = _phase = 'descending';
-        setPhase('descending');
-      } else if (!running && cur === 'landed') {
-        if (congratsTimerRef.current) clearTimeout(congratsTimerRef.current);
-        posRef.current = _position = 0;
-        topAnim.setValue(containerHRef.current - ROCKET_H);
-        phaseRef.current = _phase = 'idle';
-        setShowCongrats(false);
-        setPhase('idle');
-      }
-    });
-  }, [topAnim]);
-
-  // ── Physics loop ─────────────────────────────────────────────────────────
   useEffect(() => {
-    const interval = setInterval(() => {
-      const ph = phaseRef.current;
-      const h = trackRef.current;
-      if (ph === 'idle' || ph === 'landed' || h === 0) return;
+    const isRunning = audioVisualValues.isRunning.value;
+    const currentPhase = rocketValues.phase.value;
 
-      const dt = FRAME_MS / 1000;
+    if (isRunning && (currentPhase === PHASE_IDLE || currentPhase === PHASE_DESCENDING)) {
+      rocketValues.phase.value = PHASE_ASCENDING;
+      return;
+    }
 
-      if (ph === 'ascending') {
-        const rawDb = audioMeterStore.getState().dbfs ?? 0;
-        const offsetDb = useCalibrationStore.getState().offsetDb;
-        const db = rawDb > 0 ? applyCalibrationOffset(rawDb, offsetDb) : 0;
+    if (!isRunning && currentPhase === PHASE_LANDED) {
+      resetToIdle();
+    }
+  }, [resetToIdle]);
 
-        setFlameIdx(getFlameIdx(db));
+  useAnimatedReaction(
+    () => audioVisualValues.isRunning.value,
+    isRunning => {
+      const currentPhase = rocketValues.phase.value;
 
-        const speed = (db * h) / SPEED_DIVISOR;
-        const newPos = Math.min(h, posRef.current + speed * dt);
-        posRef.current = _position = newPos;
-        topAnim.setValue(containerHRef.current - ROCKET_H - newPos);
-
-        if (newPos >= h) {
-          phaseRef.current = _phase = 'landed';
-          setPhase('landed');
-          setShowCongrats(true);
-          congratsTimerRef.current = setTimeout(() => setShowCongrats(false), 3000);
-        }
-      } else if (ph === 'descending') {
-        const descentSpeed = (DESCENT_DB * h) / SPEED_DIVISOR;
-        const newPos = Math.max(0, posRef.current - descentSpeed * dt);
-        posRef.current = _position = newPos;
-        topAnim.setValue(containerHRef.current - ROCKET_H - newPos);
-
-        if (newPos <= 0 && !audioMeterStore.getState().isRunning) {
-          phaseRef.current = _phase = 'idle';
-          setPhase('idle');
-        }
+      if (isRunning && (currentPhase === PHASE_IDLE || currentPhase === PHASE_DESCENDING)) {
+        rocketValues.phase.value = PHASE_ASCENDING;
+        return;
       }
-    }, FRAME_MS);
 
-    return () => clearInterval(interval);
-  }, [topAnim]);
+      if (!isRunning && currentPhase === PHASE_ASCENDING) {
+        rocketValues.phase.value = PHASE_DESCENDING;
+        rocketValues.flameLevel.value = 0;
+        return;
+      }
 
-  const isLanded = phase === 'landed';
-  const isAscending = phase === 'ascending';
+      if (!isRunning && currentPhase === PHASE_LANDED) {
+        runOnJS(resetToIdle)();
+      }
+    },
+    [resetToIdle]
+  );
+
+  useFrameCallback(frame => {
+    const trackHeight = rocketValues.trackHeight.value;
+    const phaseValue = rocketValues.phase.value;
+    if (trackHeight <= 0 || phaseValue === PHASE_IDLE || phaseValue === PHASE_LANDED) {
+      return;
+    }
+
+    const dt = getFrameDeltaSeconds(frame.timeSincePreviousFrame);
+
+    if (phaseValue === PHASE_ASCENDING) {
+      const db =
+        audioVisualValues.hasSignal.value && audioVisualValues.isRunning.value
+          ? Math.max(0, audioVisualValues.displayDb.value + calibrationOffset.value)
+          : 0;
+      rocketValues.flameLevel.value = getFlameLevelWithHysteresis(db, rocketValues.flameLevel.value);
+
+      const speed = (db * trackHeight) / SPEED_DIVISOR;
+      const nextPosition = Math.min(trackHeight, rocketValues.position.value + speed * dt);
+      rocketValues.position.value = nextPosition;
+
+      if (nextPosition >= trackHeight) {
+        rocketValues.phase.value = PHASE_LANDED;
+        rocketValues.flameLevel.value = 0;
+        rocketValues.landingVisual.value = LANDING_VISUAL_CONGRATS;
+        runOnJS(showLandingSequence)();
+      }
+      return;
+    }
+
+    if (phaseValue === PHASE_DESCENDING) {
+      const descentSpeed = (DESCENT_DB * trackHeight) / SPEED_DIVISOR;
+      const nextPosition = Math.max(0, rocketValues.position.value - descentSpeed * dt);
+      rocketValues.position.value = nextPosition;
+
+      if (nextPosition <= 0 && !audioVisualValues.isRunning.value) {
+        rocketValues.phase.value = PHASE_IDLE;
+      }
+    }
+  });
+
+  const rocketStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY: rocketValues.containerHeight.value - ROCKET_H - rocketValues.position.value,
+      },
+    ],
+  }));
+
+  const moonStyle = useAnimatedStyle(() => ({
+    opacity: rocketValues.phase.value === PHASE_LANDED ? 0 : 1,
+  }));
+
+  const congratsStyle = useAnimatedStyle(() => ({
+    opacity:
+      rocketValues.phase.value === PHASE_LANDED && rocketValues.landingVisual.value === LANDING_VISUAL_CONGRATS
+        ? 1
+        : 0,
+  }));
+
+  const landingStyle = useAnimatedStyle(() => ({
+    opacity:
+      rocketValues.phase.value === PHASE_LANDED && rocketValues.landingVisual.value === LANDING_VISUAL_LANDING
+        ? 1
+        : 0,
+  }));
+
+  const rocketVisibilityStyle = useAnimatedStyle(() => ({
+    opacity: rocketValues.phase.value === PHASE_LANDED ? 0 : 1,
+  }));
 
   return (
     <View
       style={styles.container}
       onLayout={e => {
         const h = e.nativeEvent.layout.height;
-        containerHRef.current = h;
-        const track = h - MOON_SIZE - ROCKET_H;
-        if (track > 0) trackRef.current = track;
-        topAnim.setValue(h - ROCKET_H - posRef.current);
+        const track = Math.max(0, h - MOON_SIZE - ROCKET_H);
+        rocketValues.containerHeight.value = h;
+        rocketValues.trackHeight.value = track;
+        rocketValues.position.value = Math.min(rocketValues.position.value, track);
       }}
     >
-      {/* Moon: hidden during congrats & landing */}
-      {!isLanded && (
-        <Image
-          source={require('@/assets/rocket/moon.png')}
-          style={styles.moon}
-          resizeMode="contain"
-        />
-      )}
+      <Animated.Image
+        source={require('@/assets/rocket/moon.png')}
+        style={[styles.moon, moonStyle]}
+        resizeMode="contain"
+      />
 
-      {/* Congrats: shown first for 3s when rocket reaches moon */}
-      {isLanded && showCongrats && (
-        <Image
-          source={require('@/assets/rocket/congrats.gif')}
-          style={styles.congrats}
-          resizeMode="contain"
-        />
-      )}
+      <Animated.Image
+        source={require('@/assets/rocket/congrats.gif')}
+        style={[styles.congrats, congratsStyle]}
+        resizeMode="contain"
+      />
 
-      {/* Landing: shown after congrats finishes */}
-      {isLanded && !showCongrats && (
-        <Image
-          source={require('@/assets/rocket/landing.gif')}
-          style={styles.landing}
-          resizeMode="contain"
-        />
-      )}
+      <Animated.Image
+        source={require('@/assets/rocket/landing.gif')}
+        style={[styles.landing, landingStyle]}
+        resizeMode="contain"
+      />
 
-      {/* Rocket + flame */}
-      {!isLanded && (
-        <Animated.View style={[styles.rocketWrapper, { top: topAnim }]}>
-          {/* Rocket on top, flame below (engine exhaust) */}
-          <Image
-            source={require('@/assets/rocket/rocket.png')}
-            style={styles.rocket}
-          />
-          {isAscending && (
-            <Image
-              source={FLAME_SOURCES[flameIdx]}
-              style={styles.flame}
-              resizeMode="contain"
-            />
-          )}
-        </Animated.View>
-      )}
+      <Animated.View style={[styles.rocketWrapper, rocketStyle, rocketVisibilityStyle]}>
+        <Image source={require('@/assets/rocket/rocket.png')} style={styles.rocket} />
+        <View style={styles.flameContainer}>
+          {FLAME_SOURCES.map((source, index) => (
+            <AnimatedFlame key={index} flameLevel={rocketValues.flameLevel} index={index} source={source} />
+          ))}
+        </View>
+      </Animated.View>
     </View>
   );
 }
+
+const AnimatedFlame = memo(function AnimatedFlame({
+  flameLevel,
+  index,
+  source,
+}: {
+  flameLevel: SharedValue<number>;
+  index: number;
+  source: (typeof FLAME_SOURCES)[number];
+}) {
+  const style = useAnimatedStyle(() => ({
+    opacity: rocketValues.phase.value === PHASE_ASCENDING && flameLevel.value === index ? 1 : 0,
+  }));
+
+  return <Animated.Image source={source} style={[styles.flame, style]} resizeMode="contain" />;
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -189,20 +289,26 @@ const styles = StyleSheet.create({
     overflow: 'visible',
   },
   moon: {
+    position: 'absolute',
+    top: 0,
     width: MOON_SIZE,
     height: MOON_SIZE,
   },
   landing: {
-    marginTop: -10,
+    position: 'absolute',
+    top: -10,
     width: LANDING_SIZE,
     height: LANDING_SIZE,
   },
-  congrats: {  
+  congrats: {
+    position: 'absolute',
+    top: 0,
     width: CONGRATS_W,
     height: CONGRATS_W,
   },
   rocketWrapper: {
     position: 'absolute',
+    top: 0,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -211,9 +317,14 @@ const styles = StyleSheet.create({
     width: ROCKET_W,
     height: ROCKET_H,
   },
-  flame: {
+  flameContainer: {
     width: FLAME_W,
     height: FLAME_W,
     marginTop: -8,
+  },
+  flame: {
+    position: 'absolute',
+    width: FLAME_W,
+    height: FLAME_W,
   },
 });

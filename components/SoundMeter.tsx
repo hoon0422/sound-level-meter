@@ -1,8 +1,19 @@
+import { audioVisualValues } from '@/audio/visual/audioVisualValues';
 import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
 import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
-import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedProps,
+  useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import Surface from './Surface';
 
@@ -37,15 +48,15 @@ const TICK_COLORS = [
 ];
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 const ANIMATION_DURATION = 50;
 
 export function SoundMeter() {
   const { colors } = useTheme();
   const offsetDb = useCalibrationStore(state => state.offsetDb);
-  const { isRunning, dbfs, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
+  const { isRunning, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
       isRunning: state.elapsedSeconds > 0,
-      dbfs: state.dbfs,
       averageDbfs: state.averageDbfs,
       maximumDbfs: state.maximumDbfs,
     }),
@@ -63,9 +74,7 @@ export function SoundMeter() {
             </Text>
             <Text style={[styles.unitText, { color: colors.text }]}>AVG</Text>
           </View>
-          <Text style={[styles.dbfsText, { color: colors.quiet }]}>
-            {isRunning ? Math.round(applyCalibrationOffset(dbfs, offsetDb)) : '–'}
-          </Text>
+          <AnimatedDbText color={colors.quiet} offsetDb={offsetDb} />
           <View style={styles.statContainer}>
             <Text style={[styles.maxDbText, { color: colors.loud }]}>
               {isRunning ? Math.round(applyCalibrationOffset(maximumDbfs, offsetDb)) : '–'}
@@ -78,29 +87,88 @@ export function SoundMeter() {
   );
 }
 
+function AnimatedDbText({ color, offsetDb }: { color: string; offsetDb: number }) {
+  const calibrationOffset = useSharedValue(offsetDb);
+  const animatedDb = useAnimatedCurrentDb(calibrationOffset);
+  const animatedProps = useAnimatedProps<TextInputProps>(() => {
+    const text = audioVisualValues.hasSignal.value ? `${Math.round(animatedDb.value)}` : '–';
+    return {
+      text,
+      value: text,
+    } as TextInputProps;
+  });
+
+  useEffect(() => {
+    calibrationOffset.value = offsetDb;
+  }, [calibrationOffset, offsetDb]);
+
+  return (
+    <AnimatedTextInput
+      animatedProps={animatedProps}
+      caretHidden
+      contextMenuHidden
+      defaultValue="–"
+      editable={false}
+      pointerEvents="none"
+      style={[styles.dbfsText, { color }]}
+      underlineColorAndroid="transparent"
+    />
+  );
+}
+
+function useAnimatedDisplayDb(calibrationOffset: SharedValue<number>) {
+  const targetDb = useDerivedValue(() => {
+    if (!audioVisualValues.hasSignal.value) {
+      return 0;
+    }
+    return Math.min(120, Math.max(0, audioVisualValues.displayDb.value + calibrationOffset.value));
+  });
+
+  return useDerivedValue(() => withTiming(targetDb.value, { duration: ANIMATION_DURATION }));
+}
+
+function useAnimatedCurrentDb(calibrationOffset: SharedValue<number>) {
+  const targetDb = useDerivedValue(() => {
+    if (!audioVisualValues.hasSignal.value) {
+      return 0;
+    }
+    return audioVisualValues.displayDb.value + calibrationOffset.value;
+  });
+
+  return useDerivedValue(() => withTiming(targetDb.value, { duration: ANIMATION_DURATION }));
+}
+
 function Meter() {
   const offsetDb = useCalibrationStore(state => state.offsetDb);
-  const dbfs = useThrottledAudioMeterValue(state => (state.elapsedSeconds > 0 ? state.dbfs : 0), ANIMATION_DURATION);
-  const displayDb = dbfs > 0 ? applyCalibrationOffset(dbfs, offsetDb) : 0;
-  const animatedProgress = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(animatedProgress, {
-      toValue: displayDb,
-      duration: ANIMATION_DURATION,
-      useNativeDriver: true,
-    }).start();
-  }, [animatedProgress, displayDb]);
+  const calibrationOffset = useSharedValue(offsetDb);
+  const animatedProgress = useAnimatedDisplayDb(calibrationOffset);
 
-  const spinString = animatedProgress.interpolate({
-    inputRange: [0, 120],
-    outputRange: [`${MIN_DEGREE - 90}deg`, `${MAX_DEGREE - 90}deg`],
-    extrapolate: 'clamp',
+  useEffect(() => {
+    calibrationOffset.value = offsetDb;
+  }, [calibrationOffset, offsetDb]);
+
+  const needleStyle = useAnimatedStyle(() => {
+    const degrees = interpolate(
+      animatedProgress.value,
+      [0, 120],
+      [MIN_DEGREE - 90, MAX_DEGREE - 90],
+      Extrapolation.CLAMP
+    );
+    return {
+      transform: [
+        { translateX: -NEEDLE_WIDTH / 2 },
+        { translateY: -(NEEDLE_LENGTH + NEEDLE_BASE_WRAPPER_SIZE / 2) },
+        { rotate: `${degrees}deg` },
+      ],
+    };
   });
+
   const pathLength = Math.PI * 120;
-  const animatedStrokeOffset = animatedProgress.interpolate({
-    inputRange: [0, 120],
-    outputRange: [pathLength, 0],
-    extrapolate: 'clamp',
+  const animatedPathProps = useAnimatedProps(() => {
+    const strokeDashoffset = interpolate(animatedProgress.value, [0, 120], [pathLength, 0], Extrapolation.CLAMP);
+    return {
+      strokeDashoffset,
+    };
   });
 
   return (
@@ -128,7 +196,7 @@ function Meter() {
           strokeWidth="16"
           strokeLinecap="round"
           strokeDasharray={pathLength}
-          strokeDashoffset={animatedStrokeOffset}
+          animatedProps={animatedPathProps}
           fill="none"
         />
       </Svg>
@@ -136,19 +204,7 @@ function Meter() {
         <View style={[styles.needleBase, { backgroundColor: NEEDLE_BASE_COLOR }]} />
       </View>
       <GaugeTicks />
-      <Animated.View
-        style={[
-          styles.needle,
-          { borderColor: NEEDLE_COLOR },
-          {
-            transform: [
-              { translateX: -NEEDLE_WIDTH / 2 },
-              { translateY: -(NEEDLE_LENGTH + NEEDLE_BASE_WRAPPER_SIZE / 2) },
-              { rotate: spinString },
-            ],
-          },
-        ]}
-      />
+      <Animated.View style={[styles.needle, { borderColor: NEEDLE_COLOR }, needleStyle]} />
     </View>
   );
 }
@@ -221,10 +277,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dbfsText: {
+    backgroundColor: 'transparent',
     fontFamily: 'DM Sans',
     fontWeight: 600,
     fontSize: 48,
+    height: 58,
     letterSpacing: 0,
+    minWidth: 86,
+    padding: 0,
     textAlign: 'center',
   },
   avgDbText: {

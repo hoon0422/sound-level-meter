@@ -1,9 +1,11 @@
+import { audioVisualValues } from '@/audio/visual/audioVisualValues';
 import { CALIBRATION_PEAK_DBFS } from '@/audio/engine';
-import { SPECTRUM_BANDS } from '@/audio/spectrum';
+import { SPECTRUM_BANDS } from '@/audio/spectrum/constants';
 import Surface from '@/components/Surface';
 import { useTheme } from '@/context/ThemeContext';
-import { useAudioMeterStore } from '@/store/audioMeterStore';
+import { Canvas, RoundedRect } from '@shopify/react-native-skia';
 import { StyleSheet, Text, View } from 'react-native';
+import { useDerivedValue } from 'react-native-reanimated';
 
 const CONTAINER_HEIGHT = 180;
 const CONTAINER_VERTICAL_PADDING = 8;
@@ -27,6 +29,7 @@ function dbToTop(db: number) {
 }
 
 function calibrate(dbfs: number) {
+  'worklet';
   // Keep the user-facing Calibration Offset out of dB/Freq bars. This baseline
   // shift only maps analyser dBFS values into the existing chart scale; a user
   // Calibration Offset corrects the broadband sound-level reading. Correcting
@@ -37,14 +40,10 @@ function calibrate(dbfs: number) {
 }
 
 function dbToHeight(db: number) {
+  'worklet';
   if (db <= MIN_DB) return 0;
   const clampedDb = Math.min(MAX_DB, Math.max(db, MIN_DB));
   return Math.max(2, ((clampedDb - MIN_DB) / DB_RANGE) * INNER_H);
-}
-
-function meterColorDb(db: number, colors: ReturnType<typeof useTheme>['colors']) {
-  if (db <= 60) return colors.quiet;
-  return colors.moderate;
 }
 
 export default function FrequencyBarGraph() {
@@ -57,11 +56,6 @@ export default function FrequencyBarGraph() {
 
 function SpectrumBars() {
   const { typography, colors } = useTheme();
-  const { bars, barPeaks, hasSignal } = useAudioMeterStore(state => ({
-    bars: state.bars,
-    barPeaks: state.maximumBars,
-    hasSignal: state.elapsedSeconds > 0 && state.dbfs > 0,
-  }));
 
   return (
     <View style={styles.graphRow}>
@@ -90,37 +84,17 @@ function SpectrumBars() {
             <View key={db} style={[styles.gridLine, { backgroundColor: colors.inactive, top: dbToTop(db) }]} />
           ))}
 
-          <View style={styles.barsRow}>
-            {bars.map((rawDbfs, index) => {
-              const db = calibrate(rawDbfs);
-              const peakDb = calibrate(barPeaks[index]);
-              const barHeight = hasSignal ? dbToHeight(db) : 0;
-              const peakHeight = hasSignal ? dbToHeight(peakDb) : 0;
-              return (
-                <View style={styles.barContainer} key={SPECTRUM_BANDS[index]?.label ?? String(index)}>
-                  <View
-                    style={[
-                      styles.bar,
-                      styles.barPeak,
-                      {
-                        height: peakHeight,
-                        backgroundColor: colors.inactive,
-                      },
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.bar,
-                      {
-                        height: barHeight,
-                        backgroundColor: meterColorDb(db, colors),
-                      },
-                    ]}
-                  />
-                </View>
-              );
-            })}
-          </View>
+          <Canvas style={styles.barsCanvas}>
+            {SPECTRUM_BANDS.map((band, index) => (
+              <AnimatedSpectrumBar
+                activeColor={colors.moderate}
+                inactiveColor={colors.inactive}
+                key={band.label}
+                quietColor={colors.quiet}
+                index={index}
+              />
+            ))}
+          </Canvas>
         </View>
 
         <View style={styles.freqLabelsRow}>
@@ -135,6 +109,49 @@ function SpectrumBars() {
         </View>
       </View>
     </View>
+  );
+}
+
+function AnimatedSpectrumBar({
+  activeColor,
+  inactiveColor,
+  quietColor,
+  index,
+}: {
+  activeColor: string;
+  inactiveColor: string;
+  quietColor: string;
+  index: number;
+}) {
+  const bandWidth =
+    (CONTAINER_WIDTH - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING - 8) /
+    SPECTRUM_BANDS.length;
+  const barWidth = 10;
+  const x = 4 + bandWidth * index + (bandWidth - barWidth) / 2;
+  const barHeight = useDerivedValue(() => {
+    if (!audioVisualValues.spectrumHasSignal.value) {
+      return 0;
+    }
+    return dbToHeight(calibrate(audioVisualValues.spectrumBars.value[index] ?? -200));
+  });
+  const peakHeight = useDerivedValue(() => {
+    if (!audioVisualValues.spectrumHasSignal.value) {
+      return 0;
+    }
+    return dbToHeight(calibrate(audioVisualValues.spectrumPeaks.value[index] ?? -200));
+  });
+  const barY = useDerivedValue(() => CHART_HEIGHT - barHeight.value);
+  const peakY = useDerivedValue(() => CHART_HEIGHT - peakHeight.value);
+  const barColor = useDerivedValue(() => {
+    const db = calibrate(audioVisualValues.spectrumBars.value[index] ?? -200);
+    return db <= 60 ? quietColor : activeColor;
+  });
+
+  return (
+    <>
+      <RoundedRect color={inactiveColor} height={peakHeight} r={2} width={barWidth} x={x} y={peakY} />
+      <RoundedRect color={barColor} height={barHeight} r={2} width={barWidth} x={x} y={barY} />
+    </>
   );
 }
 
@@ -176,27 +193,10 @@ const styles = StyleSheet.create({
     right: 0,
     height: 1,
   },
-  barsRow: {
+  barsCanvas: {
     height: CHART_HEIGHT,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 4,
-    paddingHorizontal: 4,
+    width: CONTAINER_WIDTH - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING,
   },
-  barContainer: {
-    position: 'relative',
-    flex: 1,
-    height: CHART_HEIGHT,
-  },
-  bar: {
-    position: 'absolute',
-    bottom: 0,
-    borderRadius: 2,
-    width: 10,
-    left: '50%',
-    transform: [{ translateX: -5 }],
-  },
-  barPeak: {},
   freqLabelsRow: {
     flexDirection: 'row',
     width: '100%',

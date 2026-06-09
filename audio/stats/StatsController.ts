@@ -2,11 +2,14 @@ import { calibrateDbfsForDisplay } from '../metrics';
 import { type MicrophoneAudioFrame, type MicrophoneController, type MicrophoneState } from '../MicrophoneController';
 import type { StatsDisposeListener, StatsSnapshot, StatsSnapshotListener } from './types';
 
+const STATS_PUBLISH_INTERVAL_MS = 250;
+
 export function createIdleStatsSnapshot(): StatsSnapshot {
   return {
     averageDbfs: -100,
     minimumDbfs: 1000,
     maximumDbfs: -100,
+    validFrameCount: 0,
   };
 }
 
@@ -21,6 +24,8 @@ export class StatsController {
   private minimumDbfs = 1000;
   private maximumDbfs = -100;
   private lastMeasurementSessionId = 0;
+  private lastPublishTimeMs = 0;
+  private isRunning = false;
 
   constructor(mic: MicrophoneController) {
     this.unsubscribeFrame = mic.onFrame(this.handleFrame);
@@ -44,7 +49,7 @@ export class StatsController {
     this.dbfsSampleCount = 0;
     this.minimumDbfs = 1000;
     this.maximumDbfs = -100;
-    this.emit(createIdleStatsSnapshot());
+    this.emit(createIdleStatsSnapshot(), true);
   }
 
   dispose() {
@@ -58,8 +63,13 @@ export class StatsController {
     this.resetAccumulatedStats();
   }
 
-  private emit(snapshot: StatsSnapshot) {
+  private emit(snapshot: StatsSnapshot, force = false) {
     this.lastSnapshot = snapshot;
+    const now = Date.now();
+    if (!force && now - this.lastPublishTimeMs < STATS_PUBLISH_INTERVAL_MS) {
+      return;
+    }
+    this.lastPublishTimeMs = now;
 
     for (const listener of this.listeners) {
       listener(snapshot);
@@ -91,13 +101,21 @@ export class StatsController {
       averageDbfs: this.dbfsSum / this.dbfsSampleCount,
       minimumDbfs: this.minimumDbfs,
       maximumDbfs: this.maximumDbfs,
+      validFrameCount: this.dbfsSampleCount,
     });
   };
 
   private handleMicState = (state: MicrophoneState) => {
     if (state.isRunning && state.measurementSessionId !== this.lastMeasurementSessionId) {
       this.lastMeasurementSessionId = state.measurementSessionId;
+      this.isRunning = true;
       this.reset();
+      return;
+    }
+
+    if (!state.isRunning && this.isRunning) {
+      this.isRunning = false;
+      this.emit(this.lastSnapshot, true);
     }
   };
 
