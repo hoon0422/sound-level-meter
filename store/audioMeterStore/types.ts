@@ -23,7 +23,7 @@ export type { AudioEngineConfig, AudioMeterConfig, AudioMetricsDisplayConfig, Sp
 export type AudioMeterState = MicrophoneSlice & SpectrumSlice & AudioMetricsSlice & StatsSlice & DbTimeGraphSlice;
 
 export type DbTimeGraphSlice = {
-  dbTimeGraphSamples: DbTimeGraphSample[];
+  dbTimeGraphSamples: readonly DbTimeGraphSample[];
   dbTimeGraphIsRunning: boolean;
   dbTimeGraphWindowStartSeconds: number;
   dbTimeGraphWindowEndSeconds: number;

@@ -1,7 +1,7 @@
 import { DB_TIME_GRAPH_DB_MAX, DB_TIME_GRAPH_DB_MIN, type DbTimeGraphSample } from '@/audio/dbTimeGraph';
 import Surface from '@/components/Surface';
 import { useTheme } from '@/context/ThemeContext';
-import { useAudioMeterStore } from '@/store/audioMeterStore';
+import { getDbTimeGraphSamples, useAudioMeterStore } from '@/store/audioMeterStore';
 import { Canvas, Circle, Path, Skia } from '@shopify/react-native-skia';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -57,38 +57,54 @@ function toChartPoint(sample: DbTimeGraphSample, windowStartSeconds: number, win
 
 export default function SoundGraph() {
   const { typography, colors } = useTheme();
-  const { samples, isRunning, windowStartSeconds, windowEndSeconds } = useAudioMeterStore(state => ({
-    samples: state.dbTimeGraphSamples,
+  const { graphVersion, isRunning, windowStartSeconds, windowEndSeconds } = useAudioMeterStore(state => ({
+    graphVersion: state.dbTimeGraphVersion,
     isRunning: state.dbTimeGraphIsRunning,
     windowStartSeconds: state.dbTimeGraphWindowStartSeconds,
     windowEndSeconds: state.dbTimeGraphWindowEndSeconds,
   }));
 
   const chart = useMemo(() => {
-    const drawableSamples = samples.filter(
-      sample =>
-        !sample.isInitial &&
-        sample.sessionElapsedSeconds >= windowStartSeconds &&
-        sample.sessionElapsedSeconds <= windowEndSeconds
-    );
-    const chartStartSeconds =
-      windowStartSeconds === 0 ? (drawableSamples[0]?.sessionElapsedSeconds ?? windowStartSeconds) : windowStartSeconds;
-    const points = drawableSamples.map(sample => toChartPoint(sample, chartStartSeconds, windowEndSeconds));
+    const samples = getDbTimeGraphSamples(graphVersion);
     const path = Skia.Path.Make();
+    let chartStartSeconds = windowStartSeconds;
+    let currentPoint: ChartPoint | null = null;
+    let hasPoint = false;
 
-    points.forEach((point, index) => {
-      if (index === 0) {
+    if (windowStartSeconds === 0) {
+      const firstDrawableSample = samples.find(
+        sample =>
+          !sample.isInitial &&
+          sample.sessionElapsedSeconds >= windowStartSeconds &&
+          sample.sessionElapsedSeconds <= windowEndSeconds
+      );
+      chartStartSeconds = firstDrawableSample?.sessionElapsedSeconds ?? windowStartSeconds;
+    }
+
+    for (const sample of samples) {
+      if (
+        sample.isInitial ||
+        sample.sessionElapsedSeconds < windowStartSeconds ||
+        sample.sessionElapsedSeconds > windowEndSeconds
+      ) {
+        continue;
+      }
+
+      const point = toChartPoint(sample, chartStartSeconds, windowEndSeconds);
+      if (!hasPoint) {
         path.moveTo(point.x, point.y);
+        hasPoint = true;
       } else {
         path.lineTo(point.x, point.y);
       }
-    });
+      currentPoint = point;
+    }
 
     return {
       path,
-      currentPoint: points.at(-1) ?? null,
+      currentPoint,
     };
-  }, [samples, windowEndSeconds, windowStartSeconds]);
+  }, [graphVersion, windowEndSeconds, windowStartSeconds]);
 
   const xLabels = useMemo(() => {
     const durationSeconds = windowEndSeconds - windowStartSeconds;

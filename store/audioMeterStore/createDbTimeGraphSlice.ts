@@ -15,6 +15,10 @@ let _lastSampleElapsedSeconds: number | null = null;
 let _hasDrawableSample = false;
 let _version = 0;
 
+export function getDbTimeGraphSamples(_versionKey = _version): readonly DbTimeGraphSample[] {
+  return _samples;
+}
+
 function createDbTimeGraphSnapshot(isRunning: boolean): DbTimeGraphSlice {
   const windowDurationSeconds = DB_TIME_GRAPH_WINDOW_DURATION_MS / 1000;
   const latestElapsedSeconds = _samples.at(-1)?.sessionElapsedSeconds ?? 0;
@@ -22,7 +26,7 @@ function createDbTimeGraphSnapshot(isRunning: boolean): DbTimeGraphSlice {
   const windowStartSeconds = Math.max(0, windowEndSeconds - windowDurationSeconds);
 
   return {
-    dbTimeGraphSamples: _samples.slice(),
+    dbTimeGraphSamples: _samples,
     dbTimeGraphIsRunning: isRunning,
     dbTimeGraphWindowStartSeconds: windowStartSeconds,
     dbTimeGraphWindowEndSeconds: windowEndSeconds,
