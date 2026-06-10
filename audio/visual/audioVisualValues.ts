@@ -3,6 +3,10 @@ import { SPECTRUM_BANDS } from '@/audio/spectrum/constants';
 import { makeMutable } from 'react-native-reanimated';
 
 const IDLE_SPECTRUM_DBFS = -200;
+const AUDIO_VISUAL_UPDATE_INTERVAL_MS = 1000 / 15;
+
+let lastFrameUpdateTimeMs = 0;
+let lastSpectrumUpdateTimeMs = 0;
 
 function createIdleSpectrumBars() {
   return Array(SPECTRUM_BANDS.length).fill(IDLE_SPECTRUM_DBFS) as number[];
@@ -23,6 +27,8 @@ export const audioVisualValues = {
 };
 
 export function resetAudioVisualValues() {
+  lastFrameUpdateTimeMs = 0;
+  lastSpectrumUpdateTimeMs = 0;
   audioVisualValues.displayDb.value = 0;
   audioVisualValues.elapsedSeconds.value = 0;
   audioVisualValues.hasSignal.value = false;
@@ -33,6 +39,8 @@ export function resetAudioVisualValues() {
 }
 
 export function startAudioVisualValues() {
+  lastFrameUpdateTimeMs = 0;
+  lastSpectrumUpdateTimeMs = 0;
   audioVisualValues.displayDb.value = 0;
   audioVisualValues.elapsedSeconds.value = 0;
   audioVisualValues.hasSignal.value = false;
@@ -43,12 +51,20 @@ export function startAudioVisualValues() {
 }
 
 export function stopAudioVisualValues(elapsedSeconds: number) {
+  lastFrameUpdateTimeMs = 0;
+  lastSpectrumUpdateTimeMs = 0;
   audioVisualValues.elapsedSeconds.value = elapsedSeconds;
   audioVisualValues.isRunning.value = false;
   audioVisualValues.spectrumHasSignal.value = false;
 }
 
 export function updateAudioVisualFrame(rawDbfs: number, elapsedSeconds: number) {
+  const now = Date.now();
+  if (lastFrameUpdateTimeMs !== 0 && now - lastFrameUpdateTimeMs < AUDIO_VISUAL_UPDATE_INTERVAL_MS) {
+    return;
+  }
+  lastFrameUpdateTimeMs = now;
+
   const displayDb = toDisplayDb(rawDbfs);
   audioVisualValues.displayDb.value = Math.max(0, displayDb);
   audioVisualValues.elapsedSeconds.value = elapsedSeconds;
@@ -62,6 +78,8 @@ export function holdAudioVisualFrame(elapsedSeconds: number) {
 }
 
 export function markAudioVisualNoSignal(elapsedSeconds: number) {
+  lastFrameUpdateTimeMs = 0;
+  lastSpectrumUpdateTimeMs = 0;
   audioVisualValues.displayDb.value = 0;
   audioVisualValues.elapsedSeconds.value = elapsedSeconds;
   audioVisualValues.hasSignal.value = false;
@@ -70,6 +88,12 @@ export function markAudioVisualNoSignal(elapsedSeconds: number) {
 }
 
 export function updateAudioVisualSpectrum(bars: number[], peaks: number[], hasSignal: boolean) {
+  const now = Date.now();
+  if (hasSignal && lastSpectrumUpdateTimeMs !== 0 && now - lastSpectrumUpdateTimeMs < AUDIO_VISUAL_UPDATE_INTERVAL_MS) {
+    return;
+  }
+  lastSpectrumUpdateTimeMs = hasSignal ? now : 0;
+
   audioVisualValues.spectrumBars.value = bars.slice();
   audioVisualValues.spectrumPeaks.value = peaks.slice();
   audioVisualValues.spectrumHasSignal.value = hasSignal;

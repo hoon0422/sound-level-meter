@@ -37,8 +37,7 @@ export type MicrophoneState = {
   error: string | null;
 };
 
-export type MicrophoneAudioFrame = {
-  frequencyData: Float32Array;
+export type MicrophoneDbFrame = {
   dbfs: number;
   frameDurationSeconds: number;
   sessionElapsedSeconds: number;
@@ -49,10 +48,15 @@ export type MicrophoneAudioFrame = {
   quality: AudioFrameQuality;
 };
 
+export type MicrophoneAudioFrame = MicrophoneDbFrame & {
+  frequencyData: Float32Array;
+};
+
 export type MicrophoneStateListener = (state: MicrophoneState) => void;
-export type MicrophoneFrameListener = (frame: MicrophoneAudioFrame) => void;
+export type MicrophoneFrameListener = (frame: MicrophoneDbFrame) => void;
+export type MicrophoneFrequencyFrameListener = (frame: MicrophoneAudioFrame) => void;
 export type MicrophoneStateDisposeListener = (state: MicrophoneState) => void;
-export type MicrophoneFrameDisposeListener = (frame: MicrophoneAudioFrame | null) => void;
+export type MicrophoneFrameDisposeListener = (frame: MicrophoneDbFrame | null) => void;
 
 export function createIdleMicrophoneState(measurementSessionId = 0, elapsedSeconds = 0): MicrophoneState {
   return {
@@ -68,6 +72,7 @@ export function createIdleMicrophoneState(measurementSessionId = 0, elapsedSecon
 }
 
 const INVALID_AUDIO_FRAME_GRACE_SECONDS = 0.5;
+const RUNNING_STATE_PUBLISH_INTERVAL_MS = 250;
 
 export class MicrophoneController {
   private static instance: MicrophoneController | null = null;
@@ -79,11 +84,13 @@ export class MicrophoneController {
   private engine: MicrophoneEngine | null = null;
   private stateListeners = new Set<MicrophoneStateListener>();
   private frameListeners = new Set<MicrophoneFrameListener>();
+  private frequencyFrameListeners = new Set<MicrophoneFrequencyFrameListener>();
   private stateDisposeListeners = new Map<MicrophoneStateListener, MicrophoneStateDisposeListener>();
   private frameDisposeListeners = new Map<MicrophoneFrameListener, MicrophoneFrameDisposeListener>();
   private lastState = createIdleMicrophoneState();
-  private lastFrame: MicrophoneAudioFrame | null = null;
+  private lastFrame: MicrophoneDbFrame | null = null;
   private invalidFrameElapsedSeconds = 0;
+  private lastRunningStatePublishTimeMs = 0;
 
   private constructor() {}
 
@@ -118,6 +125,14 @@ export class MicrophoneController {
     };
   }
 
+  onFrequencyFrame(listener: MicrophoneFrequencyFrameListener): () => void {
+    this.frequencyFrameListeners.add(listener);
+
+    return () => {
+      this.frequencyFrameListeners.delete(listener);
+    };
+  }
+
   private emitState(state: MicrophoneState) {
     this.lastState = state;
 
@@ -126,7 +141,7 @@ export class MicrophoneController {
     }
   }
 
-  private emitFrame(frame: MicrophoneAudioFrame) {
+  private emitFrame(frame: MicrophoneDbFrame) {
     this.lastFrame = frame;
 
     for (const listener of this.frameListeners) {
@@ -134,7 +149,13 @@ export class MicrophoneController {
     }
   }
 
-  private emitDispose(state: MicrophoneState, frame: MicrophoneAudioFrame | null) {
+  private emitFrequencyFrame(frame: MicrophoneAudioFrame) {
+    for (const listener of this.frequencyFrameListeners) {
+      listener(frame);
+    }
+  }
+
+  private emitDispose(state: MicrophoneState, frame: MicrophoneDbFrame | null) {
     for (const listener of Array.from(this.stateDisposeListeners.values())) {
       listener(state);
     }
@@ -145,7 +166,7 @@ export class MicrophoneController {
   }
 
   private handleAudioMetrics = (metrics: AudioRuntimeMetrics) => {
-    if (!this.running || !this.engine || !this.freqData) return;
+    if (!this.running || !this.engine) return;
 
     this.elapsedAccumulator += metrics.elapsedSeconds;
     const quality = classifyAudioFrameQuality({
@@ -169,10 +190,7 @@ export class MicrophoneController {
 
     this.invalidFrameElapsedSeconds = 0;
     updateAudioVisualFrame(metrics.dbfs, this.elapsedAccumulator);
-    this.engine.analyser.getFloatFrequencyData(this.freqData);
-
-    this.emitFrame({
-      frequencyData: this.freqData,
+    const frame: MicrophoneDbFrame = {
       dbfs: metrics.dbfs,
       frameDurationSeconds: metrics.elapsedSeconds,
       sessionElapsedSeconds: this.elapsedAccumulator,
@@ -181,12 +199,28 @@ export class MicrophoneController {
       minDecibels: this.engine.analyser.minDecibels,
       maxDecibels: this.engine.analyser.maxDecibels,
       quality,
-    });
+    };
+
+    this.emitFrame(frame);
+
+    if (this.frequencyFrameListeners.size > 0 && this.freqData) {
+      this.engine.analyser.getFloatFrequencyData(this.freqData);
+      this.emitFrequencyFrame({
+        ...frame,
+        frequencyData: this.freqData,
+      });
+    }
 
     this.emitRunningState();
   };
 
-  private emitRunningState() {
+  private emitRunningState(force = false) {
+    const now = Date.now();
+    if (!force && now - this.lastRunningStatePublishTimeMs < RUNNING_STATE_PUBLISH_INTERVAL_MS) {
+      return;
+    }
+    this.lastRunningStatePublishTimeMs = now;
+
     this.emitState({
       isRunning: true,
       isConnecting: false,
@@ -202,6 +236,7 @@ export class MicrophoneController {
   stop() {
     this.running = false;
     this.invalidFrameElapsedSeconds = 0;
+    this.lastRunningStatePublishTimeMs = 0;
     stopAudioVisualValues(this.elapsedAccumulator);
     stopMicrophoneEngine();
 
@@ -220,6 +255,7 @@ export class MicrophoneController {
     this.freqData = null;
     this.elapsedAccumulator = 0;
     this.invalidFrameElapsedSeconds = 0;
+    this.lastRunningStatePublishTimeMs = 0;
     resetAudioVisualValues();
 
     this.emitState(createIdleMicrophoneState(this.measurementSessionId));
@@ -234,6 +270,7 @@ export class MicrophoneController {
 
     this.stateListeners.clear();
     this.frameListeners.clear();
+    this.frequencyFrameListeners.clear();
     this.stateDisposeListeners.clear();
     this.frameDisposeListeners.clear();
     this.lastFrame = null;
@@ -344,12 +381,10 @@ export class MicrophoneController {
       this.measurementSessionId++;
       this.running = true;
       this.invalidFrameElapsedSeconds = 0;
+      this.lastRunningStatePublishTimeMs = 0;
       startAudioVisualValues();
 
-      this.emitState({
-        ...createIdleMicrophoneState(this.measurementSessionId),
-        isRunning: true,
-      });
+      this.emitRunningState(true);
       return true;
     } catch (error) {
       const message = getSentryErrorMessage(error, 'Unknown microphone engine start error occurred');

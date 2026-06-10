@@ -33,10 +33,17 @@ function buildBandBars(
   minDecibels: number
 ) {
   const bars: number[] = [];
+  const nyquistHz = sampleRate / 2;
 
   for (const band of bands) {
+    if (band.lowEdge >= nyquistHz) {
+      bars.push(minDecibels);
+      continue;
+    }
+
+    const highEdge = Math.min(band.highEdge, nyquistHz);
     const startBin = clamp(hzToBin(band.lowEdge, sampleRate, fftSize), 0, freqData.length - 1);
-    const endBin = clamp(hzToBin(band.highEdge, sampleRate, fftSize), 0, freqData.length - 1);
+    const endBin = clamp(hzToBin(highEdge, sampleRate, fftSize), 0, freqData.length - 1);
 
     let sum = 0;
     let count = 0;

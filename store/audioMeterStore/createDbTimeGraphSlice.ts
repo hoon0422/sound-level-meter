@@ -4,7 +4,7 @@ import {
   DB_TIME_GRAPH_WINDOW_DURATION_MS,
   type DbTimeGraphSample,
 } from '@/audio/dbTimeGraph';
-import { MicrophoneController, type MicrophoneAudioFrame, type MicrophoneState } from '@/audio/MicrophoneController';
+import { MicrophoneController, type MicrophoneDbFrame, type MicrophoneState } from '@/audio/MicrophoneController';
 import { calibrateDbfsForDisplay } from '@/audio/metrics';
 import type { StateCreator } from 'zustand';
 import type { AudioMeterState, DbTimeGraphSlice } from './types';
@@ -76,7 +76,7 @@ export const createDbTimeGraphSlice: StateCreator<
     }
   };
 
-  const handleFrame = (frame: MicrophoneAudioFrame) => {
+  const handleFrame = (frame: MicrophoneDbFrame) => {
     if (!get().dbTimeGraphIsRunning || frame.frameDurationSeconds === 0) {
       return;
     }

@@ -1,5 +1,5 @@
 import { calibrateDbfsForDisplay } from '../metrics';
-import { type MicrophoneAudioFrame, type MicrophoneController, type MicrophoneState } from '../MicrophoneController';
+import { type MicrophoneController, type MicrophoneDbFrame, type MicrophoneState } from '../MicrophoneController';
 import type { StatsDisposeListener, StatsSnapshot, StatsSnapshotListener } from './types';
 
 const STATS_PUBLISH_INTERVAL_MS = 250;
@@ -89,7 +89,7 @@ export class StatsController {
     this.maximumDbfs = -100;
   }
 
-  private handleFrame = (frame: MicrophoneAudioFrame) => {
+  private handleFrame = (frame: MicrophoneDbFrame) => {
     const dbfs = calibrateDbfsForDisplay(Number.isFinite(frame.dbfs) ? frame.dbfs : -100);
 
     this.dbfsSum += dbfs;
