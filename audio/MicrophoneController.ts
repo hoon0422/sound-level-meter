@@ -73,6 +73,7 @@ export function createIdleMicrophoneState(measurementSessionId = 0, elapsedSecon
 
 const INVALID_AUDIO_FRAME_GRACE_SECONDS = 0.5;
 const RUNNING_STATE_PUBLISH_INTERVAL_MS = 250;
+const FREQUENCY_FRAME_PUBLISH_INTERVAL_MS = 1000 / 15;
 
 export class MicrophoneController {
   private static instance: MicrophoneController | null = null;
@@ -91,6 +92,7 @@ export class MicrophoneController {
   private lastFrame: MicrophoneDbFrame | null = null;
   private invalidFrameElapsedSeconds = 0;
   private lastRunningStatePublishTimeMs = 0;
+  private lastFrequencyFramePublishTimeMs = 0;
 
   private constructor() {}
 
@@ -127,6 +129,7 @@ export class MicrophoneController {
 
   onFrequencyFrame(listener: MicrophoneFrequencyFrameListener): () => void {
     this.frequencyFrameListeners.add(listener);
+    this.lastFrequencyFramePublishTimeMs = 0;
 
     return () => {
       this.frequencyFrameListeners.delete(listener);
@@ -203,11 +206,20 @@ export class MicrophoneController {
 
     this.emitFrame(frame);
 
-    if (this.frequencyFrameListeners.size > 0 && this.freqData) {
-      this.engine.analyser.getFloatFrequencyData(this.freqData);
+    const now = Date.now();
+    const freqData = this.freqData;
+    const shouldPublishFrequencyFrame =
+      this.frequencyFrameListeners.size > 0 &&
+      freqData !== null &&
+      (this.lastFrequencyFramePublishTimeMs === 0 ||
+        now - this.lastFrequencyFramePublishTimeMs >= FREQUENCY_FRAME_PUBLISH_INTERVAL_MS);
+
+    if (shouldPublishFrequencyFrame) {
+      this.lastFrequencyFramePublishTimeMs = now;
+      this.engine.analyser.getFloatFrequencyData(freqData);
       this.emitFrequencyFrame({
         ...frame,
-        frequencyData: this.freqData,
+        frequencyData: freqData,
       });
     }
 
@@ -237,6 +249,7 @@ export class MicrophoneController {
     this.running = false;
     this.invalidFrameElapsedSeconds = 0;
     this.lastRunningStatePublishTimeMs = 0;
+    this.lastFrequencyFramePublishTimeMs = 0;
     stopAudioVisualValues(this.elapsedAccumulator);
     stopMicrophoneEngine();
 
@@ -256,6 +269,7 @@ export class MicrophoneController {
     this.elapsedAccumulator = 0;
     this.invalidFrameElapsedSeconds = 0;
     this.lastRunningStatePublishTimeMs = 0;
+    this.lastFrequencyFramePublishTimeMs = 0;
     resetAudioVisualValues();
 
     this.emitState(createIdleMicrophoneState(this.measurementSessionId));
@@ -325,6 +339,7 @@ export class MicrophoneController {
           this.freqData = new Float32Array(this.engine?.analyser.frequencyBinCount ?? 0);
           this.elapsedAccumulator = 0;
           this.invalidFrameElapsedSeconds = 0;
+          this.lastFrequencyFramePublishTimeMs = 0;
         }
       );
 
@@ -382,6 +397,7 @@ export class MicrophoneController {
       this.running = true;
       this.invalidFrameElapsedSeconds = 0;
       this.lastRunningStatePublishTimeMs = 0;
+      this.lastFrequencyFramePublishTimeMs = 0;
       startAudioVisualValues();
 
       this.emitRunningState(true);

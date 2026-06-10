@@ -128,9 +128,11 @@ export class SpectrumAnalysisController {
     this.smoothedBars = analysis.bars;
 
     if (this.maximumBars.length === analysis.bars.length) {
-      this.maximumBars = this.maximumBars.map((max, i) => Math.max(max, analysis.bars[i]));
+      for (let i = 0; i < this.maximumBars.length; i++) {
+        this.maximumBars[i] = Math.max(this.maximumBars[i], analysis.bars[i]);
+      }
     } else {
-      this.maximumBars = analysis.bars;
+      this.maximumBars = analysis.bars.slice();
     }
 
     const snapshot = {

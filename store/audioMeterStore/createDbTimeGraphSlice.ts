@@ -33,8 +33,14 @@ function createDbTimeGraphSnapshot(isRunning: boolean): DbTimeGraphSlice {
 function trimSamples(latestElapsedSeconds: number) {
   const windowDurationSeconds = DB_TIME_GRAPH_WINDOW_DURATION_MS / 1000;
   const cutoffSeconds = Math.max(0, latestElapsedSeconds - windowDurationSeconds);
-  while (_samples.length > 0 && _samples[0].sessionElapsedSeconds < cutoffSeconds) {
-    _samples.shift();
+
+  let removeCount = 0;
+  while (removeCount < _samples.length && _samples[removeCount].sessionElapsedSeconds < cutoffSeconds) {
+    removeCount++;
+  }
+
+  if (removeCount > 0) {
+    _samples.splice(0, removeCount);
   }
 }
 
