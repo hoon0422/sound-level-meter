@@ -1,5 +1,6 @@
 import { useTheme } from '@/context/ThemeContext';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useGraphSurfaceWidth } from './graphLayoutDimensions';
 
 interface SurfaceProps {
   children: React.ReactNode;
@@ -8,6 +9,7 @@ interface SurfaceProps {
 
 export default function Surface({ children, style }: SurfaceProps) {
   const { colors } = useTheme();
+  const surfaceWidth = useGraphSurfaceWidth();
 
   return (
     <View
@@ -19,6 +21,7 @@ export default function Surface({ children, style }: SurfaceProps) {
           shadowColor: colors.shadow,
         },
         style,
+        { width: surfaceWidth },
       ]}
     >
       {children}

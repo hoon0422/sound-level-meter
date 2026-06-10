@@ -45,7 +45,6 @@ export function startAudioVisualValues() {
 export function stopAudioVisualValues(elapsedSeconds: number) {
   audioVisualValues.elapsedSeconds.value = elapsedSeconds;
   audioVisualValues.isRunning.value = false;
-  audioVisualValues.spectrumHasSignal.value = false;
 }
 
 export function updateAudioVisualFrame(rawDbfs: number, elapsedSeconds: number) {

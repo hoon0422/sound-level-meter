@@ -1,5 +1,6 @@
 import { DB_TIME_GRAPH_DB_MAX, DB_TIME_GRAPH_DB_MIN, type DbTimeGraphSample } from '@/audio/dbTimeGraph';
 import Surface from '@/components/Surface';
+import { useGraphSurfaceWidth } from '@/components/graphLayoutDimensions';
 import { useTheme } from '@/context/ThemeContext';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Canvas, Circle, Path, Skia } from '@shopify/react-native-skia';
@@ -16,7 +17,6 @@ const CHART_TOP_INSET = 10;
 const CHART_HEIGHT = INNER_H + CHART_TOP_INSET;
 const X_AXIS_H = 20;
 const Y_AXIS_WIDTH = 28;
-const CHART_WIDTH = CONTAINER_WIDTH - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING;
 
 const Y_LABELS = [120, 100, 80, 60, 40, 20, 0];
 const GRID_DBS = [40, 80, 120];
@@ -47,19 +47,27 @@ function formatElapsedLabel(seconds: number) {
   return `${Math.round(seconds)}`;
 }
 
-function toChartPoint(sample: DbTimeGraphSample, windowStartSeconds: number, windowEndSeconds: number): ChartPoint {
+function toChartPoint(
+  sample: DbTimeGraphSample,
+  windowStartSeconds: number,
+  windowEndSeconds: number,
+  chartWidth: number
+): ChartPoint {
   const durationSeconds = Math.max(windowEndSeconds - windowStartSeconds, 1);
   return {
-    x: ((sample.sessionElapsedSeconds - windowStartSeconds) / durationSeconds) * (CHART_WIDTH - CHART_RIGHT_INSET),
+    x:
+      ((sample.sessionElapsedSeconds - windowStartSeconds) / durationSeconds) *
+      Math.max(0, chartWidth - CHART_RIGHT_INSET),
     y: dbToY(sample.db),
   };
 }
 
 export default function SoundGraph() {
   const { typography, colors } = useTheme();
-  const { samples, isRunning, windowStartSeconds, windowEndSeconds } = useAudioMeterStore(state => ({
+  const surfaceWidth = useGraphSurfaceWidth();
+  const chartWidth = Math.max(0, surfaceWidth - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING);
+  const { samples, windowStartSeconds, windowEndSeconds } = useAudioMeterStore(state => ({
     samples: state.dbTimeGraphSamples,
-    isRunning: state.dbTimeGraphIsRunning,
     windowStartSeconds: state.dbTimeGraphWindowStartSeconds,
     windowEndSeconds: state.dbTimeGraphWindowEndSeconds,
   }));
@@ -73,7 +81,7 @@ export default function SoundGraph() {
     );
     const chartStartSeconds =
       windowStartSeconds === 0 ? (drawableSamples[0]?.sessionElapsedSeconds ?? windowStartSeconds) : windowStartSeconds;
-    const points = drawableSamples.map(sample => toChartPoint(sample, chartStartSeconds, windowEndSeconds));
+    const points = drawableSamples.map(sample => toChartPoint(sample, chartStartSeconds, windowEndSeconds, chartWidth));
     const path = Skia.Path.Make();
 
     points.forEach((point, index) => {
@@ -88,7 +96,7 @@ export default function SoundGraph() {
       path,
       currentPoint: points.at(-1) ?? null,
     };
-  }, [samples, windowEndSeconds, windowStartSeconds]);
+  }, [chartWidth, samples, windowEndSeconds, windowStartSeconds]);
 
   const xLabels = useMemo(() => {
     const durationSeconds = windowEndSeconds - windowStartSeconds;
@@ -96,11 +104,11 @@ export default function SoundGraph() {
       const ratio = index / (X_LABEL_COUNT - 1);
       return {
         key: `${windowStartSeconds}-${windowEndSeconds}-${index}`,
-        left: ratio * CHART_WIDTH,
+        left: ratio * chartWidth,
         label: formatElapsedLabel(windowStartSeconds + durationSeconds * ratio),
       };
     });
-  }, [windowEndSeconds, windowStartSeconds]);
+  }, [chartWidth, windowEndSeconds, windowStartSeconds]);
 
   return (
     <Surface style={styles.container}>
@@ -136,15 +144,10 @@ export default function SoundGraph() {
                 style={[styles.gridLine, { backgroundColor: colors.inactive, top: dbToY(db) }]}
               />
             ))}
-            <Canvas style={styles.canvas}>
+            <Canvas style={[styles.canvas, { width: chartWidth }]}>
               <Path path={chart.path} color={ACTIVE_COLOR} style="stroke" strokeWidth={2} />
               {chart.currentPoint && (
-                <Circle
-                  cx={chart.currentPoint.x}
-                  cy={chart.currentPoint.y}
-                  r={3}
-                  color={isRunning ? ACTIVE_COLOR : colors.inactive}
-                />
+                <Circle cx={chart.currentPoint.x} cy={chart.currentPoint.y} r={3} color={ACTIVE_COLOR} />
               )}
             </Canvas>
             <View style={[styles.xAxisLine, { backgroundColor: colors.inactive }]} />
@@ -218,7 +221,6 @@ const styles = StyleSheet.create({
     height: 1,
   },
   canvas: {
-    width: CHART_WIDTH,
     height: CHART_HEIGHT,
   },
   xAxisLine: {

@@ -6,6 +6,12 @@ import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
+import {
+  GRAPH_LAYOUT_COLUMN_GAP,
+  GRAPH_LAYOUT_PADDING_LEFT,
+  GRAPH_LAYOUT_PADDING_RIGHT,
+  GRAPH_LAYOUT_ROCKET_WIDTH,
+} from './graphLayoutDimensions';
 
 type Props = {
   children: React.ReactNode;
@@ -74,9 +80,9 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     justifyContent: 'space-between',
     flex: 1,
-    gap: 10,
-    paddingLeft: 20,
-    paddingRight: 16,
+    gap: GRAPH_LAYOUT_COLUMN_GAP,
+    paddingLeft: GRAPH_LAYOUT_PADDING_LEFT,
+    paddingRight: GRAPH_LAYOUT_PADDING_RIGHT,
     paddingVertical: 24,
   },
   graphContainer: {
@@ -103,7 +109,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   rocketPlaceholder: {
-    width: 24,
+    width: GRAPH_LAYOUT_ROCKET_WIDTH,
     height: '100%',
   },
 });

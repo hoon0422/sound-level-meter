@@ -1,9 +1,4 @@
-import {
-  captureSentryException,
-  getSentryErrorAttributes,
-  logSentryError,
-  logSentryInfo,
-} from '@/analytics/sentry';
+import { captureSentryException, getSentryErrorAttributes, logSentryError, logSentryInfo } from '@/analytics/sentry';
 import { audioMeterStore, useAudioMeterStore } from '@/store/audioMeterStore';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useEffect } from 'react';

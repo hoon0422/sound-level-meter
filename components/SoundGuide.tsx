@@ -135,7 +135,7 @@ export default function SoundGuide() {
 
   useAnimatedReaction(
     () => {
-      if (!audioVisualValues.isRunning.value || !audioVisualValues.hasSignal.value) {
+      if (!audioVisualValues.hasSignal.value) {
         return IDLE_ACTIVE_INDEX;
       }
       const displayDb = audioVisualValues.displayDb.value + calibrationOffset.value;

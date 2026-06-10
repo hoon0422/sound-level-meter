@@ -209,16 +209,12 @@ export function RocketGamePage() {
 
   const congratsStyle = useAnimatedStyle(() => ({
     opacity:
-      rocketValues.phase.value === PHASE_LANDED && rocketValues.landingVisual.value === LANDING_VISUAL_CONGRATS
-        ? 1
-        : 0,
+      rocketValues.phase.value === PHASE_LANDED && rocketValues.landingVisual.value === LANDING_VISUAL_CONGRATS ? 1 : 0,
   }));
 
   const landingStyle = useAnimatedStyle(() => ({
     opacity:
-      rocketValues.phase.value === PHASE_LANDED && rocketValues.landingVisual.value === LANDING_VISUAL_LANDING
-        ? 1
-        : 0,
+      rocketValues.phase.value === PHASE_LANDED && rocketValues.landingVisual.value === LANDING_VISUAL_LANDING ? 1 : 0,
   }));
 
   const rocketVisibilityStyle = useAnimatedStyle(() => ({

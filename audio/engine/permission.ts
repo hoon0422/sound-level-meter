@@ -5,9 +5,7 @@ import {
   logSentryWarning,
   traceSentrySpan,
 } from '@/analytics/sentry';
-import {
-  showMicrophonePermissionDeniedAlert,
-} from '@/audio/microphonePermissionAlerts';
+import { showMicrophonePermissionDeniedAlert } from '@/audio/microphonePermissionAlerts';
 import { Alert } from 'react-native';
 import { AudioManager } from 'react-native-audio-api';
 

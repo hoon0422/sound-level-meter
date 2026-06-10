@@ -23,8 +23,7 @@ const preferenceSpecifiers = [
   {
     Type: 'PSGroupSpecifier',
     Title: 'Language',
-    FooterText:
-      'Preferred Language is managed by iOS because this app declares its supported languages.',
+    FooterText: 'Preferred Language is managed by iOS because this app declares its supported languages.',
   },
   {
     Type: 'PSTitleValueSpecifier',
@@ -98,7 +97,7 @@ const localizedStrings = {
     'Managed by iOS': 'Géré par iOS',
     Language: 'Langue',
     'Preferred Language is managed by iOS because this app declares its supported languages.':
-      "La langue préférée est gérée par iOS, car cette app déclare ses langues prises en charge.",
+      'La langue préférée est gérée par iOS, car cette app déclare ses langues prises en charge.',
     'Preferred Language': 'Langue préférée',
   },
   es: {

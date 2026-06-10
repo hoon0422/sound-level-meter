@@ -2,6 +2,7 @@ import { audioVisualValues } from '@/audio/visual/audioVisualValues';
 import { CALIBRATION_PEAK_DBFS } from '@/audio/engine';
 import { SPECTRUM_BANDS } from '@/audio/spectrum/constants';
 import Surface from '@/components/Surface';
+import { useGraphSurfaceWidth } from '@/components/graphLayoutDimensions';
 import { useTheme } from '@/context/ThemeContext';
 import { Canvas, RoundedRect } from '@shopify/react-native-skia';
 import { StyleSheet, Text, View } from 'react-native';
@@ -47,14 +48,17 @@ function dbToHeight(db: number) {
 }
 
 export default function FrequencyBarGraph() {
+  const surfaceWidth = useGraphSurfaceWidth();
+  const chartWidth = Math.max(0, surfaceWidth - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING);
+
   return (
     <Surface style={styles.container}>
-      <SpectrumBars />
+      <SpectrumBars chartWidth={chartWidth} />
     </Surface>
   );
 }
 
-function SpectrumBars() {
+function SpectrumBars({ chartWidth }: { chartWidth: number }) {
   const { typography, colors } = useTheme();
 
   return (
@@ -84,10 +88,11 @@ function SpectrumBars() {
             <View key={db} style={[styles.gridLine, { backgroundColor: colors.inactive, top: dbToTop(db) }]} />
           ))}
 
-          <Canvas style={styles.barsCanvas}>
+          <Canvas style={[styles.barsCanvas, { width: chartWidth }]}>
             {SPECTRUM_BANDS.map((band, index) => (
               <AnimatedSpectrumBar
                 activeColor={colors.moderate}
+                chartWidth={chartWidth}
                 inactiveColor={colors.inactive}
                 key={band.label}
                 quietColor={colors.quiet}
@@ -114,19 +119,19 @@ function SpectrumBars() {
 
 function AnimatedSpectrumBar({
   activeColor,
+  chartWidth,
   inactiveColor,
   quietColor,
   index,
 }: {
   activeColor: string;
+  chartWidth: number;
   inactiveColor: string;
   quietColor: string;
   index: number;
 }) {
-  const bandWidth =
-    (CONTAINER_WIDTH - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING - 8) /
-    SPECTRUM_BANDS.length;
-  const barWidth = 10;
+  const bandWidth = Math.max(0, chartWidth - 8) / SPECTRUM_BANDS.length;
+  const barWidth = Math.min(10, Math.max(2, bandWidth * 0.5));
   const x = 4 + bandWidth * index + (bandWidth - barWidth) / 2;
   const barHeight = useDerivedValue(() => {
     if (!audioVisualValues.spectrumHasSignal.value) {
@@ -195,7 +200,6 @@ const styles = StyleSheet.create({
   },
   barsCanvas: {
     height: CHART_HEIGHT,
-    width: CONTAINER_WIDTH - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING,
   },
   freqLabelsRow: {
     flexDirection: 'row',

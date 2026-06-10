@@ -33,10 +33,7 @@ module.exports = {
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
-      permissions: [
-        'android.permission.RECORD_AUDIO',
-        'android.permission.MODIFY_AUDIO_SETTINGS',
-      ],
+      permissions: ['android.permission.RECORD_AUDIO', 'android.permission.MODIFY_AUDIO_SETTINGS'],
       package: process.env.ANDROID_PACKAGE || 'com.sunnyinnolab.decibella2',
     },
     web: {
@@ -58,10 +55,7 @@ module.exports = {
         'react-native-audio-api',
         {
           iosMicrophonePermission: microphonePermissionMessage,
-          androidPermissions: [
-            'android.permission.RECORD_AUDIO',
-            'android.permission.MODIFY_AUDIO_SETTINGS',
-          ],
+          androidPermissions: ['android.permission.RECORD_AUDIO', 'android.permission.MODIFY_AUDIO_SETTINGS'],
         },
       ],
       [

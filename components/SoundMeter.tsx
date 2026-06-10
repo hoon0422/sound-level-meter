@@ -1,5 +1,6 @@
 import { audioVisualValues } from '@/audio/visual/audioVisualValues';
 import { useTheme } from '@/context/ThemeContext';
+import { useGraphSurfaceWidth } from '@/components/graphLayoutDimensions';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
 import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
 import { useEffect } from 'react';
@@ -50,9 +51,12 @@ const TICK_COLORS = [
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 const ANIMATION_DURATION = 50;
+const METER_WIDTH = 260;
 
 export function SoundMeter() {
   const { colors } = useTheme();
+  const surfaceWidth = useGraphSurfaceWidth();
+  const horizontalPadding = Math.max(12, (surfaceWidth - METER_WIDTH) / 2);
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const { isRunning, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
@@ -64,7 +68,7 @@ export function SoundMeter() {
   );
 
   return (
-    <Surface style={styles.container}>
+    <Surface style={[styles.container, { paddingHorizontal: horizontalPadding }]}>
       <View style={styles.soundMeterContainer}>
         <Meter />
         <View style={styles.statsContainer}>
@@ -251,7 +255,6 @@ function GaugeTicks() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 30,
     paddingVertical: 22,
     width: 320,
     height: 248,

@@ -20,6 +20,19 @@ function formatDuration(elapsedSeconds: number) {
   return durationMin > 0 ? `${durationMin}m ${durationRemSec}s` : `${durationRemSec}s`;
 }
 
+function formatLogDate(date: Date) {
+  const time = date.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const year = date.getFullYear();
+
+  return `${time} ${month}/${day}/${year}`;
+}
+
 function roundDb(dbfs: number) {
   return parseFloat(dbfs.toFixed(1));
 }
@@ -52,14 +65,14 @@ export function useRecordingLogger() {
       if (!state.isRunning && prevIsRunningRef.current) {
         const stats = lastRunningStatsRef.current;
         const shouldSkipLog = consumeSkipNextRecordingLog();
-        if (stats && !shouldSkipLog) {
+        if (stats && !shouldSkipLog && Math.floor(stats.elapsedSeconds) > 0) {
           const now = new Date();
           const activeOffsetDb = offsetDbRef.current;
           const minimumDbfs = stats.validFrameCount > 0 ? stats.minimumDbfs : -100;
           addLog({
             id: `${now.getTime()}`,
-            date: now.toLocaleDateString(),
-            time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            date: formatLogDate(now),
+            time: '',
             duration: formatDuration(stats.elapsedSeconds),
             maxDb: roundDb(applyCalibrationOffset(stats.maximumDbfs, activeOffsetDb)),
             minDb: roundDb(applyCalibrationOffset(minimumDbfs, activeOffsetDb)),
