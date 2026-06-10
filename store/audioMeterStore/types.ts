@@ -1,5 +1,5 @@
 import type { AudioMeterConfig } from '@/audio/constants';
-import type { DbTimeGraphSample } from '@/audio/dbTimeGraph';
+import type { DbTimeGraphPoint } from '@/audio/dbTimeGraph';
 import { type AudioMetricsDisplayConfig, type AudioMetricsSnapshot } from '@/audio/metrics';
 import { type AudioEngineConfig, type MicrophoneState } from '@/audio/MicrophoneController';
 import { type SpectrumDisplayConfig, type SpectrumSnapshot } from '@/audio/spectrum';
@@ -23,7 +23,8 @@ export type { AudioEngineConfig, AudioMeterConfig, AudioMetricsDisplayConfig, Sp
 export type AudioMeterState = MicrophoneSlice & SpectrumSlice & AudioMetricsSlice & StatsSlice & DbTimeGraphSlice;
 
 export type DbTimeGraphSlice = {
-  dbTimeGraphSamples: readonly DbTimeGraphSample[];
+  dbTimeGraphPath: string;
+  dbTimeGraphCurrentPoint: DbTimeGraphPoint | null;
   dbTimeGraphIsRunning: boolean;
   dbTimeGraphWindowStartSeconds: number;
   dbTimeGraphWindowEndSeconds: number;

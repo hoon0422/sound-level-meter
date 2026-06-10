@@ -106,7 +106,7 @@ function showLandingSequence() {
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
-export function RocketGamePage() {
+export const RocketGamePage = memo(function RocketGamePage() {
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const calibrationOffset = useSharedValue(offsetDb);
 
@@ -264,7 +264,7 @@ export function RocketGamePage() {
       </Animated.View>
     </View>
   );
-}
+});
 
 const AnimatedFlame = memo(function AnimatedFlame({
   flameLevel,

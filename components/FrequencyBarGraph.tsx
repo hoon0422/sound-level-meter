@@ -4,6 +4,7 @@ import { SPECTRUM_BANDS } from '@/audio/spectrum/constants';
 import Surface from '@/components/Surface';
 import { useTheme } from '@/context/ThemeContext';
 import { Canvas, RoundedRect } from '@shopify/react-native-skia';
+import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useDerivedValue } from 'react-native-reanimated';
 
@@ -46,7 +47,7 @@ function dbToHeight(db: number) {
   return Math.max(2, ((clampedDb - MIN_DB) / DB_RANGE) * INNER_H);
 }
 
-export default function FrequencyBarGraph() {
+function FrequencyBarGraph() {
   return (
     <Surface style={styles.container}>
       <SpectrumBars />
@@ -54,7 +55,9 @@ export default function FrequencyBarGraph() {
   );
 }
 
-function SpectrumBars() {
+export default memo(FrequencyBarGraph);
+
+const SpectrumBars = memo(function SpectrumBars() {
   const { typography, colors } = useTheme();
 
   return (
@@ -110,9 +113,9 @@ function SpectrumBars() {
       </View>
     </View>
   );
-}
+});
 
-function AnimatedSpectrumBar({
+const AnimatedSpectrumBar = memo(function AnimatedSpectrumBar({
   activeColor,
   inactiveColor,
   quietColor,
@@ -153,7 +156,7 @@ function AnimatedSpectrumBar({
       <RoundedRect color={barColor} height={barHeight} r={2} width={barWidth} x={x} y={barY} />
     </>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

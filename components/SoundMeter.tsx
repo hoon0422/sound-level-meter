@@ -2,7 +2,7 @@ import { audioVisualValues } from '@/audio/visual/audioVisualValues';
 import { useTheme } from '@/context/ThemeContext';
 import { useThrottledAudioMeterValue } from '@/hooks/useThrottledAudioMeterValue';
 import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibrationStore';
-import { useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -51,7 +51,7 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 const ANIMATION_DURATION = 50;
 
-export function SoundMeter() {
+export const SoundMeter = memo(function SoundMeter() {
   const { colors } = useTheme();
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const { isRunning, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
@@ -85,7 +85,7 @@ export function SoundMeter() {
       </View>
     </Surface>
   );
-}
+});
 
 function AnimatedDbText({ color, offsetDb }: { color: string; offsetDb: number }) {
   const calibrationOffset = useSharedValue(offsetDb);

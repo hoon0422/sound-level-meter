@@ -9,7 +9,6 @@ import { createStatsSlice } from './createStatsSlice';
 import type { AudioMeterState } from './types';
 
 export type * from './types';
-export { getDbTimeGraphSamples } from './createDbTimeGraphSlice';
 
 export const audioMeterStore = createStore<AudioMeterState>()(
   devtools(

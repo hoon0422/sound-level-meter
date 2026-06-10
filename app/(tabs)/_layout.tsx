@@ -82,7 +82,9 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      detachInactiveScreens={false}
       screenOptions={{
+        freezeOnBlur: true,
         headerShown: true,
         headerTitle: '',
         headerStyle: { backgroundColor: colors.background },
@@ -119,6 +121,7 @@ export default function TabsLayout() {
           },
         }}
         options={{
+          lazy: false,
           title: t('tabs.dbTime'),
           tabBarIcon: ({ color, size }) => (
             <Image
@@ -137,6 +140,7 @@ export default function TabsLayout() {
           },
         }}
         options={{
+          lazy: false,
           title: t('tabs.dbFreq'),
           tabBarIcon: ({ color, size }) => (
             <Image

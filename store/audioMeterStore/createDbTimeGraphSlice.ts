@@ -2,6 +2,7 @@ import {
   DB_TIME_GRAPH_DB_MIN,
   DB_TIME_GRAPH_SAMPLE_INTERVAL_MS,
   DB_TIME_GRAPH_WINDOW_DURATION_MS,
+  createDbTimeGraphArtifact,
   type DbTimeGraphSample,
 } from '@/audio/dbTimeGraph';
 import { MicrophoneController, type MicrophoneDbFrame, type MicrophoneState } from '@/audio/MicrophoneController';
@@ -15,18 +16,16 @@ let _lastSampleElapsedSeconds: number | null = null;
 let _hasDrawableSample = false;
 let _version = 0;
 
-export function getDbTimeGraphSamples(_versionKey = _version): readonly DbTimeGraphSample[] {
-  return _samples;
-}
-
 function createDbTimeGraphSnapshot(isRunning: boolean): DbTimeGraphSlice {
   const windowDurationSeconds = DB_TIME_GRAPH_WINDOW_DURATION_MS / 1000;
   const latestElapsedSeconds = _samples.at(-1)?.sessionElapsedSeconds ?? 0;
   const windowEndSeconds = Math.max(windowDurationSeconds, latestElapsedSeconds);
   const windowStartSeconds = Math.max(0, windowEndSeconds - windowDurationSeconds);
+  const graphArtifact = createDbTimeGraphArtifact(_samples, windowStartSeconds, windowEndSeconds);
 
   return {
-    dbTimeGraphSamples: _samples,
+    dbTimeGraphPath: graphArtifact.path,
+    dbTimeGraphCurrentPoint: graphArtifact.currentPoint,
     dbTimeGraphIsRunning: isRunning,
     dbTimeGraphWindowStartSeconds: windowStartSeconds,
     dbTimeGraphWindowEndSeconds: windowEndSeconds,

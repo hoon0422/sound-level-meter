@@ -104,11 +104,6 @@ export class SpectrumAnalysisController {
 
     this.unsubscribeFrame();
     this.unsubscribeFrame = null;
-    this.smoothedBars = [];
-    this.maximumBars = [];
-    const snapshot = createIdleSpectrumSnapshot(this.config.barCount);
-    updateAudioVisualSpectrum(snapshot.bars, snapshot.maximumBars, false);
-    this.emit(snapshot, true);
   }
 
   private handleFrame = (frame: MicrophoneAudioFrame) => {
