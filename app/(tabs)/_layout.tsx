@@ -1,4 +1,4 @@
-import { APP_ANALYTICS_EVENTS, trackAppEvent } from '@/analytics/events';
+import { APP_ANALYTICS_EVENTS, type AppAnalyticsEvent, trackAppEvent } from '@/analytics/events';
 import {
   captureSentryException,
   getSentryErrorAttributes,
@@ -14,7 +14,18 @@ import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Tabs, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image, InteractionManager, TouchableOpacity } from 'react-native';
+
+function trackTabInteraction(eventType: AppAnalyticsEvent, target: string, gated: boolean, hasAccess?: boolean) {
+  InteractionManager.runAfterInteractions(() => {
+    trackAppEvent(eventType);
+    markSentryInteraction('Tab button pressed', {
+      target,
+      gated,
+      ...(hasAccess === undefined ? {} : { hasAccess }),
+    });
+  });
+}
 
 function Decibella() {
   const { logo } = useTheme();
@@ -71,7 +82,9 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      detachInactiveScreens={false}
       screenOptions={{
+        freezeOnBlur: true,
         headerShown: true,
         headerTitle: '',
         headerStyle: { backgroundColor: colors.background },
@@ -104,14 +117,11 @@ export default function TabsLayout() {
         name="db-time"
         listeners={{
           tabPress: () => {
-            trackAppEvent(APP_ANALYTICS_EVENTS.dbTimeClicked);
-            markSentryInteraction('Tab button pressed', {
-              target: 'db-time',
-              gated: false,
-            });
+            trackTabInteraction(APP_ANALYTICS_EVENTS.dbTimeClicked, 'db-time', false);
           },
         }}
         options={{
+          lazy: false,
           title: t('tabs.dbTime'),
           tabBarIcon: ({ color, size }) => (
             <Image
@@ -126,14 +136,11 @@ export default function TabsLayout() {
         name="db-freq"
         listeners={{
           tabPress: () => {
-            trackAppEvent(APP_ANALYTICS_EVENTS.fqButtonClicked);
-            markSentryInteraction('Tab button pressed', {
-              target: 'db-freq',
-              gated: false,
-            });
+            trackTabInteraction(APP_ANALYTICS_EVENTS.fqButtonClicked, 'db-freq', false);
           },
         }}
         options={{
+          lazy: false,
           title: t('tabs.dbFreq'),
           tabBarIcon: ({ color, size }) => (
             <Image
@@ -148,12 +155,7 @@ export default function TabsLayout() {
         name="sound-guide"
         listeners={{
           tabPress: event => {
-            trackAppEvent(APP_ANALYTICS_EVENTS.gdButtonClicked);
-            markSentryInteraction('Tab button pressed', {
-              target: 'sound-guide',
-              gated: true,
-              hasAccess,
-            });
+            trackTabInteraction(APP_ANALYTICS_EVENTS.gdButtonClicked, 'sound-guide', true, hasAccess);
 
             if (hasAccess) {
               return;
@@ -178,12 +180,7 @@ export default function TabsLayout() {
         name="log"
         listeners={{
           tabPress: event => {
-            trackAppEvent(APP_ANALYTICS_EVENTS.recordButtonClicked);
-            markSentryInteraction('Tab button pressed', {
-              target: 'log',
-              gated: true,
-              hasAccess,
-            });
+            trackTabInteraction(APP_ANALYTICS_EVENTS.recordButtonClicked, 'log', true, hasAccess);
 
             if (hasAccess) {
               return;

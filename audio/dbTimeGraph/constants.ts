@@ -1,5 +1,5 @@
 export const DB_TIME_GRAPH_WINDOW_DURATION_MS = 10_000;
-export const DB_TIME_GRAPH_SAMPLE_INTERVAL_MS = 50;
+export const DB_TIME_GRAPH_SAMPLE_INTERVAL_MS = 100;
 
 export const DB_TIME_GRAPH_DB_MIN = 0;
 export const DB_TIME_GRAPH_DB_MAX = 120;

@@ -2,9 +2,10 @@ import {
   DB_TIME_GRAPH_DB_MIN,
   DB_TIME_GRAPH_SAMPLE_INTERVAL_MS,
   DB_TIME_GRAPH_WINDOW_DURATION_MS,
+  createDbTimeGraphArtifact,
   type DbTimeGraphSample,
 } from '@/audio/dbTimeGraph';
-import { MicrophoneController, type MicrophoneAudioFrame, type MicrophoneState } from '@/audio/MicrophoneController';
+import { MicrophoneController, type MicrophoneDbFrame, type MicrophoneState } from '@/audio/MicrophoneController';
 import { calibrateDbfsForDisplay } from '@/audio/metrics';
 import type { StateCreator } from 'zustand';
 import type { AudioMeterState, DbTimeGraphSlice } from './types';
@@ -20,9 +21,11 @@ function createDbTimeGraphSnapshot(isRunning: boolean): DbTimeGraphSlice {
   const latestElapsedSeconds = _samples.at(-1)?.sessionElapsedSeconds ?? 0;
   const windowEndSeconds = Math.max(windowDurationSeconds, latestElapsedSeconds);
   const windowStartSeconds = Math.max(0, windowEndSeconds - windowDurationSeconds);
+  const graphArtifact = createDbTimeGraphArtifact(_samples, windowStartSeconds, windowEndSeconds);
 
   return {
-    dbTimeGraphSamples: _samples.slice(),
+    dbTimeGraphPath: graphArtifact.path,
+    dbTimeGraphCurrentPoint: graphArtifact.currentPoint,
     dbTimeGraphIsRunning: isRunning,
     dbTimeGraphWindowStartSeconds: windowStartSeconds,
     dbTimeGraphWindowEndSeconds: windowEndSeconds,
@@ -33,8 +36,14 @@ function createDbTimeGraphSnapshot(isRunning: boolean): DbTimeGraphSlice {
 function trimSamples(latestElapsedSeconds: number) {
   const windowDurationSeconds = DB_TIME_GRAPH_WINDOW_DURATION_MS / 1000;
   const cutoffSeconds = Math.max(0, latestElapsedSeconds - windowDurationSeconds);
-  while (_samples.length > 0 && _samples[0].sessionElapsedSeconds < cutoffSeconds) {
-    _samples.shift();
+
+  let removeCount = 0;
+  while (removeCount < _samples.length && _samples[removeCount].sessionElapsedSeconds < cutoffSeconds) {
+    removeCount++;
+  }
+
+  if (removeCount > 0) {
+    _samples.splice(0, removeCount);
   }
 }
 
@@ -76,7 +85,7 @@ export const createDbTimeGraphSlice: StateCreator<
     }
   };
 
-  const handleFrame = (frame: MicrophoneAudioFrame) => {
+  const handleFrame = (frame: MicrophoneDbFrame) => {
     if (!get().dbTimeGraphIsRunning || frame.frameDurationSeconds === 0) {
       return;
     }

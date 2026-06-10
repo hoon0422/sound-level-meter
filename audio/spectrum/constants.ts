@@ -47,9 +47,10 @@ export const SPECTRUM_BANDS: SpectrumBand[] = [
 ];
 
 export const DEFAULT_SPECTRUM_DISPLAY_CONFIG: SpectrumDisplayConfig = {
+  enabled: false,
   barCount: SPECTRUM_BANDS.length,
   minHz: 0,
-  maxHz: 22000,
+  maxHz: 22050,
   noiseFloorDbfs: -65,
   barSmoothingAlpha: 0.2,
 };

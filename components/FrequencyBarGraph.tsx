@@ -5,6 +5,7 @@ import Surface from '@/components/Surface';
 import { useGraphSurfaceWidth } from '@/components/graphLayoutDimensions';
 import { useTheme } from '@/context/ThemeContext';
 import { Canvas, RoundedRect } from '@shopify/react-native-skia';
+import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useDerivedValue } from 'react-native-reanimated';
 
@@ -47,7 +48,7 @@ function dbToHeight(db: number) {
   return Math.max(2, ((clampedDb - MIN_DB) / DB_RANGE) * INNER_H);
 }
 
-export default function FrequencyBarGraph() {
+function FrequencyBarGraph() {
   const surfaceWidth = useGraphSurfaceWidth();
   const chartWidth = Math.max(0, surfaceWidth - Y_AXIS_WIDTH - CONTAINER_HORIZONTAL_PADDING - CONTAINER_RIGHT_PADDING);
 
@@ -58,7 +59,9 @@ export default function FrequencyBarGraph() {
   );
 }
 
-function SpectrumBars({ chartWidth }: { chartWidth: number }) {
+export default memo(FrequencyBarGraph);
+
+const SpectrumBars = memo(function SpectrumBars({ chartWidth }: { chartWidth: number }) {
   const { typography, colors } = useTheme();
 
   return (
@@ -115,9 +118,9 @@ function SpectrumBars({ chartWidth }: { chartWidth: number }) {
       </View>
     </View>
   );
-}
+});
 
-function AnimatedSpectrumBar({
+const AnimatedSpectrumBar = memo(function AnimatedSpectrumBar({
   activeColor,
   chartWidth,
   inactiveColor,
@@ -158,7 +161,7 @@ function AnimatedSpectrumBar({
       <RoundedRect color={barColor} height={barHeight} r={2} width={barWidth} x={x} y={barY} />
     </>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

@@ -21,6 +21,7 @@ export function createIdleSpectrumSnapshot(barCount: number): SpectrumSnapshot {
 }
 
 export class SpectrumAnalysisController {
+  private mic: MicrophoneController;
   private config: SpectrumDisplayConfig;
   private smoothedBars: number[] = [];
   private maximumBars: number[] = [];
@@ -33,10 +34,11 @@ export class SpectrumAnalysisController {
   private unsubscribeState: (() => void) | null = null;
 
   constructor(mic: MicrophoneController, config: SpectrumDisplayConfig) {
+    this.mic = mic;
     this.config = config;
     this.lastSnapshot = createIdleSpectrumSnapshot(config.barCount);
 
-    this.unsubscribeFrame = mic.onFrame(this.handleFrame);
+    this.updateFrameSubscription();
     this.unsubscribeState = mic.subscribe(this.handleMicState, this.handleMicDispose);
   }
 
@@ -54,6 +56,7 @@ export class SpectrumAnalysisController {
 
   configure(config: SpectrumDisplayConfig) {
     this.config = config;
+    this.updateFrameSubscription();
   }
 
   dispose() {
@@ -87,8 +90,24 @@ export class SpectrumAnalysisController {
     }
   }
 
+  private updateFrameSubscription() {
+    if (this.config.enabled) {
+      if (!this.unsubscribeFrame) {
+        this.unsubscribeFrame = this.mic.onFrequencyFrame(this.handleFrame);
+      }
+      return;
+    }
+
+    if (!this.unsubscribeFrame) {
+      return;
+    }
+
+    this.unsubscribeFrame();
+    this.unsubscribeFrame = null;
+  }
+
   private handleFrame = (frame: MicrophoneAudioFrame) => {
-    if (frame.frameDurationSeconds === 0) {
+    if (!this.config.enabled || frame.frameDurationSeconds === 0) {
       return;
     }
     const analysis = analyzeFrequencyFrame(frame.frequencyData, this.smoothedBars, {
@@ -104,9 +123,11 @@ export class SpectrumAnalysisController {
     this.smoothedBars = analysis.bars;
 
     if (this.maximumBars.length === analysis.bars.length) {
-      this.maximumBars = this.maximumBars.map((max, i) => Math.max(max, analysis.bars[i]));
+      for (let i = 0; i < this.maximumBars.length; i++) {
+        this.maximumBars[i] = Math.max(this.maximumBars[i], analysis.bars[i]);
+      }
     } else {
-      this.maximumBars = analysis.bars;
+      this.maximumBars = analysis.bars.slice();
     }
 
     const snapshot = {

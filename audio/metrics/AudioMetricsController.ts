@@ -1,4 +1,9 @@
-import { type MicrophoneAudioFrame, type MicrophoneController, type MicrophoneState } from '../MicrophoneController';
+import {
+  type MicrophoneAudioFrame,
+  type MicrophoneController,
+  type MicrophoneDbFrame,
+  type MicrophoneState,
+} from '../MicrophoneController';
 import { type AudioMetricsSnapshot, analyzePeakFrequency, calibrateDbfsForDisplay } from './audioMetricsAnalysis';
 import { AudioMetricsDisplayConfig } from './types';
 
@@ -16,6 +21,7 @@ export function createIdleAudioMetricsSnapshot(): AudioMetricsSnapshot {
 }
 
 export class AudioMetricsController {
+  private mic: MicrophoneController;
   private config: AudioMetricsDisplayConfig;
   private listeners = new Set<AudioMetricsSnapshotListener>();
   private disposeListeners = new Map<AudioMetricsSnapshotListener, AudioMetricsDisposeListener>();
@@ -24,11 +30,13 @@ export class AudioMetricsController {
   private lastPublishTimeMs = 0;
   private unsubscribeFrame: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
+  private usesFrequencyFrames = false;
 
   constructor(mic: MicrophoneController, config: AudioMetricsDisplayConfig) {
+    this.mic = mic;
     this.config = config;
 
-    this.unsubscribeFrame = mic.onFrame(this.handleFrame);
+    this.updateFrameSubscription();
     this.unsubscribeState = mic.subscribe(this.handleMicState, this.handleMicDispose);
   }
 
@@ -46,6 +54,7 @@ export class AudioMetricsController {
 
   configure(config: AudioMetricsDisplayConfig) {
     this.config = config;
+    this.updateFrameSubscription();
   }
 
   dispose() {
@@ -77,18 +86,36 @@ export class AudioMetricsController {
     }
   }
 
-  private handleFrame = (frame: MicrophoneAudioFrame) => {
-    const { peakHz, peakLevel } = this.config.analyzePeakFrequency
-      ? analyzePeakFrequency(
-          frame.frequencyData,
-          frame.sampleRate,
-          frame.fftSize,
-          frame.minDecibels,
-          frame.maxDecibels,
-          this.config.minHz,
-          this.config.maxHz
-        )
-      : { peakHz: null, peakLevel: null };
+  private updateFrameSubscription() {
+    if (this.unsubscribeFrame && this.usesFrequencyFrames === this.config.analyzePeakFrequency) {
+      return;
+    }
+
+    this.unsubscribeFrame?.();
+    this.usesFrequencyFrames = this.config.analyzePeakFrequency;
+    this.unsubscribeFrame = this.usesFrequencyFrames
+      ? this.mic.onFrequencyFrame(this.handleFrequencyFrame)
+      : this.mic.onFrame(this.handleDbFrame);
+  }
+
+  private handleDbFrame = (frame: MicrophoneDbFrame) => {
+    this.emit({
+      dbfs: calibrateDbfsForDisplay(frame.dbfs),
+      peakHz: null,
+      peakLevel: null,
+    });
+  };
+
+  private handleFrequencyFrame = (frame: MicrophoneAudioFrame) => {
+    const { peakHz, peakLevel } = analyzePeakFrequency(
+      frame.frequencyData,
+      frame.sampleRate,
+      frame.fftSize,
+      frame.minDecibels,
+      frame.maxDecibels,
+      this.config.minHz,
+      this.config.maxHz
+    );
 
     this.emit({
       dbfs: calibrateDbfsForDisplay(frame.dbfs),

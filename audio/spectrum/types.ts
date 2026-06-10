@@ -6,6 +6,7 @@ export type SpectrumBand = {
 };
 
 export type SpectrumDisplayConfig = {
+  enabled: boolean;
   barCount: number;
   minHz: number;
   maxHz: number;
