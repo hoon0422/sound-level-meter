@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import mobileAds, { AdEventType, RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
 
 // const ACCESS_DURATION_MS = 2 * 60 * 60 * 1000;
@@ -52,7 +52,7 @@ function getRewardedAdUnitId() {
 }
 
 export function AdAccessProvider({ children }: { children: React.ReactNode }) {
-  const { colors, themeName } = useTheme();
+  const { colors } = useTheme();
   const { t } = useTranslation();
   const [accessUntil, setAccessUntil] = useState(0);
   const [now, setNow] = useState(() => Date.now());
@@ -65,21 +65,29 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
   const adLoadedRef = useRef(false);
   const didEarnRewardRef = useRef(false);
   const shouldShowWhenLoadedRef = useRef(false);
+  const adRequestReasonRef = useRef<AdAccessReason | null>(null);
 
   const hasAccess = accessUntil > now;
 
   const showRewardedAd = useCallback((rewardedAd: RewardedAd, source: string) => {
-    rewardedAd.show({ immersiveModeEnabled: true }).catch(error => {
-      const message = getSentryErrorMessage(error, 'Failed to show rewarded ad');
-      logSentryError('Rewarded ad show failed', {
-        source,
-        ...getSentryErrorAttributes(error),
+    setIsAdLoading(false);
+    setAdError(null);
+    setPromptReason(null);
+
+    requestAnimationFrame(() => {
+      rewardedAd.show({ immersiveModeEnabled: true }).catch(error => {
+        const message = getSentryErrorMessage(error, 'Failed to show rewarded ad');
+        logSentryError('Rewarded ad show failed', {
+          source,
+          ...getSentryErrorAttributes(error),
+        });
+        captureSentryException(error, 'Failed to show rewarded ad', {
+          source,
+        });
+        setIsAdLoading(false);
+        setAdError(message);
+        setPromptReason(adRequestReasonRef.current);
       });
-      captureSentryException(error, 'Failed to show rewarded ad', {
-        source,
-      });
-      setIsAdLoading(false);
-      setAdError(message);
     });
   }, []);
 
@@ -92,6 +100,7 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
     });
     setPromptReason(null);
     setAdError(null);
+    adRequestReasonRef.current = null;
 
     const onGranted = pendingGrantActionRef.current;
     pendingGrantActionRef.current = undefined;
@@ -146,13 +155,20 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
 
     const unsubscribeLoaded = rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
       adLoadedRef.current = true;
-      setIsAdLoading(false);
       setAdError(null);
 
       if (shouldShowWhenLoadedRef.current) {
         shouldShowWhenLoadedRef.current = false;
         showRewardedAd(rewardedAd, 'loaded_event');
+      } else {
+        setIsAdLoading(false);
       }
+    });
+
+    const unsubscribeOpened = rewardedAd.addAdEventListener(AdEventType.OPENED, () => {
+      setIsAdLoading(false);
+      setPromptReason(null);
+      setAdError(null);
     });
 
     const unsubscribeEarnedReward = rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
@@ -166,6 +182,7 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       didEarnRewardRef.current = false;
       shouldShowWhenLoadedRef.current = false;
       setIsAdLoading(false);
+      adRequestReasonRef.current = null;
       setAdCycle(cycle => cycle + 1);
 
       if (didEarnReward) {
@@ -190,12 +207,14 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       shouldShowWhenLoadedRef.current = false;
       setIsAdLoading(false);
       setAdError(getSentryErrorMessage(error, t('adAccess.error')));
+      setPromptReason(adRequestReasonRef.current);
     });
 
     rewardedAd.load();
 
     return () => {
       unsubscribeLoaded();
+      unsubscribeOpened();
       unsubscribeEarnedReward();
       unsubscribeClosed();
       unsubscribeError();
@@ -230,21 +249,26 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
         state: 'loaded',
       });
       adLoadedRef.current = false;
+      adRequestReasonRef.current = promptReason;
       setAdError(null);
+      setIsAdLoading(true);
       showRewardedAd(rewardedAd, 'watch_button');
       return;
     }
 
     shouldShowWhenLoadedRef.current = true;
+    adRequestReasonRef.current = promptReason;
     addSentryBreadcrumb('Rewarded ad load requested', {
       state: 'not_loaded',
     });
+    setAdError(null);
     loadRewardedAd();
   };
 
   const handleClosePrompt = () => {
     pendingGrantActionRef.current = undefined;
     shouldShowWhenLoadedRef.current = false;
+    adRequestReasonRef.current = null;
     setPromptReason(null);
     setAdError(null);
   };
@@ -263,16 +287,11 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       {children}
       <Modal visible={promptReason !== null} transparent animationType="fade" onRequestClose={handleClosePrompt}>
         <View style={styles.backdrop}>
-          <View
-            style={[
-              styles.dialog,
-              {
-                backgroundColor: colors.surface,
-                borderColor: themeName === 'dark' ? colors.inactive : colors.border,
-                shadowColor: colors.shadow,
-              },
-            ]}
-          >
+          <View style={[styles.dialog, { shadowColor: colors.shadow }]}>
+            <View style={styles.hero}>
+              <Image source={require('@/assets/icons/decibella.png')} resizeMode="contain" style={styles.logo} />
+              <Text style={styles.title}>{t('adAccess.title')}</Text>
+            </View>
             <Pressable
               accessibilityLabel="Close ad prompt"
               accessibilityRole="button"
@@ -280,29 +299,28 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
               onPress={handleClosePrompt}
               style={styles.closeButton}
             >
-              <Ionicons name="close" size={24} color={colors.text} />
+              <Ionicons name="close" size={20} color="#333333" />
             </Pressable>
-            <View style={[styles.badge, { backgroundColor: colors.soundGuideSlot, borderColor: colors.border }]}>
-              <Text style={styles.badgeIcon}>AD</Text>
-            </View>
-            <Text style={[styles.title, { color: colors.text }]}>{t('adAccess.title')}</Text>
-            <View style={[styles.benefits, { borderColor: colors.divider }]}>
-              <Text style={[styles.benefitText, { color: colors.text }]}>{t('adAccess.benefits.measurement')}</Text>
-              <Text style={[styles.benefitText, { color: colors.text }]}>{t('adAccess.benefits.soundGuide')}</Text>
-              <Text style={[styles.benefitText, { color: colors.text }]}>{t('adAccess.benefits.log')}</Text>
-            </View>
-            {adError && <Text style={[styles.errorText, { color: colors.loud }]}>{t('adAccess.error')}</Text>}
-            <View style={styles.actions}>
+            <View style={styles.body}>
+              <View style={styles.benefits}>
+                <Text style={styles.benefitText}>{t('adAccess.benefits.measurement')}</Text>
+                <Text style={styles.benefitText}>{t('adAccess.benefits.soundGuide')}</Text>
+                <Text style={styles.benefitText}>{t('adAccess.benefits.log')}</Text>
+              </View>
+              {adError && <Text style={[styles.errorText, { color: colors.loud }]}>{t('adAccess.error')}</Text>}
               <Pressable
                 accessibilityRole="button"
                 onPress={handleWatchAd}
                 disabled={isAdLoading}
-                style={[styles.primaryButton, { backgroundColor: colors.primary, borderColor: colors.border }]}
+                style={[styles.primaryButton, isAdLoading && styles.primaryButtonDisabled]}
               >
                 {isAdLoading ? (
-                  <ActivityIndicator color="#FFFFFF" />
+                  <ActivityIndicator color="#333333" />
                 ) : (
-                  <Text style={styles.primaryButtonText}>{t('adAccess.watchAd')}</Text>
+                  <View style={styles.primaryButtonContent}>
+                    <Ionicons name="play" size={24} color="#333333" />
+                    <Text style={styles.primaryButtonText}>{t('adAccess.watchAd')}</Text>
+                  </View>
                 )}
               </Pressable>
             </View>
@@ -327,86 +345,117 @@ const styles = StyleSheet.create({
   },
   dialog: {
     width: '100%',
-    maxWidth: 340,
+    maxWidth: 350,
     alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 18,
-    padding: 22,
-    paddingTop: 28,
-    gap: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    overflow: 'hidden',
     position: 'relative',
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
   },
+  hero: {
+    width: '100%',
+    minHeight: 211,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    backgroundColor: '#FEFAEE',
+    paddingHorizontal: 27,
+    paddingTop: 48,
+    paddingBottom: 40,
+    gap: 18,
+  },
+  logo: {
+    width: 158,
+    height: 37,
+  },
   closeButton: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 36,
-    height: 36,
+    top: 14,
+    right: 13,
+    width: 30,
+    height: 30,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 15,
+    backgroundColor: '#FDFCFA',
     zIndex: 1,
-  },
-  badge: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeIcon: {
-    color: '#333333',
-    fontSize: 17,
-    fontWeight: '700',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
   title: {
-    fontSize: 21,
-    lineHeight: 26,
-    fontWeight: '700',
+    color: '#333333',
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '600',
     textAlign: 'center',
+    fontFamily: 'DMSans_500Medium',
   },
-  message: {
-    fontSize: 15,
-    lineHeight: 21,
-    textAlign: 'center',
+  body: {
+    width: '100%',
+    paddingHorizontal: 27,
+    paddingTop: 27,
+    paddingBottom: 37,
+    gap: 13,
   },
   benefits: {
     alignSelf: 'stretch',
+    minHeight: 100,
+    justifyContent: 'center',
+    backgroundColor: '#FDFCFA',
     borderWidth: 1,
+    borderColor: '#333333',
     borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    gap: 5,
+    shadowColor: '#333333',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   benefitText: {
-    fontSize: 14,
-    lineHeight: 18,
-    fontWeight: '500',
+    color: '#333333',
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '400',
   },
   errorText: {
     fontSize: 13,
     lineHeight: 17,
     textAlign: 'center',
   },
-  actions: {
-    alignSelf: 'stretch',
-    flexDirection: 'row',
-    gap: 10,
-  },
   primaryButton: {
-    flex: 1,
-    minHeight: 46,
+    alignSelf: 'stretch',
+    minHeight: 50,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FBBF24',
+    borderColor: '#333333',
     borderRadius: 10,
     borderWidth: 1,
+    shadowColor: '#333333',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+  },
+  primaryButtonDisabled: {
+    opacity: 0.72,
+  },
+  primaryButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
   },
   primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
+    color: '#333333',
+    fontSize: 19,
+    lineHeight: 24,
     fontWeight: '700',
+    fontFamily: 'DMSans_700Bold',
   },
 });
