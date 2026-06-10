@@ -3,7 +3,7 @@ import { RecordButton } from '@/components/RecordButton';
 import { SoundMeter } from '@/components/SoundMeter';
 import { RocketGamePage } from '@/components/RocketGamePage';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import {
@@ -19,6 +19,26 @@ type Props = {
 
 export default function GraphsLayout({ children }: Props) {
   const { colors } = useTheme();
+  const soundMeter = useMemo(() => <SoundMeter />, []);
+  const rocketGame = useMemo(() => <RocketGamePage />, []);
+
+  return (
+    <View style={[styles.page, { backgroundColor: colors.background }]}>
+      <LongMeasurementAccessGuard />
+      <View style={styles.graphContainer}>
+        {soundMeter}
+        {children}
+        <View style={styles.recordingControlContainer}>
+          <ElapsedTimeText />
+          <RecordButton />
+        </View>
+      </View>
+      <View style={styles.rocketPlaceholder}>{rocketGame}</View>
+    </View>
+  );
+}
+
+const LongMeasurementAccessGuard = memo(function LongMeasurementAccessGuard() {
   const { ensureAccess, hasAccess } = useAdAccess();
   const { elapsedTimeSeconds, isRunning, stop } = useAudioMeterStore(state => ({
     elapsedTimeSeconds: Math.floor(state.elapsedSeconds),
@@ -44,22 +64,15 @@ export default function GraphsLayout({ children }: Props) {
     }
   }, [elapsedTimeSeconds, ensureAccess, hasAccess, isRunning, stop]);
 
-  return (
-    <View style={[styles.page, { backgroundColor: colors.background }]}>
-      <View style={styles.graphContainer}>
-        <SoundMeter />
-        {children}
-        <View style={styles.recordingControlContainer}>
-          <Text style={[styles.elapsedTimeText, { color: colors.text }]}>{secondsToTime(elapsedTimeSeconds)}</Text>
-          <RecordButton />
-        </View>
-      </View>
-      <View style={styles.rocketPlaceholder}>
-        <RocketGamePage />
-      </View>
-    </View>
-  );
-}
+  return null;
+});
+
+const ElapsedTimeText = memo(function ElapsedTimeText() {
+  const { colors } = useTheme();
+  const elapsedTimeSeconds = useAudioMeterStore(state => Math.floor(state.elapsedSeconds));
+
+  return <Text style={[styles.elapsedTimeText, { color: colors.text }]}>{secondsToTime(elapsedTimeSeconds)}</Text>;
+});
 
 const secondsToTime = (seconds: number) => {
   const hours = Math.floor(seconds / 3600)

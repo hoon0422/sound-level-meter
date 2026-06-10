@@ -10,8 +10,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { enableFreeze } from 'react-native-screens';
 
 initializeSentry();
+enableFreeze(true);
 
 SplashScreen.preventAutoHideAsync();
 

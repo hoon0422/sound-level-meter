@@ -107,16 +107,17 @@ function showLandingSequence() {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export const RocketGamePage = memo(function RocketGamePage() {
-  const offsetDb = useCalibrationStore(state => state.offsetDb);
-  const calibrationOffset = useSharedValue(offsetDb);
+  const calibrationOffset = useSharedValue(useCalibrationStore.getState().offsetDb);
 
   const resetToIdle = useCallback(() => {
     resetRocketToIdle();
   }, []);
 
   useEffect(() => {
-    calibrationOffset.value = offsetDb;
-  }, [calibrationOffset, offsetDb]);
+    return useCalibrationStore.subscribe(state => {
+      calibrationOffset.value = state.offsetDb;
+    });
+  }, [calibrationOffset]);
 
   useEffect(() => {
     const isRunning = audioVisualValues.isRunning.value;

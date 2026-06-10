@@ -54,9 +54,21 @@ const ANIMATION_DURATION = 50;
 const METER_WIDTH = 260;
 
 export const SoundMeter = memo(function SoundMeter() {
-  const { colors } = useTheme();
   const surfaceWidth = useGraphSurfaceWidth();
   const horizontalPadding = Math.max(12, (surfaceWidth - METER_WIDTH) / 2);
+
+  return (
+    <Surface style={[styles.container, { paddingHorizontal: horizontalPadding }]}>
+      <View style={styles.soundMeterContainer}>
+        <Meter />
+        <SoundMeterStats />
+      </View>
+    </Surface>
+  );
+});
+
+const SoundMeterStats = memo(function SoundMeterStats() {
+  const { colors } = useTheme();
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const { isRunning, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
@@ -68,30 +80,25 @@ export const SoundMeter = memo(function SoundMeter() {
   );
 
   return (
-    <Surface style={[styles.container, { paddingHorizontal: horizontalPadding }]}>
-      <View style={styles.soundMeterContainer}>
-        <Meter />
-        <View style={styles.statsContainer}>
-          <View style={styles.statContainer}>
-            <Text style={[styles.avgDbText, { color: colors.info }]}>
-              {isRunning ? Math.round(applyCalibrationOffset(averageDbfs, offsetDb)) : '–'}
-            </Text>
-            <Text style={[styles.unitText, { color: colors.text }]}>AVG</Text>
-          </View>
-          <AnimatedDbText color={colors.quiet} offsetDb={offsetDb} />
-          <View style={styles.statContainer}>
-            <Text style={[styles.maxDbText, { color: colors.loud }]}>
-              {isRunning ? Math.round(applyCalibrationOffset(maximumDbfs, offsetDb)) : '–'}
-            </Text>
-            <Text style={[styles.unitText, { color: colors.text }]}>MAX</Text>
-          </View>
-        </View>
+    <View style={styles.statsContainer}>
+      <View style={styles.statContainer}>
+        <Text style={[styles.avgDbText, { color: colors.info }]}>
+          {isRunning ? Math.round(applyCalibrationOffset(averageDbfs, offsetDb)) : '–'}
+        </Text>
+        <Text style={[styles.unitText, { color: colors.text }]}>AVG</Text>
       </View>
-    </Surface>
+      <AnimatedDbText color={colors.quiet} offsetDb={offsetDb} />
+      <View style={styles.statContainer}>
+        <Text style={[styles.maxDbText, { color: colors.loud }]}>
+          {isRunning ? Math.round(applyCalibrationOffset(maximumDbfs, offsetDb)) : '–'}
+        </Text>
+        <Text style={[styles.unitText, { color: colors.text }]}>MAX</Text>
+      </View>
+    </View>
   );
 });
 
-function AnimatedDbText({ color, offsetDb }: { color: string; offsetDb: number }) {
+const AnimatedDbText = memo(function AnimatedDbText({ color, offsetDb }: { color: string; offsetDb: number }) {
   const calibrationOffset = useSharedValue(offsetDb);
   const animatedDb = useAnimatedCurrentDb(calibrationOffset);
   const animatedProps = useAnimatedProps<TextInputProps>(() => {
@@ -118,7 +125,7 @@ function AnimatedDbText({ color, offsetDb }: { color: string; offsetDb: number }
       underlineColorAndroid="transparent"
     />
   );
-}
+});
 
 function useAnimatedDisplayDb(calibrationOffset: SharedValue<number>) {
   const targetDb = useDerivedValue(() => {
@@ -142,7 +149,7 @@ function useAnimatedCurrentDb(calibrationOffset: SharedValue<number>) {
   return useDerivedValue(() => withTiming(targetDb.value, { duration: ANIMATION_DURATION }));
 }
 
-function Meter() {
+const Meter = memo(function Meter() {
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const calibrationOffset = useSharedValue(offsetDb);
   const animatedProgress = useAnimatedDisplayDb(calibrationOffset);
@@ -211,9 +218,9 @@ function Meter() {
       <Animated.View style={[styles.needle, { borderColor: NEEDLE_COLOR }, needleStyle]} />
     </View>
   );
-}
+});
 
-function GaugeTicks() {
+const GaugeTicks = memo(function GaugeTicks() {
   const { colors } = useTheme();
   return (
     <>
@@ -251,7 +258,7 @@ function GaugeTicks() {
       })}
     </>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
