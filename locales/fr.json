@@ -15,7 +15,7 @@
   },
   "log": {
     "date": "Date de mesure",
-    "duration": "Durée de mesure",
+    "duration": "Durée",
     "deleteRecord": "Supprimer la mesure",
     "noRecordings": "Aucun mesure trouvée.",
     "noRecordingsSubText": "Les logs s'afficheront ici automatiquement."

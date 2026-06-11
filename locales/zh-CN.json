@@ -15,7 +15,7 @@
   },
   "log": {
     "date": "测量日期",
-    "duration": "测量持续时间",
+    "duration": "测量时间",
     "deleteRecord": "删除测量记录",
     "noRecordings": "未发现音量测量记录。",
     "noRecordingsSubText": "日志将在此自动记录。"

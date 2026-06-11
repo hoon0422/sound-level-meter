@@ -15,7 +15,7 @@
   },
   "log": {
     "date": "測定日",
-    "duration": "測定持続時間",
+    "duration": "測定時間",
     "deleteRecord": "測定記録を削除",
     "noRecordings": "測定記録がありません。",
     "noRecordingsSubText": "ログはここに自動的に記録されます。"
