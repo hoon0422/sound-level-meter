@@ -3,7 +3,7 @@ import { RocketGamePage } from '@/components/RocketGamePage';
 import { SoundMeter } from '@/components/SoundMeter';
 import { useAdAccess } from '@/context/AdAccessContext';
 import { useTheme } from '@/context/ThemeContext';
-import { useAudioMeterStore } from '@/store/audioMeterStore';
+import { audioMeterStore, useAudioMeterStore } from '@/store/audioMeterStore';
 import { memo, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
@@ -16,6 +16,8 @@ import {
 type Props = {
   children: React.ReactNode;
 };
+
+const LONG_MEASUREMENT_LIMIT_SECONDS = 30;
 
 export default function GraphsLayout({ children }: Props) {
   const { colors } = useTheme();
@@ -40,29 +42,33 @@ export default function GraphsLayout({ children }: Props) {
 
 const LongMeasurementAccessGuard = memo(function LongMeasurementAccessGuard() {
   const { ensureAccess, hasAccess } = useAdAccess();
-  const { elapsedTimeSeconds, isRunning, stop } = useAudioMeterStore(state => ({
-    elapsedTimeSeconds: Math.floor(state.elapsedSeconds),
-    isRunning: state.isRunning,
-    stop: state.stop,
-  }));
   const didPromptForLongMeasurementRef = useRef(false);
 
   useEffect(() => {
-    if (!isRunning) {
-      didPromptForLongMeasurementRef.current = false;
-      return;
-    }
+    const checkLongMeasurementAccess = () => {
+      const state = audioMeterStore.getState();
 
-    if (hasAccess) {
-      return;
-    }
+      if (!state.isRunning) {
+        didPromptForLongMeasurementRef.current = false;
+        return;
+      }
 
-    if (elapsedTimeSeconds >= 30 && !didPromptForLongMeasurementRef.current) {
+      if (hasAccess || didPromptForLongMeasurementRef.current) {
+        return;
+      }
+
+      if (Math.floor(state.elapsedSeconds) < LONG_MEASUREMENT_LIMIT_SECONDS) {
+        return;
+      }
+
       didPromptForLongMeasurementRef.current = true;
-      stop();
+      state.stop();
       ensureAccess('measurement');
-    }
-  }, [elapsedTimeSeconds, ensureAccess, hasAccess, isRunning, stop]);
+    };
+
+    checkLongMeasurementAccess();
+    return audioMeterStore.subscribe(checkLongMeasurementAccess);
+  }, [ensureAccess, hasAccess]);
 
   return null;
 });
