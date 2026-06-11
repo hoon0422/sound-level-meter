@@ -43,6 +43,12 @@ type ExpoExtra = {
   };
 };
 
+type PendingRewardedAdShow = {
+  rewardedAd: RewardedAd;
+  source: string;
+  fallbackTimer: ReturnType<typeof setTimeout> | null;
+};
+
 function getRewardedAdUnitId() {
   const extra = Constants.expoConfig?.extra as ExpoExtra | undefined;
   const configuredUnitId =
@@ -58,6 +64,7 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
   const [now, setNow] = useState(() => Date.now());
   const [promptReason, setPromptReason] = useState<AdAccessReason | null>(null);
   const [isAdLoading, setIsAdLoading] = useState(false);
+  const [isMobileAdsReady, setIsMobileAdsReady] = useState(false);
   const [adError, setAdError] = useState<string | null>(null);
   const [adCycle, setAdCycle] = useState(0);
   const pendingGrantActionRef = useRef<(() => void) | undefined>(undefined);
@@ -66,14 +73,11 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
   const didEarnRewardRef = useRef(false);
   const shouldShowWhenLoadedRef = useRef(false);
   const adRequestReasonRef = useRef<AdAccessReason | null>(null);
+  const pendingRewardedAdShowRef = useRef<PendingRewardedAdShow | null>(null);
 
   const hasAccess = accessUntil > now;
 
-  const showRewardedAd = useCallback((rewardedAd: RewardedAd, source: string) => {
-    setIsAdLoading(false);
-    setAdError(null);
-    setPromptReason(null);
-
+  const presentRewardedAd = useCallback((rewardedAd: RewardedAd, source: string) => {
     requestAnimationFrame(() => {
       rewardedAd.show({ immersiveModeEnabled: true }).catch(error => {
         const message = getSentryErrorMessage(error, 'Failed to show rewarded ad');
@@ -90,6 +94,42 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       });
     });
   }, []);
+
+  const flushPendingRewardedAdShow = useCallback(() => {
+    const pendingShow = pendingRewardedAdShowRef.current;
+    if (!pendingShow) {
+      return;
+    }
+
+    pendingRewardedAdShowRef.current = null;
+    if (pendingShow.fallbackTimer) {
+      clearTimeout(pendingShow.fallbackTimer);
+    }
+    setTimeout(
+      () => {
+        presentRewardedAd(pendingShow.rewardedAd, pendingShow.source);
+      },
+      Platform.OS === 'ios' ? 100 : 0
+    );
+  }, [presentRewardedAd]);
+
+  const showRewardedAd = useCallback(
+    (rewardedAd: RewardedAd, source: string) => {
+      if (pendingRewardedAdShowRef.current?.fallbackTimer) {
+        clearTimeout(pendingRewardedAdShowRef.current.fallbackTimer);
+      }
+      setIsAdLoading(false);
+      setAdError(null);
+      setPromptReason(null);
+
+      pendingRewardedAdShowRef.current = {
+        rewardedAd,
+        source,
+        fallbackTimer: Platform.OS === 'ios' ? null : setTimeout(flushPendingRewardedAdShow, 0),
+      };
+    },
+    [flushPendingRewardedAdShow]
+  );
 
   const grantAccess = useCallback(() => {
     const nextAccessUntil = Date.now() + ACCESS_DURATION_MS;
@@ -119,12 +159,25 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    mobileAds()
-      .initialize()
-      .catch(error => {
-        logSentryWarning('Google Mobile Ads initialization failed', getSentryErrorAttributes(error));
+    let isMounted = true;
+
+    async function initializeMobileAds() {
+      try {
+        await mobileAds().setRequestConfiguration({
+          testDeviceIdentifiers: ['EMULATOR'],
+        });
+        await mobileAds().initialize();
+        if (isMounted) {
+          setIsMobileAdsReady(true);
+        }
+      } catch (error) {
+        const errorAttributes = getSentryErrorAttributes(error);
+        logSentryWarning('Google Mobile Ads initialization failed', errorAttributes);
         captureSentryException(error, 'Google Mobile Ads initialization failed');
-      });
+      }
+    }
+
+    initializeMobileAds();
 
     const storedAccess = async () => {
       const stored = await AsyncStorage.getItem(ACCESS_UNTIL_KEY);
@@ -138,6 +191,10 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       logSentryWarning('Failed to restore ad access grant', getSentryErrorAttributes(error));
       captureSentryException(error, 'Failed to restore ad access grant');
     });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -146,6 +203,10 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!isMobileAdsReady) {
+      return;
+    }
+
     const rewardedAd = RewardedAd.createForAdRequest(getRewardedAdUnitId(), {
       requestNonPersonalizedAdsOnly: true,
     });
@@ -195,8 +256,9 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
 
     const unsubscribeError = rewardedAd.addAdEventListener(AdEventType.ERROR, error => {
       const adUnitId = getRewardedAdUnitId();
+      const errorAttributes = getSentryErrorAttributes(error);
       logSentryWarning('Rewarded ad error', {
-        ...getSentryErrorAttributes(error),
+        ...errorAttributes,
         adUnitId,
       });
       captureSentryException(error, 'Rewarded ad error', {
@@ -213,6 +275,13 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
     rewardedAd.load();
 
     return () => {
+      const pendingShow = pendingRewardedAdShowRef.current;
+      if (pendingShow?.rewardedAd === rewardedAd) {
+        if (pendingShow.fallbackTimer) {
+          clearTimeout(pendingShow.fallbackTimer);
+        }
+        pendingRewardedAdShowRef.current = null;
+      }
       unsubscribeLoaded();
       unsubscribeOpened();
       unsubscribeEarnedReward();
@@ -220,7 +289,7 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
       unsubscribeError();
       rewardedAd.removeAllListeners();
     };
-  }, [adCycle, grantAccess, showRewardedAd, t]);
+  }, [adCycle, grantAccess, isMobileAdsReady, showRewardedAd, t]);
 
   const ensureAccess = useCallback(
     (reason: AdAccessReason, onGranted?: () => void) => {
@@ -269,6 +338,10 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
     pendingGrantActionRef.current = undefined;
     shouldShowWhenLoadedRef.current = false;
     adRequestReasonRef.current = null;
+    if (pendingRewardedAdShowRef.current?.fallbackTimer) {
+      clearTimeout(pendingRewardedAdShowRef.current.fallbackTimer);
+    }
+    pendingRewardedAdShowRef.current = null;
     setPromptReason(null);
     setAdError(null);
   };
@@ -285,7 +358,13 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
   return (
     <AdAccessContext.Provider value={contextValue}>
       {children}
-      <Modal visible={promptReason !== null} transparent animationType="fade" onRequestClose={handleClosePrompt}>
+      <Modal
+        visible={promptReason !== null}
+        transparent
+        animationType="fade"
+        onDismiss={flushPendingRewardedAdShow}
+        onRequestClose={handleClosePrompt}
+      >
         <View style={styles.backdrop}>
           <View style={[styles.dialog, { shadowColor: colors.shadow }]}>
             <View style={styles.hero}>
