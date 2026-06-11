@@ -20,7 +20,7 @@ const FLAME_OVERHANG_H = FLAME_W - 8;
 const ROCKET_VISUAL_H = ROCKET_H + FLAME_OVERHANG_H;
 const ROCKET_BOTTOM_CLEARANCE = 24;
 const MOON_SIZE = 24;
-const LANDING_SIZE = 32;
+const LANDING_SIZE = 24;
 const CONGRATS_W = 24;
 
 // ─── Physics ─────────────────────────────────────────────────────────────────
