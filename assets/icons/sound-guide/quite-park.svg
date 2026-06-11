@@ -5,8 +5,8 @@
     stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
   <path d="M8.14718 10.4444L8.3517 12.2215" stroke="currentColor" stroke-width="0.79999" stroke-linecap="round" />
   <path d="M3.9517 10.4444L3.74718 12.2215" stroke="currentColor" stroke-width="0.79999" stroke-linecap="round" />
-  <rect x="2" y="7.24438" width="7.9999" height="1.59998" rx="0.79999" fill="#333333" />
-  <rect x="2" y="9.64429" width="7.9999" height="0.79999" rx="0.399995" fill="#333333" />
+  <rect x="2" y="7.24438" width="7.9999" height="1.59998" rx="0.79999" fill="currentColor" />
+  <rect x="2" y="9.64429" width="7.9999" height="0.79999" rx="0.399995" fill="currentColor" />
   <path d="M4.40015 8.84448V9.64447" stroke="currentColor" stroke-width="0.79999" />
   <path d="M7.6001 8.84448V9.64447" stroke="currentColor" stroke-width="0.79999" />
 </svg>
