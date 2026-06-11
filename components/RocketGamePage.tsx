@@ -16,6 +16,9 @@ import Animated, {
 const ROCKET_W = 24;
 const ROCKET_H = 35;
 const FLAME_W = 24;
+const FLAME_OVERHANG_H = FLAME_W - 8;
+const ROCKET_VISUAL_H = ROCKET_H + FLAME_OVERHANG_H;
+const ROCKET_BOTTOM_CLEARANCE = 24;
 const MOON_SIZE = 24;
 const LANDING_SIZE = 45;
 const CONGRATS_W = 24;
@@ -199,7 +202,8 @@ export const RocketGamePage = memo(function RocketGamePage() {
   const rocketStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateY: rocketValues.containerHeight.value - ROCKET_H - rocketValues.position.value,
+        translateY:
+          rocketValues.containerHeight.value - ROCKET_VISUAL_H - ROCKET_BOTTOM_CLEARANCE - rocketValues.position.value,
       },
     ],
   }));
@@ -227,7 +231,7 @@ export const RocketGamePage = memo(function RocketGamePage() {
       style={styles.container}
       onLayout={e => {
         const h = e.nativeEvent.layout.height;
-        const track = Math.max(0, h - MOON_SIZE - ROCKET_H);
+        const track = Math.max(0, h - MOON_SIZE - ROCKET_VISUAL_H - ROCKET_BOTTOM_CLEARANCE);
         rocketValues.containerHeight.value = h;
         rocketValues.trackHeight.value = track;
         rocketValues.position.value = Math.min(rocketValues.position.value, track);
@@ -283,7 +287,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    overflow: 'visible',
+    overflow: 'hidden',
   },
   moon: {
     position: 'absolute',

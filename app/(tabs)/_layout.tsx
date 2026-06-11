@@ -29,6 +29,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const GRAPH_TAB_NAMES = new Set(['db-time', 'db-freq', 'sound-guide']);
+const TAB_BAR_MIN_BOTTOM_PADDING = 24;
 
 export const unstable_settings = {
   anchor: 'db-time',
@@ -212,7 +213,7 @@ export default function TabsLayout() {
           style={[
             styles.tabBar,
             {
-              paddingBottom: Math.max(insets.bottom, 10),
+              paddingBottom: Math.max(insets.bottom, TAB_BAR_MIN_BOTTOM_PADDING),
               backgroundColor: colors.surface,
               borderColor: colors.border,
               shadowColor: colors.shadow,
@@ -253,10 +254,13 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
   },
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 0,
     borderRadius: 10,
     borderWidth: 1,
     paddingTop: 10,

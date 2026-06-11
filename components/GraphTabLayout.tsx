@@ -99,6 +99,8 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     justifyContent: 'space-between',
     flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
     gap: GRAPH_LAYOUT_COLUMN_GAP,
     paddingLeft: GRAPH_LAYOUT_PADDING_LEFT,
     paddingRight: GRAPH_LAYOUT_PADDING_RIGHT,
@@ -129,6 +131,6 @@ const styles = StyleSheet.create({
   },
   rocketPlaceholder: {
     width: GRAPH_LAYOUT_ROCKET_WIDTH,
-    height: '100%',
+    alignSelf: 'stretch',
   },
 });
