@@ -5,13 +5,14 @@ import {
   DB_TIME_GRAPH_CONTAINER_HORIZONTAL_PADDING,
   DB_TIME_GRAPH_CONTAINER_RIGHT_PADDING,
   DB_TIME_GRAPH_CONTAINER_VERTICAL_PADDING,
-  DB_TIME_GRAPH_CONTAINER_WIDTH,
+  DB_TIME_GRAPH_CHART_RIGHT_INSET,
   DB_TIME_GRAPH_X_AXIS_HEIGHT,
   DB_TIME_GRAPH_Y_AXIS_WIDTH,
   dbTimeGraphDbToTop,
   dbTimeGraphDbToY,
 } from '@/audio/dbTimeGraph';
 import Surface from '@/components/Surface';
+import { useGraphSurfaceWidth } from '@/components/graphLayoutDimensions';
 import { useTheme } from '@/context/ThemeContext';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
 import { Canvas, Circle, Path } from '@shopify/react-native-skia';
@@ -29,6 +30,18 @@ function formatElapsedLabel(seconds: number) {
 
 function SoundGraph() {
   const { typography, colors } = useTheme();
+  const surfaceWidth = useGraphSurfaceWidth();
+  const chartWidth = Math.max(
+    0,
+    surfaceWidth -
+      DB_TIME_GRAPH_Y_AXIS_WIDTH -
+      DB_TIME_GRAPH_CONTAINER_HORIZONTAL_PADDING -
+      DB_TIME_GRAPH_CONTAINER_RIGHT_PADDING
+  );
+  const graphScaleX =
+    chartWidth > DB_TIME_GRAPH_CHART_RIGHT_INSET
+      ? (chartWidth - DB_TIME_GRAPH_CHART_RIGHT_INSET) / (DB_TIME_GRAPH_CHART_WIDTH - DB_TIME_GRAPH_CHART_RIGHT_INSET)
+      : 0;
   const { graphPath, currentPoint, isRunning, windowStartSeconds, windowEndSeconds } = useAudioMeterStore(state => ({
     graphPath: state.dbTimeGraphPath,
     currentPoint: state.dbTimeGraphCurrentPoint,
@@ -43,11 +56,11 @@ function SoundGraph() {
       const ratio = index / (X_LABEL_COUNT - 1);
       return {
         key: `${windowStartSeconds}-${windowEndSeconds}-${index}`,
-        left: ratio * DB_TIME_GRAPH_CHART_WIDTH,
+        left: ratio * chartWidth,
         label: formatElapsedLabel(windowStartSeconds + durationSeconds * ratio),
       };
     });
-  }, [windowEndSeconds, windowStartSeconds]);
+  }, [chartWidth, windowEndSeconds, windowStartSeconds]);
 
   return (
     <Surface style={styles.container}>
@@ -74,20 +87,28 @@ function SoundGraph() {
           ))}
         </View>
 
-        <View style={styles.chartColumn}>
+        <View style={[styles.chartColumn, { width: chartWidth }]}>
           <View style={[styles.yAxisLine, { backgroundColor: colors.inactive }]} />
-          <View style={styles.chartClip}>
+          <View style={[styles.chartClip, { width: chartWidth }]}>
             {GRID_DBS.map(db => (
               <View
                 key={`grid-${db}`}
                 style={[styles.gridLine, { backgroundColor: colors.inactive, top: dbTimeGraphDbToY(db) }]}
               />
             ))}
-            <Canvas style={styles.canvas}>
-              {graphPath.length > 0 && <Path path={graphPath} color={ACTIVE_COLOR} style="stroke" strokeWidth={2} />}
+            <Canvas style={[styles.canvas, { width: chartWidth }]}>
+              {graphPath.length > 0 && (
+                <Path
+                  path={graphPath}
+                  color={ACTIVE_COLOR}
+                  style="stroke"
+                  strokeWidth={2}
+                  transform={[{ scaleX: graphScaleX }]}
+                />
+              )}
               {currentPoint && (
                 <Circle
-                  cx={currentPoint.x}
+                  cx={currentPoint.x * graphScaleX}
                   cy={currentPoint.y}
                   r={3}
                   color={isRunning ? ACTIVE_COLOR : colors.inactive}
@@ -97,7 +118,7 @@ function SoundGraph() {
             <View style={[styles.xAxisLine, { backgroundColor: colors.inactive }]} />
           </View>
 
-          <View style={styles.xLabels}>
+          <View style={[styles.xLabels, { width: chartWidth }]}>
             {xLabels.map(({ key, label, left }, index) => (
               <Text
                 key={key}
@@ -129,7 +150,6 @@ const styles = StyleSheet.create({
     paddingVertical: DB_TIME_GRAPH_CONTAINER_VERTICAL_PADDING,
     paddingLeft: DB_TIME_GRAPH_CONTAINER_HORIZONTAL_PADDING,
     paddingRight: DB_TIME_GRAPH_CONTAINER_RIGHT_PADDING,
-    width: DB_TIME_GRAPH_CONTAINER_WIDTH,
   },
   graphRow: {
     flexDirection: 'row',
@@ -146,7 +166,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   chartColumn: {
-    flex: 1,
+    position: 'relative',
   },
   yAxisLine: {
     position: 'absolute',
@@ -167,7 +187,6 @@ const styles = StyleSheet.create({
     height: 1,
   },
   canvas: {
-    width: DB_TIME_GRAPH_CHART_WIDTH,
     height: DB_TIME_GRAPH_CHART_HEIGHT,
   },
   xAxisLine: {
