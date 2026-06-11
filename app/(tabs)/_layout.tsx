@@ -121,7 +121,6 @@ export default function TabsLayout() {
           },
         }}
         options={{
-          lazy: false,
           title: t('tabs.dbTime'),
           tabBarIcon: ({ color, size }) => (
             <Image
@@ -140,7 +139,6 @@ export default function TabsLayout() {
           },
         }}
         options={{
-          lazy: false,
           title: t('tabs.dbFreq'),
           tabBarIcon: ({ color, size }) => (
             <Image
