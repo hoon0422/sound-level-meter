@@ -1,11 +1,11 @@
-import { useAdAccess } from '@/context/AdAccessContext';
 import { RecordButton } from '@/components/RecordButton';
-import { SoundMeter } from '@/components/SoundMeter';
 import { RocketGamePage } from '@/components/RocketGamePage';
-import { useAudioMeterStore } from '@/store/audioMeterStore';
-import { memo, useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { SoundMeter } from '@/components/SoundMeter';
+import { useAdAccess } from '@/context/AdAccessContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useAudioMeterStore } from '@/store/audioMeterStore';
+import { memo, useEffect, useRef } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import {
   GRAPH_LAYOUT_COLUMN_GAP,
   GRAPH_LAYOUT_PADDING_LEFT,
@@ -19,21 +19,21 @@ type Props = {
 
 export default function GraphsLayout({ children }: Props) {
   const { colors } = useTheme();
-  const soundMeter = useMemo(() => <SoundMeter />, []);
-  const rocketGame = useMemo(() => <RocketGamePage />, []);
 
   return (
     <View style={[styles.page, { backgroundColor: colors.background }]}>
       <LongMeasurementAccessGuard />
       <View style={styles.graphContainer}>
-        {soundMeter}
+        <SoundMeter />
         {children}
         <View style={styles.recordingControlContainer}>
           <ElapsedTimeText />
           <RecordButton />
         </View>
       </View>
-      <View style={styles.rocketPlaceholder}>{rocketGame}</View>
+      <View style={styles.rocketPlaceholder}>
+        <RocketGamePage />
+      </View>
     </View>
   );
 }
