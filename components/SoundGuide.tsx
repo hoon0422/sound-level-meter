@@ -121,12 +121,34 @@ function findRangeIndexWithHysteresis(displayDb: number, currentIndex: number) {
   return findRangeIndex(displayDb);
 }
 
+function getCurrentRangeIndex(calibrationOffset: number, currentIndex: number) {
+  'worklet';
+  if (!audioVisualValues.hasSignal.value) {
+    return IDLE_ACTIVE_INDEX;
+  }
+
+  const displayDb = audioVisualValues.displayDb.value + calibrationOffset;
+  if (displayDb <= 0) {
+    return IDLE_ACTIVE_INDEX;
+  }
+
+  return audioVisualValues.isRunning.value
+    ? findRangeIndexWithHysteresis(displayDb, currentIndex)
+    : findRangeIndex(displayDb);
+}
+
+function getWheelYForIndex(index: number) {
+  'worklet';
+  return index === IDLE_ACTIVE_INDEX ? DEFAULT_WHEEL_Y : CURRENT_SLOT_TOP - index * ROW_HEIGHT;
+}
+
 export default function SoundGuide() {
   const { colors } = useTheme();
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const calibrationOffset = useSharedValue(offsetDb);
   const activeIndex = useSharedValue(IDLE_ACTIVE_INDEX);
   const wheelY = useSharedValue(DEFAULT_WHEEL_Y);
+  const slotOpacity = useSharedValue(0);
   const ranges = useRanges();
 
   useEffect(() => {
@@ -135,29 +157,42 @@ export default function SoundGuide() {
 
   useAnimatedReaction(
     () => {
-      if (!audioVisualValues.hasSignal.value) {
-        return IDLE_ACTIVE_INDEX;
-      }
-      const displayDb = audioVisualValues.displayDb.value + calibrationOffset.value;
-      if (displayDb <= 0) {
-        return IDLE_ACTIVE_INDEX;
-      }
-      return findRangeIndexWithHysteresis(displayDb, activeIndex.value);
+      const nextIndex = getCurrentRangeIndex(calibrationOffset.value, activeIndex.value);
+      return (nextIndex + 1) * 2 + (audioVisualValues.isRunning.value ? 1 : 0);
     },
-    nextIndex => {
+    packedState => {
+      const isRunning = packedState % 2 === 1;
+      const nextIndex = Math.floor(packedState / 2) - 1;
       activeIndex.value = nextIndex;
-      const nextY = nextIndex === IDLE_ACTIVE_INDEX ? DEFAULT_WHEEL_Y : CURRENT_SLOT_TOP - nextIndex * ROW_HEIGHT;
-      wheelY.value =
-        nextIndex === IDLE_ACTIVE_INDEX ? DEFAULT_WHEEL_Y : withTiming(nextY, { duration: ANIMATION_DURATION_MS });
+      const nextY = getWheelYForIndex(nextIndex);
+      const nextOpacity = nextIndex === IDLE_ACTIVE_INDEX ? 0 : 1;
+
+      if (!isRunning) {
+        wheelY.value = nextY;
+        slotOpacity.value = nextOpacity;
+        return;
+      }
+
+      wheelY.value = nextIndex === IDLE_ACTIVE_INDEX ? DEFAULT_WHEEL_Y : withTiming(nextY, { duration: ANIMATION_DURATION_MS });
+      slotOpacity.value = withTiming(nextOpacity, { duration: ANIMATION_DURATION_MS });
     }
   );
 
-  const listStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: wheelY.value }],
-  }));
-  const slotStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(activeIndex.value === IDLE_ACTIVE_INDEX ? 0 : 1, { duration: ANIMATION_DURATION_MS }),
-  }));
+  const listStyle = useAnimatedStyle(() => {
+    if (!audioVisualValues.isRunning.value) {
+      const fixedIndex = getCurrentRangeIndex(calibrationOffset.value, activeIndex.value);
+      return { transform: [{ translateY: getWheelYForIndex(fixedIndex) }] };
+    }
+
+    return { transform: [{ translateY: wheelY.value }] };
+  });
+  const slotStyle = useAnimatedStyle(() => {
+    if (!audioVisualValues.isRunning.value) {
+      return { opacity: getCurrentRangeIndex(calibrationOffset.value, activeIndex.value) === IDLE_ACTIVE_INDEX ? 0 : 1 };
+    }
+
+    return { opacity: slotOpacity.value };
+  });
 
   return (
     <Surface style={styles.container}>
@@ -177,6 +212,7 @@ export default function SoundGuide() {
           {ranges.map(range => (
             <SoundGuideRow
               activeIndex={activeIndex}
+              calibrationOffset={calibrationOffset}
               iconColor={colors.text}
               key={range.index}
               range={range}
@@ -192,12 +228,14 @@ export default function SoundGuide() {
 
 const SoundGuideRow = memo(function SoundGuideRow({
   activeIndex,
+  calibrationOffset,
   iconColor,
   range,
   textColor,
   wheelY,
 }: {
   activeIndex: SharedValue<number>;
+  calibrationOffset: SharedValue<number>;
   iconColor: string;
   range: SoundGuideRange;
   textColor: string;
@@ -205,10 +243,15 @@ const SoundGuideRow = memo(function SoundGuideRow({
 }) {
   const Icon = range.icon;
   const rowStyle = useAnimatedStyle(() => {
-    if (activeIndex.value === IDLE_ACTIVE_INDEX) {
+    const currentIndex = audioVisualValues.isRunning.value
+      ? activeIndex.value
+      : getCurrentRangeIndex(calibrationOffset.value, activeIndex.value);
+
+    if (currentIndex === IDLE_ACTIVE_INDEX) {
       return { opacity: 0.4 };
     }
-    const centeredIndex = (CURRENT_SLOT_TOP - wheelY.value) / ROW_HEIGHT;
+    const currentWheelY = audioVisualValues.isRunning.value ? wheelY.value : getWheelYForIndex(currentIndex);
+    const centeredIndex = (CURRENT_SLOT_TOP - currentWheelY) / ROW_HEIGHT;
     const distance = Math.abs(range.index - centeredIndex);
     return {
       opacity: interpolate(distance, [0, 1, 2, 3, 4], [1, 0.8, 0.6, 0.2, 0], Extrapolation.CLAMP),
