@@ -19,7 +19,13 @@ module.exports = {
     scheme: process.env.EXPO_SCHEME || 'soundlevelmeter',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
+    splash: {
+      image: './assets/splash_v1.png',
+      resizeMode: 'contain',
+      backgroundColor: '#ffffff',
+    },
     ios: {
+      icon: './assets/app_icons/decibella2.png',
       supportsTablet: true,
       bundleIdentifier: process.env.IOS_BUNDLE_IDENTIFIER || 'com.sunnyinnolab.decibella2',
       infoPlist: {
@@ -29,6 +35,7 @@ module.exports = {
     },
     android: {
       adaptiveIcon: {
+        foregroundImage: './assets/app_icons/decibella2.png',
         backgroundColor: '#E6F4FE',
       },
       edgeToEdgeEnabled: true,
@@ -61,8 +68,8 @@ module.exports = {
       [
         'react-native-google-mobile-ads',
         {
-          androidAppId: process.env.ADMOB_ANDROID_APP_ID,
-          iosAppId: process.env.ADMOB_IOS_APP_ID,
+          androidAppId: process.env.ADMOB_ANDROID_APP_ID || 'ca-app-pub-3940256099942544~3347511713',
+          iosAppId: process.env.ADMOB_IOS_APP_ID || 'ca-app-pub-3940256099942544~1458002511',
           optimizeInitialization: true,
           optimizeAdLoading: true,
         },
