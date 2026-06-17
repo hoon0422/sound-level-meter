@@ -30,6 +30,11 @@ type SunnyApp = {
 };
 
 const APPS: SunnyApp[] = [
+  // {
+  //   name: 'Decibella 2',
+  //   icon: require('@/assets/app_icons/decibella2.png'),
+  //   url: '',
+  // },
   {
     name: 'Sky Peacemaker - Finger Force',
     icon: require('@/assets/app_icons/skyPeacemaker.png'),
