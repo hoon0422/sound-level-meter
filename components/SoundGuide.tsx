@@ -6,6 +6,7 @@ import React, { memo, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Extrapolation,
   interpolate,
   useAnimatedReaction,
@@ -155,6 +156,13 @@ export default function SoundGuide() {
     calibrationOffset.value = offsetDb;
   }, [calibrationOffset, offsetDb]);
 
+  useEffect(() => {
+    return () => {
+      cancelAnimation(wheelY);
+      cancelAnimation(slotOpacity);
+    };
+  }, [wheelY, slotOpacity]);
+
   useAnimatedReaction(
     () => {
       const nextIndex = getCurrentRangeIndex(calibrationOffset.value, activeIndex.value);
@@ -166,6 +174,8 @@ export default function SoundGuide() {
       activeIndex.value = nextIndex;
       const nextY = getWheelYForIndex(nextIndex);
       const nextOpacity = nextIndex === IDLE_ACTIVE_INDEX ? 0 : 1;
+      cancelAnimation(wheelY);
+      cancelAnimation(slotOpacity);
 
       if (!isRunning) {
         wheelY.value = nextY;
