@@ -99,9 +99,9 @@
   "adAccess": {
     "title": "观看广告后，即可在2小时内使用所有功能。",
     "benefits": {
-      "measurement": "- 测量声音超过30秒",
-      "soundGuide": "- 可使用声音说明功能",
-      "log": "- 保存/查看测量记录"
+      "measurement": "测量声音超过30秒",
+      "soundGuide": "可使用声音说明功能",
+      "log": "保存/查看测量记录"
     },
     "watchAd": "观看广告",
     "notNow": "稍后",

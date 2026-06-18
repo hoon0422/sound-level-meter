@@ -99,9 +99,9 @@
   "adAccess": {
     "title": "Mira un anuncio para usar todas las funciones durante 2 horas.",
     "benefits": {
-      "measurement": "- Medir el sonido durante más de 30 segundos",
-      "soundGuide": "- Función de explicación del sonido disponible",
-      "log": "- Guardar/ver el historial de mediciones"
+      "measurement": "Medir el sonido durante más de 30 segundos",
+      "soundGuide": "Función de explicación del sonido disponible",
+      "log": "Guardar/ver el historial de mediciones"
     },
     "watchAd": "Ver anuncio",
     "notNow": "Ahora no",
