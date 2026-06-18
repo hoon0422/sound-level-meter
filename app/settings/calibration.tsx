@@ -11,7 +11,6 @@ import useCalibrationStore, {
   applyCalibrationOffset,
   formatCalibrationOffset,
 } from '@/store/calibrationStore';
-import useRecordingLogControlStore from '@/store/recordingLogControlStore';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -94,7 +93,7 @@ export default function CalibrationPage() {
   const insets = useSafeAreaInsets();
   const isDark = themeName === 'dark';
   const [hasMicAccess, setHasMicAccess] = useState(true);
-  const startedTemporaryMeasurementRef = useRef(false);
+  const startedCalibrationRecordingRef = useRef(false);
   const holdDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -112,7 +111,6 @@ export default function CalibrationPage() {
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const decrementOffset = useCalibrationStore(state => state.decrementOffset);
   const incrementOffset = useCalibrationStore(state => state.incrementOffset);
-  const markNextRecordingStopAsTemporary = useRecordingLogControlStore(state => state.markNextRecordingStopAsTemporary);
 
   const currentDb = isRunning && elapsedSeconds > 0 ? applyCalibrationOffset(dbfs, offsetDb) : null;
   const canDecrement = offsetDb > CALIBRATION_OFFSET_MIN_DB;
@@ -337,7 +335,7 @@ export default function CalibrationPage() {
   useEffect(() => {
     let isActive = true;
 
-    async function startTemporaryMeasurementIfNeeded() {
+    async function startCalibrationRecordingIfNeeded() {
       try {
         if (audioMeterStore.getState().isRunning) {
           return;
@@ -352,38 +350,36 @@ export default function CalibrationPage() {
 
         configureSpectrum(DEFAULT_CONFIG);
         configureAudioMetrics(DEFAULT_CONFIG);
-        const didStart = await start(DEFAULT_CONFIG);
+        const didStart = await start(DEFAULT_CONFIG, { sessionMode: 'calibration' });
         if (!isActive) {
           if (didStart) {
-            markNextRecordingStopAsTemporary();
             stop();
           }
           return;
         }
 
-        startedTemporaryMeasurementRef.current = didStart;
+        startedCalibrationRecordingRef.current = didStart;
       } catch (error) {
-        logSentryError('Calibration temporary measurement start failed', getSentryErrorAttributes(error));
-        captureSentryException(error, 'Calibration temporary measurement start failed');
+        logSentryError('Calibration recording start failed', getSentryErrorAttributes(error));
+        captureSentryException(error, 'Calibration recording start failed');
         if (isActive) {
           setHasMicAccess(false);
         }
       }
     }
 
-    startTemporaryMeasurementIfNeeded().catch(error => {
-      logSentryError('Calibration temporary measurement task failed', getSentryErrorAttributes(error));
-      captureSentryException(error, 'Calibration temporary measurement task failed');
+    startCalibrationRecordingIfNeeded().catch(error => {
+      logSentryError('Calibration recording task failed', getSentryErrorAttributes(error));
+      captureSentryException(error, 'Calibration recording task failed');
     });
 
     return () => {
       isActive = false;
-      if (startedTemporaryMeasurementRef.current) {
-        markNextRecordingStopAsTemporary();
+      if (startedCalibrationRecordingRef.current) {
         stop();
       }
     };
-  }, [configureAudioMetrics, configureSpectrum, markNextRecordingStopAsTemporary, start, stop]);
+  }, [configureAudioMetrics, configureSpectrum, start, stop]);
 
   return (
     <View style={dynamicStyles.container}>

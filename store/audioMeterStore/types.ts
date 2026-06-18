@@ -1,7 +1,11 @@
 import type { AudioMeterConfig } from '@/audio/constants';
 import type { DbTimeGraphPoint } from '@/audio/dbTimeGraph';
 import { type AudioMetricsDisplayConfig, type AudioMetricsSnapshot } from '@/audio/metrics';
-import { type AudioEngineConfig, type MicrophoneState } from '@/audio/MicrophoneController';
+import {
+  type AudioEngineConfig,
+  type MicrophoneStartOptions,
+  type MicrophoneState,
+} from '@/audio/MicrophoneController';
 import { type SpectrumDisplayConfig, type SpectrumSnapshot } from '@/audio/spectrum';
 import { type StatsSnapshot } from '@/audio/stats';
 
@@ -33,7 +37,7 @@ export type DbTimeGraphSlice = {
 
 export type MicrophoneSlice = MicrophoneState & {
   connect: (config: AudioEngineConfig) => Promise<boolean>;
-  start: (config: AudioEngineConfig) => Promise<boolean>;
+  start: (config: AudioEngineConfig, options?: MicrophoneStartOptions) => Promise<boolean>;
   stop: () => void;
   disconnect: () => Promise<void>;
 };

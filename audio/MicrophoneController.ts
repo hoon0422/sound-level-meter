@@ -26,6 +26,12 @@ import { classifyAudioFrameQuality, type AudioFrameQuality } from './quality/aud
 
 export type { AudioEngineConfig };
 
+export type MicrophoneSessionMode = 'measurement' | 'calibration';
+
+export type MicrophoneStartOptions = {
+  sessionMode?: MicrophoneSessionMode;
+};
+
 export type MicrophoneState = {
   isRunning: boolean;
   isConnecting: boolean;
@@ -34,6 +40,7 @@ export type MicrophoneState = {
   isDisconnecting: boolean;
   elapsedSeconds: number;
   measurementSessionId: number;
+  sessionMode: MicrophoneSessionMode | null;
   error: string | null;
 };
 
@@ -67,6 +74,7 @@ export function createIdleMicrophoneState(measurementSessionId = 0, elapsedSecon
     isDisconnecting: false,
     elapsedSeconds,
     measurementSessionId,
+    sessionMode: null,
     error: null,
   };
 }
@@ -80,6 +88,7 @@ export class MicrophoneController {
 
   private freqData: Float32Array | null = null;
   private running = false;
+  private sessionMode: MicrophoneSessionMode | null = null;
   private elapsedAccumulator = 0;
   private measurementSessionId = 0;
   private engine: MicrophoneEngine | null = null;
@@ -168,6 +177,10 @@ export class MicrophoneController {
     }
   }
 
+  private isMeasurementSession() {
+    return this.sessionMode === 'measurement';
+  }
+
   private handleAudioMetrics = (metrics: AudioRuntimeMetrics) => {
     if (!this.running || !this.engine) return;
 
@@ -182,17 +195,21 @@ export class MicrophoneController {
 
     if (!quality.isValid) {
       this.invalidFrameElapsedSeconds += Math.max(0, metrics.elapsedSeconds);
-      if (this.invalidFrameElapsedSeconds >= INVALID_AUDIO_FRAME_GRACE_SECONDS) {
-        markAudioVisualNoSignal(this.elapsedAccumulator);
-        this.emitRunningState();
-      } else {
-        holdAudioVisualFrame(this.elapsedAccumulator);
+      if (this.isMeasurementSession()) {
+        if (this.invalidFrameElapsedSeconds >= INVALID_AUDIO_FRAME_GRACE_SECONDS) {
+          markAudioVisualNoSignal(this.elapsedAccumulator);
+        } else {
+          holdAudioVisualFrame(this.elapsedAccumulator);
+        }
       }
+      this.emitRunningState();
       return;
     }
 
     this.invalidFrameElapsedSeconds = 0;
-    updateAudioVisualFrame(metrics.dbfs, this.elapsedAccumulator);
+    if (this.isMeasurementSession()) {
+      updateAudioVisualFrame(metrics.dbfs, this.elapsedAccumulator);
+    }
     const frame: MicrophoneDbFrame = {
       dbfs: metrics.dbfs,
       frameDurationSeconds: metrics.elapsedSeconds,
@@ -241,16 +258,21 @@ export class MicrophoneController {
       isDisconnecting: false,
       elapsedSeconds: this.elapsedAccumulator,
       measurementSessionId: this.measurementSessionId,
+      sessionMode: this.sessionMode,
       error: null,
     });
   }
 
   stop() {
     this.running = false;
+    const stoppedSessionMode = this.sessionMode;
+    this.sessionMode = null;
     this.invalidFrameElapsedSeconds = 0;
     this.lastRunningStatePublishTimeMs = 0;
     this.lastFrequencyFramePublishTimeMs = 0;
-    stopAudioVisualValues(this.elapsedAccumulator);
+    if (stoppedSessionMode === 'measurement') {
+      stopAudioVisualValues(this.elapsedAccumulator);
+    }
     stopMicrophoneEngine();
 
     this.emitState(createIdleMicrophoneState(this.measurementSessionId, this.elapsedAccumulator));
@@ -258,6 +280,7 @@ export class MicrophoneController {
 
   private async releaseEngine(): Promise<void> {
     this.running = false;
+    this.sessionMode = null;
     this.emitState({
       ...createIdleMicrophoneState(this.measurementSessionId, this.elapsedAccumulator),
       isDisconnecting: true,
@@ -370,7 +393,7 @@ export class MicrophoneController {
     return this.prepareEngine(config, 'isConnecting');
   }
 
-  async start(config: AudioEngineConfig): Promise<boolean> {
+  async start(config: AudioEngineConfig, options: MicrophoneStartOptions = {}): Promise<boolean> {
     if (this.running) {
       this.stop();
     }
@@ -395,10 +418,13 @@ export class MicrophoneController {
       this.elapsedAccumulator = 0;
       this.measurementSessionId++;
       this.running = true;
+      this.sessionMode = options.sessionMode ?? 'measurement';
       this.invalidFrameElapsedSeconds = 0;
       this.lastRunningStatePublishTimeMs = 0;
       this.lastFrequencyFramePublishTimeMs = 0;
-      startAudioVisualValues();
+      if (this.isMeasurementSession()) {
+        startAudioVisualValues();
+      }
 
       this.emitRunningState(true);
       return true;
@@ -413,6 +439,7 @@ export class MicrophoneController {
       });
       const heldElapsedSeconds = this.elapsedAccumulator;
       this.running = false;
+      this.sessionMode = null;
       try {
         await disconnectMicrophoneEngine();
       } catch (disconnectError) {

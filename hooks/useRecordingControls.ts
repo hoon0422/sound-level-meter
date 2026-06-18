@@ -20,7 +20,8 @@ export function useRecordingControls() {
     configureSpectrum,
     isConnecting,
     isDisconnecting,
-    isRunning,
+    isMeasurementRunning,
+    isRunningCalibration,
     isStarting,
     isStopping,
     start,
@@ -30,7 +31,8 @@ export function useRecordingControls() {
     configureSpectrum: state.configureSpectrum,
     isConnecting: state.isConnecting,
     isDisconnecting: state.isDisconnecting,
-    isRunning: state.isRunning,
+    isMeasurementRunning: state.isRunning && state.sessionMode === 'measurement',
+    isRunningCalibration: state.isRunning && state.sessionMode === 'calibration',
     isStarting: state.isStarting,
     isStopping: state.isStopping,
     start: state.start,
@@ -116,7 +118,7 @@ export function useRecordingControls() {
   }, [configureSpectrum, configureAudioMetrics, start]);
 
   const toggleRecording = useCallback(() => {
-    if (isRunning) {
+    if (isMeasurementRunning) {
       trackAppEvent(APP_ANALYTICS_EVENTS.stopButtonClicked);
       traceSentrySpan(
         {
@@ -134,9 +136,10 @@ export function useRecordingControls() {
 
     trackAppEvent(APP_ANALYTICS_EVENTS.startButtonClicked);
     void startRecording();
-  }, [isRunning, startRecording, stop]);
+  }, [isMeasurementRunning, startRecording, stop]);
 
-  const isBusy = isPreparingRecording || isConnecting || isStarting || isStopping || isDisconnecting;
+  const isBusy =
+    isPreparingRecording || isConnecting || isStarting || isStopping || isDisconnecting || isRunningCalibration;
 
   return {
     isBusy,

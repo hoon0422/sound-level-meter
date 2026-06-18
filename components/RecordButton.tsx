@@ -7,14 +7,14 @@ import { Image, StyleSheet, TouchableOpacity } from 'react-native';
 export function RecordButton() {
   const { colors } = useTheme();
   const { isBusy, toggleRecording } = useRecordingControls();
-  const isRunning = useAudioMeterStore(state => state.isRunning);
+  const isMeasurementRunning = useAudioMeterStore(state => state.isRunning && state.sessionMode === 'measurement');
 
   return (
     <TouchableOpacity
       style={[
         styles.micButton,
         {
-          backgroundColor: isRunning ? colors.loud : colors.primary,
+          backgroundColor: isMeasurementRunning ? colors.loud : colors.primary,
           borderColor: colors.border,
           shadowColor: colors.shadow,
         },
@@ -23,7 +23,7 @@ export function RecordButton() {
       disabled={isBusy}
       activeOpacity={0.8}
     >
-      {isRunning ? (
+      {isMeasurementRunning ? (
         <Ionicons name="stop" size={32} color="#FFFFFF" />
       ) : (
         <Image source={require('@/assets/icons/mic.png')} style={{ height: 38, width: 120 }} resizeMode="contain" />

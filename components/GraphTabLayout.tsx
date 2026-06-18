@@ -47,8 +47,9 @@ const LongMeasurementAccessGuard = memo(function LongMeasurementAccessGuard() {
   useEffect(() => {
     const checkLongMeasurementAccess = () => {
       const state = audioMeterStore.getState();
+      const isMeasurementRunning = state.isRunning && state.sessionMode === 'measurement';
 
-      if (!state.isRunning) {
+      if (!isMeasurementRunning) {
         didPromptForLongMeasurementRef.current = false;
         return;
       }
@@ -75,7 +76,9 @@ const LongMeasurementAccessGuard = memo(function LongMeasurementAccessGuard() {
 
 const ElapsedTimeText = memo(function ElapsedTimeText() {
   const { colors } = useTheme();
-  const elapsedTimeSeconds = useAudioMeterStore(state => Math.floor(state.elapsedSeconds));
+  const elapsedTimeSeconds = useAudioMeterStore(state =>
+    state.isRunning && state.sessionMode === 'measurement' ? Math.floor(state.elapsedSeconds) : 0
+  );
 
   return <Text style={[styles.elapsedTimeText, { color: colors.text }]}>{secondsToTime(elapsedTimeSeconds)}</Text>;
 });
