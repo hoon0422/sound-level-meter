@@ -32,6 +32,7 @@ export class SpectrumAnalysisController {
   private lastPublishTimeMs = 0;
   private unsubscribeFrame: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
+  private isMeasurementRunning = false;
 
   constructor(mic: MicrophoneController, config: SpectrumDisplayConfig) {
     this.mic = mic;
@@ -107,7 +108,7 @@ export class SpectrumAnalysisController {
   }
 
   private handleFrame = (frame: MicrophoneAudioFrame) => {
-    if (!this.config.enabled || frame.frameDurationSeconds === 0) {
+    if (!this.isMeasurementRunning || !this.config.enabled || frame.frameDurationSeconds === 0) {
       return;
     }
     const analysis = analyzeFrequencyFrame(frame.frequencyData, this.smoothedBars, {
@@ -143,7 +144,10 @@ export class SpectrumAnalysisController {
   };
 
   private handleMicState = (state: MicrophoneState) => {
-    if (state.isRunning && state.measurementSessionId !== this.lastMeasurementSessionId) {
+    const isMeasurementRunning = state.isRunning && state.sessionMode === 'measurement';
+    this.isMeasurementRunning = isMeasurementRunning;
+
+    if (isMeasurementRunning && state.measurementSessionId !== this.lastMeasurementSessionId) {
       this.lastMeasurementSessionId = state.measurementSessionId;
       this.smoothedBars = [];
       this.maximumBars = [];

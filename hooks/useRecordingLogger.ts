@@ -52,7 +52,9 @@ export function useRecordingLogger() {
 
   useEffect(() => {
     return audioMeterStore.subscribe(state => {
-      if (state.isRunning) {
+      const isMeasurementRunning = state.isRunning && state.sessionMode === 'measurement';
+
+      if (isMeasurementRunning) {
         lastRunningStatsRef.current = {
           averageDbfs: state.averageDbfs,
           elapsedSeconds: state.elapsedSeconds,
@@ -62,7 +64,7 @@ export function useRecordingLogger() {
         };
       }
 
-      if (!state.isRunning && prevIsRunningRef.current) {
+      if (!isMeasurementRunning && prevIsRunningRef.current) {
         const stats = lastRunningStatsRef.current;
         const shouldSkipLog = consumeSkipNextRecordingLog();
         if (stats && !shouldSkipLog && Math.floor(stats.elapsedSeconds) > 0) {
@@ -83,7 +85,7 @@ export function useRecordingLogger() {
         lastRunningStatsRef.current = null;
       }
 
-      prevIsRunningRef.current = state.isRunning;
+      prevIsRunningRef.current = isMeasurementRunning;
     });
   }, [addLog, consumeSkipNextRecordingLog]);
 }

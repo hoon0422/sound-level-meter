@@ -74,7 +74,7 @@ const SoundMeterStats = memo(function SoundMeterStats() {
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const { isRunning, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
-      isRunning: state.elapsedSeconds > 0,
+      isRunning: state.isRunning && state.sessionMode === 'measurement',
       averageDbfs: state.averageDbfs,
       maximumDbfs: state.maximumDbfs,
     }),

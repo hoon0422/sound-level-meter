@@ -67,7 +67,9 @@ export const createDbTimeGraphSlice: StateCreator<
   };
 
   const handleMicrophoneState = (state: MicrophoneState) => {
-    if (state.isRunning && state.measurementSessionId !== _activeMeasurementSessionId) {
+    const isMeasurementRunning = state.isRunning && state.sessionMode === 'measurement';
+
+    if (isMeasurementRunning && state.measurementSessionId !== _activeMeasurementSessionId) {
       _activeMeasurementSessionId = state.measurementSessionId;
       resetSamples();
       publish(true, 'dbTimeGraph/startSession');
@@ -80,8 +82,8 @@ export const createDbTimeGraphSlice: StateCreator<
       return;
     }
 
-    if (state.isRunning !== get().dbTimeGraphIsRunning) {
-      publish(state.isRunning, 'dbTimeGraph/setRunning');
+    if (isMeasurementRunning !== get().dbTimeGraphIsRunning) {
+      publish(isMeasurementRunning, 'dbTimeGraph/setRunning');
     }
   };
 

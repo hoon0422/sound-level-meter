@@ -40,7 +40,7 @@ export const createMicrophoneSlice: StateCreator<
   return {
     ...createIdleMicrophoneState(),
     connect: (config: AudioEngineConfig) => mic.connect(config),
-    start: (config: AudioEngineConfig) => mic.start(config),
+    start: (config, options) => mic.start(config, options),
     stop: () => mic.stop(),
     disconnect: () => mic.disconnect(),
   };

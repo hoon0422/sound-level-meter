@@ -99,9 +99,9 @@
   "adAccess": {
     "title": "Watch an ad to unlock all features for 2 hours.",
     "benefits": {
-      "measurement": "- Measure sound for over 30 seconds",
-      "soundGuide": "- View sound explanations",
-      "log": "- Save/View measurement history"
+      "measurement": "Measure sound for over 30 seconds",
+      "soundGuide": "View sound explanations",
+      "log": "Save/View measurement history"
     },
     "watchAd": "Watch Ad",
     "notNow": "Not Now",

@@ -90,6 +90,10 @@ export class StatsController {
   }
 
   private handleFrame = (frame: MicrophoneDbFrame) => {
+    if (!this.isRunning) {
+      return;
+    }
+
     const dbfs = calibrateDbfsForDisplay(Number.isFinite(frame.dbfs) ? frame.dbfs : -100);
 
     this.dbfsSum += dbfs;
@@ -106,14 +110,16 @@ export class StatsController {
   };
 
   private handleMicState = (state: MicrophoneState) => {
-    if (state.isRunning && state.measurementSessionId !== this.lastMeasurementSessionId) {
+    const isMeasurementRunning = state.isRunning && state.sessionMode === 'measurement';
+
+    if (isMeasurementRunning && state.measurementSessionId !== this.lastMeasurementSessionId) {
       this.lastMeasurementSessionId = state.measurementSessionId;
       this.isRunning = true;
       this.reset();
       return;
     }
 
-    if (!state.isRunning && this.isRunning) {
+    if (!isMeasurementRunning && this.isRunning) {
       this.isRunning = false;
       this.emit(this.lastSnapshot, true);
     }

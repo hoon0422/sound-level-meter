@@ -382,9 +382,18 @@ export function AdAccessProvider({ children }: { children: React.ReactNode }) {
             </Pressable>
             <View style={styles.body}>
               <View style={styles.benefits}>
-                <Text style={styles.benefitText}>{t('adAccess.benefits.measurement')}</Text>
-                <Text style={styles.benefitText}>{t('adAccess.benefits.soundGuide')}</Text>
-                <Text style={styles.benefitText}>{t('adAccess.benefits.log')}</Text>
+                <View style={styles.benefit}>
+                  <Text style={styles.benefitBullet}>-</Text>
+                  <Text style={styles.benefitText}>{t('adAccess.benefits.measurement')}</Text>
+                </View>
+                <View style={styles.benefit}>
+                  <Text style={styles.benefitBullet}>-</Text>
+                  <Text style={styles.benefitText}>{t('adAccess.benefits.soundGuide')}</Text>
+                </View>
+                <View style={styles.benefit}>
+                  <Text style={styles.benefitBullet}>-</Text>
+                  <Text style={styles.benefitText}>{t('adAccess.benefits.log')}</Text>
+                </View>
               </View>
               {adError && <Text style={[styles.errorText, { color: colors.loud }]}>{t('adAccess.error')}</Text>}
               <Pressable
@@ -436,13 +445,12 @@ const styles = StyleSheet.create({
   },
   hero: {
     width: '100%',
-    minHeight: 211,
     alignItems: 'center',
     justifyContent: 'flex-end',
     backgroundColor: '#FEFAEE',
     paddingHorizontal: 27,
     paddingTop: 48,
-    paddingBottom: 40,
+    paddingBottom: 20,
     gap: 18,
   },
   logo: {
@@ -496,7 +504,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
   },
+  benefit: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    width: '100%',
+  },
+  benefitBullet: {
+    color: '#333333',
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '400',
+  },
   benefitText: {
+    flex: 1,
     color: '#333333',
     fontSize: 15,
     lineHeight: 20,

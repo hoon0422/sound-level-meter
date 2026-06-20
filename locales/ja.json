@@ -99,9 +99,9 @@
   "adAccess": {
     "title": "広告を視聴すると、2時間すべての機能を使用できます。",
     "benefits": {
-      "measurement": "- 30秒以上の音を測定",
-      "soundGuide": "- 音の説明機能を使用可能",
-      "log": "- 測定履歴の保存／表示"
+      "measurement": "30秒以上の音を測定",
+      "soundGuide": "音の説明機能を使用可能",
+      "log": "測定履歴の保存／表示"
     },
     "watchAd": "広告を見る",
     "notNow": "あとで",
