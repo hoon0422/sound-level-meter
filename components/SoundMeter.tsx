@@ -6,11 +6,12 @@ import useCalibrationStore, { applyCalibrationOffset } from '@/store/calibration
 import { memo, useEffect } from 'react';
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 import Animated, {
+  cancelAnimation,
   Extrapolation,
   interpolate,
   useAnimatedProps,
+  useAnimatedReaction,
   useAnimatedStyle,
-  useDerivedValue,
   useSharedValue,
   withTiming,
   type SharedValue,
@@ -52,6 +53,7 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 const ANIMATION_DURATION = 50;
 const METER_WIDTH = 260;
+const INACTIVE_TARGET_DB = -1000;
 
 export const SoundMeter = memo(function SoundMeter() {
   const surfaceWidth = useGraphSurfaceWidth();
@@ -98,11 +100,17 @@ const SoundMeterStats = memo(function SoundMeterStats() {
   );
 });
 
-const AnimatedDbText = memo(function AnimatedDbText({ color, offsetDb }: { color: string; offsetDb: number }) {
+const AnimatedDbText = memo(function AnimatedDbText({
+  color,
+  offsetDb,
+}: {
+  color: string;
+  offsetDb: number;
+}) {
   const calibrationOffset = useSharedValue(offsetDb);
   const animatedDb = useAnimatedCurrentDb(calibrationOffset);
   const animatedProps = useAnimatedProps<TextInputProps>(() => {
-    const text = audioVisualValues.hasSignal.value ? `${Math.round(animatedDb.value)}` : '–';
+    const text = audioVisualValues.isRunning.value ? `${Math.round(animatedDb.value)}` : '–';
     return {
       text,
       value: text,
@@ -128,28 +136,57 @@ const AnimatedDbText = memo(function AnimatedDbText({ color, offsetDb }: { color
 });
 
 function useAnimatedDisplayDb(calibrationOffset: SharedValue<number>) {
-  const targetDb = useDerivedValue(() => {
-    if (!audioVisualValues.hasSignal.value) {
-      return 0;
-    }
-    return Math.min(120, Math.max(0, audioVisualValues.displayDb.value + calibrationOffset.value));
-  });
-
-  return useDerivedValue(() => withTiming(targetDb.value, { duration: ANIMATION_DURATION }));
+  return useAnimatedMeterDb(calibrationOffset, true);
 }
 
 function useAnimatedCurrentDb(calibrationOffset: SharedValue<number>) {
-  const targetDb = useDerivedValue(() => {
-    if (!audioVisualValues.hasSignal.value) {
-      return 0;
-    }
-    return audioVisualValues.displayDb.value + calibrationOffset.value;
-  });
+  return useAnimatedMeterDb(calibrationOffset, false);
+}
 
-  return useDerivedValue(() => withTiming(targetDb.value, { duration: ANIMATION_DURATION }));
+function useAnimatedMeterDb(calibrationOffset: SharedValue<number>, clampToMeterRange: boolean) {
+  const animatedDb = useSharedValue(0);
+  const hasInitialValue = useSharedValue(false);
+
+  useAnimatedReaction(
+    () => {
+      if (!audioVisualValues.isRunning.value) {
+        return INACTIVE_TARGET_DB;
+      }
+
+      const targetDb = audioVisualValues.displayDb.value + calibrationOffset.value;
+      return clampToMeterRange ? Math.min(120, Math.max(0, targetDb)) : targetDb;
+    },
+    targetDb => {
+      if (targetDb === INACTIVE_TARGET_DB) {
+        cancelAnimation(animatedDb);
+        animatedDb.value = 0;
+        hasInitialValue.value = false;
+        return;
+      }
+
+      if (!hasInitialValue.value) {
+        cancelAnimation(animatedDb);
+        animatedDb.value = targetDb;
+        hasInitialValue.value = true;
+        return;
+      }
+
+      cancelAnimation(animatedDb);
+      animatedDb.value = withTiming(targetDb, { duration: ANIMATION_DURATION });
+    }
+  );
+
+  useEffect(() => {
+    return () => {
+      cancelAnimation(animatedDb);
+    };
+  }, [animatedDb]);
+
+  return animatedDb;
 }
 
 const Meter = memo(function Meter() {
+  const { colors } = useTheme();
   const offsetDb = useCalibrationStore(state => state.offsetDb);
   const calibrationOffset = useSharedValue(offsetDb);
   const animatedProgress = useAnimatedDisplayDb(calibrationOffset);
@@ -178,6 +215,7 @@ const Meter = memo(function Meter() {
   const animatedPathProps = useAnimatedProps(() => {
     const strokeDashoffset = interpolate(animatedProgress.value, [0, 120], [pathLength, 0], Extrapolation.CLAMP);
     return {
+      opacity: audioVisualValues.isRunning.value ? 1 : 0,
       strokeDashoffset,
     };
   });
@@ -211,11 +249,11 @@ const Meter = memo(function Meter() {
           fill="none"
         />
       </Svg>
-      <View style={[styles.needleBaseWrapper, { borderColor: NEEDLE_COLOR }]}>
-        <View style={[styles.needleBase, { backgroundColor: NEEDLE_BASE_COLOR }]} />
-      </View>
       <GaugeTicks />
       <Animated.View style={[styles.needle, { borderColor: NEEDLE_COLOR }, needleStyle]} />
+      <View style={[styles.needleBaseWrapper, { backgroundColor: colors.surface, borderColor: NEEDLE_COLOR }]}>
+        <View style={[styles.needleBase, { backgroundColor: NEEDLE_BASE_COLOR }]} />
+      </View>
     </View>
   );
 });

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const ACTION_WIDTH = 66;
 const ACTION_OVERLAP = 12;
@@ -35,13 +35,26 @@ export function RecordingLogCard({ index, item, logCount, onDelete, resetSignal 
   const cardShadowColor = themeName === 'dark' ? colors.inactive : colors.shadow;
 
   useEffect(() => {
-    translateX.value = withTiming(0, { duration: RESET_DURATION_MS });
-  }, [resetSignal, translateX]);
+    cancelAnimation(translateX);
+    cancelAnimation(rowOpacity);
+    cancelAnimation(rowHeight);
+    translateX.value = 0;
+  }, [resetSignal, translateX, rowOpacity, rowHeight]);
+
+  useEffect(() => {
+    return () => {
+      cancelAnimation(translateX);
+      cancelAnimation(rowOpacity);
+      cancelAnimation(rowHeight);
+      translateX.value = 0;
+    };
+  }, [translateX, rowOpacity, rowHeight]);
 
   const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .failOffsetY([-12, 12])
     .onBegin(() => {
+      cancelAnimation(translateX);
       gestureStartX.value = translateX.value;
     })
     .onUpdate(event => {
@@ -68,6 +81,9 @@ export function RecordingLogCard({ index, item, logCount, onDelete, resetSignal 
     }
 
     setIsDeleting(true);
+    cancelAnimation(translateX);
+    cancelAnimation(rowOpacity);
+    cancelAnimation(rowHeight);
     translateX.value = withTiming(-ACTION_WIDTH - 24, { duration: DELETE_DURATION_MS });
     rowOpacity.value = withTiming(0, { duration: DELETE_DURATION_MS });
     rowHeight.value = withTiming(0, { duration: DELETE_DURATION_MS });
