@@ -130,7 +130,8 @@
       "offset": "Décalage",
       "decrease": "Réduire le décalage",
       "increase": "Augmenter le décalage",
-      "description": "Les performances du microphone peuvent varier légèrement selon le smartphone.\nSi nécessaire, ajustez finement la valeur mesurée en fonction de votre appareil."
+      "description1": "Les performances du microphone peuvent varier selon l’appareil.",
+      "description2": "Ajustez l’étalonnage si nécessaire."
     }
   }
 }

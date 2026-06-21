@@ -117,7 +117,7 @@ export default function CalibrationPage() {
   const canIncrement = offsetDb < CALIBRATION_OFFSET_MAX_DB;
   const currentValueText = hasMicAccess && currentDb !== null ? currentDb.toFixed(1) : UNAVAILABLE_READING;
   const offsetValueText = formatCalibrationOffset(offsetDb).replace(' dB', '');
-  const descriptionParts = t('settings.calibration.description').split('\n');
+  const descriptionParts = [t('settings.calibration.description1'), t('settings.calibration.description2')];
 
   const dynamicStyles = useMemo(() => {
     const contentWidth = FIGMA.cardWidth;

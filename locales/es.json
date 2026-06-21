@@ -130,7 +130,8 @@
       "offset": "Compensación",
       "decrease": "Reducir compensación",
       "increase": "Aumentar compensación",
-      "description": "El rendimiento del micrófono puede variar ligeramente según el smartphone.\nSi es necesario, ajusta con precisión el valor de medición según tu dispositivo actual."
+      "description1": "El rendimiento del micrófono puede variar según el dispositivo.",
+      "description2": "Ajusta la calibración si es necesario."
     }
   }
 }

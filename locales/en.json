@@ -130,7 +130,8 @@
       "offset": "Offset",
       "decrease": "Decrease offset",
       "increase": "Increase offset",
-      "description": "Microphone performance may vary slightly depending on the smartphone.\nIf needed, fine-tune the measurement value to match your current device."
+      "description1": "Microphone performance may vary by smartphone.",
+      "description2": "Fine-tune calibration if needed."
     }
   }
 }
