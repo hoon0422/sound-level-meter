@@ -20,7 +20,7 @@ const CREDITS: { role: string; names: string[] }[] = [
   { role: 'UI/UX Designer', names: ['Emily'] },
   { role: 'Rocket Artist', names: ['Chloe'] },
   { role: 'QA Testers', names: ['SJ', 'JA'] },
-  { role: 'Special Thanks', names: ['Thomas', 'Eunsun', 'Jun', 'Donna', 'Daniel'] },
+  { role: 'Special Thanks', names: ['Korean developers / UIUX designers / Artists in Toronto', 'Thomas', 'Eunsun Kim', 'Jun Kim', 'Donna', 'Daniel'] },
 ];
 
 export default function CreditsPage() {
