@@ -246,7 +246,8 @@ const styles = StyleSheet.create({
     width: 120,
   },
   settingsButton: {
-    padding: 8,
+    paddingLeft: 8,
+    paddingVertical: 8,
   },
   settingsIcon: {
     height: 24,

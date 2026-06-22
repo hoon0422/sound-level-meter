@@ -43,7 +43,11 @@ function RootLayout() {
   const navigationRef = useNavigationContainerRef();
 
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync();
+    if (!fontsLoaded) return;
+    const timer = setTimeout(() => {
+      SplashScreen.hideAsync();
+    }, 750);
+    return () => clearTimeout(timer);
   }, [fontsLoaded]);
 
   useEffect(() => {
