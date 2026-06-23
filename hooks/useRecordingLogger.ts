@@ -30,7 +30,7 @@ function formatLogDate(date: Date) {
   const day = date.getDate();
   const year = date.getFullYear();
 
-  return `${time} ${month}/${day}/${year}`;
+  return `${time}  ${month}/${day}/${year}`;
 }
 
 function roundDb(dbfs: number) {

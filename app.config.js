@@ -12,7 +12,7 @@ const microphonePermissionMessage = require('./locales/en.json').permissions.mic
 
 module.exports = {
   expo: {
-    name: process.env.APP_DISPLAY_NAME || 'sound-level-meter',
+    name: process.env.APP_DISPLAY_NAME || 'Decibella 2',
     slug: 'sound-level-meter',
     version: '1.0.0',
     orientation: 'portrait',
