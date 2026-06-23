@@ -6,29 +6,17 @@ import {
   markSentryInteraction,
 } from '@/analytics/sentry';
 import { DEFAULT_CONFIG } from '@/audio/constants';
-import GraphsLayout from '@/components/GraphTabLayout';
 import { useAdAccess } from '@/context/AdAccessContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useRecordingAppLifecycle } from '@/hooks/useRecordingAppLifecycle';
 import { useRecordingLogger } from '@/hooks/useRecordingLogger';
 import { useAudioMeterStore } from '@/store/audioMeterStore';
-import { useRouter, type Href } from 'expo-router';
-import { TabList, TabTrigger, useTabTrigger, useTabsWithChildren } from 'expo-router/ui';
+import { Tabs, useRouter, type Href } from 'expo-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Image,
-  InteractionManager,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  type ImageSourcePropType,
-} from 'react-native';
+import { Image, InteractionManager, StyleSheet, TouchableOpacity, type ImageSourcePropType } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const GRAPH_TAB_NAMES = new Set(['db-time', 'db-freq', 'sound-guide']);
 const TAB_BAR_MIN_BOTTOM_PADDING = 24;
 
 export const unstable_settings = {
@@ -73,7 +61,7 @@ function SettingsButton() {
   );
 }
 
-type TabBarItemConfig = {
+type TabConfig = {
   eventType: AppAnalyticsEvent;
   gated: boolean;
   gateReason?: 'soundGuide' | 'log';
@@ -84,39 +72,9 @@ type TabBarItemConfig = {
   target: string;
 };
 
-function TabBarItem({ config, hasAccess }: { config: TabBarItemConfig; hasAccess: boolean }) {
-  const router = useRouter();
-  const { colors } = useTheme();
-  const { ensureAccess } = useAdAccess();
-  const { switchTab, trigger } = useTabTrigger({ name: config.name });
-  const isFocused = Boolean(trigger?.isFocused);
-  const color = isFocused ? colors.primary : colors.inactive;
-
-  const handlePress = () => {
-    trackTabInteraction(config.eventType, config.target, config.gated, config.gated ? hasAccess : undefined);
-
-    if (config.gated && !hasAccess && config.gateReason) {
-      ensureAccess(config.gateReason, () => router.push(config.href));
-      return;
-    }
-
-    switchTab(config.name, { reset: 'onFocus' });
-  };
-
-  return (
-    <Pressable
-      accessibilityRole="tab"
-      accessibilityState={{ selected: isFocused }}
-      onPress={handlePress}
-      style={styles.tabItem}
-    >
-      <Image source={config.icon} style={[styles.tabIcon, { tintColor: color }]} resizeMode="contain" />
-      <Text style={[styles.tabLabel, { color }]} numberOfLines={1}>
-        {config.label}
-      </Text>
-    </Pressable>
-  );
-}
+type TabPressEvent = {
+  preventDefault: () => void;
+};
 
 export default function TabsLayout() {
   const { connect, disconnect } = useAudioMeterStore(state => ({
@@ -139,11 +97,12 @@ export default function TabsLayout() {
     };
   }, [connect, disconnect]);
 
+  const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { hasAccess } = useAdAccess();
-  const tabBarItems: TabBarItemConfig[] = [
+  const { ensureAccess, hasAccess } = useAdAccess();
+  const tabConfigs: TabConfig[] = [
     {
       eventType: APP_ANALYTICS_EVENTS.dbTimeClicked,
       gated: false,
@@ -183,63 +142,73 @@ export default function TabsLayout() {
       target: 'log',
     },
   ];
-  const tabTriggers = (
-    <TabList>
-      {tabBarItems.map(item => (
-        <TabTrigger key={item.name} name={item.name} href={item.href} />
-      ))}
-    </TabList>
-  );
-  const { state, descriptors, NavigationContent } = useTabsWithChildren({
-    children: tabTriggers,
-    initialRouteName: 'db-time',
+
+  const createTabListeners = (config: TabConfig) => ({
+    tabPress: (event: TabPressEvent) => {
+      trackTabInteraction(config.eventType, config.target, config.gated, config.gated ? hasAccess : undefined);
+
+      if (config.gated && !hasAccess && config.gateReason) {
+        event.preventDefault();
+        ensureAccess(config.gateReason, () => router.push(config.href));
+      }
+    },
   });
-  const activeRoute = state.routes[state.index];
-  const activeDescriptor = activeRoute ? descriptors[activeRoute.key] : undefined;
-  const activeContent = activeDescriptor?.render() ?? null;
-  const isGraphTab = activeRoute ? GRAPH_TAB_NAMES.has(activeRoute.name) : false;
 
   return (
-    <NavigationContent>
-      <View style={[styles.root, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { paddingTop: insets.top, backgroundColor: colors.background }]}>
-          <Decibella />
-          <SettingsButton />
-        </View>
-
-        <View style={styles.content}>{isGraphTab ? <GraphsLayout>{activeContent}</GraphsLayout> : activeContent}</View>
-
-        <View
-          style={[
-            styles.tabBar,
-            {
-              paddingBottom: Math.max(insets.bottom, TAB_BAR_MIN_BOTTOM_PADDING),
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-              shadowColor: colors.shadow,
-            },
-          ]}
-        >
-          {tabBarItems.map(item => (
-            <TabBarItem key={item.name} config={item} hasAccess={hasAccess} />
-          ))}
-        </View>
-      </View>
-    </NavigationContent>
+    <Tabs
+      initialRouteName="db-time"
+      screenOptions={{
+        headerLeft: () => <Decibella />,
+        headerRight: () => <SettingsButton />,
+        headerShadowVisible: false,
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+        headerTitle: '',
+        headerLeftContainerStyle: styles.headerLeft,
+        headerRightContainerStyle: styles.headerRight,
+        sceneStyle: {
+          backgroundColor: colors.background,
+        },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.inactive,
+        tabBarItemStyle: styles.tabItem,
+        tabBarLabelStyle: styles.tabLabel,
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+            paddingBottom: Math.max(insets.bottom, TAB_BAR_MIN_BOTTOM_PADDING),
+            shadowColor: colors.shadow,
+          },
+        ],
+      }}
+    >
+      <Tabs.Screen name="index" options={{ href: null }} />
+      {tabConfigs.map(config => (
+        <Tabs.Screen
+          key={config.name}
+          name={config.name}
+          listeners={createTabListeners(config)}
+          options={{
+            title: config.label,
+            tabBarIcon: ({ color }) => (
+              <Image source={config.icon} style={[styles.tabIcon, { tintColor: color }]} resizeMode="contain" />
+            ),
+          }}
+        />
+      ))}
+    </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
+  headerLeft: {
+    paddingLeft: 16,
   },
-  header: {
-    minHeight: 88,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  headerRight: {
+    paddingRight: 16,
   },
   logo: {
     height: 24,
@@ -253,28 +222,19 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
   },
-  content: {
-    flex: 1,
-    minHeight: 0,
-    overflow: 'hidden',
-  },
   tabBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexShrink: 0,
     borderRadius: 10,
+    borderTopWidth: 1,
     borderWidth: 1,
+    height: 82,
     paddingTop: 10,
     shadowOffset: { width: 2, height: 1 },
     shadowOpacity: 1,
     shadowRadius: 0,
   },
   tabItem: {
-    flex: 1,
     minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
+    paddingVertical: 0,
   },
   tabIcon: {
     height: 24,

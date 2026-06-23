@@ -53,7 +53,11 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 const ANIMATION_DURATION = 50;
 const METER_WIDTH = 260;
-const INACTIVE_TARGET_DB = -1000;
+
+function hasHeldMeasurementValue() {
+  'worklet';
+  return audioVisualValues.isRunning.value || audioVisualValues.elapsedSeconds.value > 0;
+}
 
 export const SoundMeter = memo(function SoundMeter() {
   const surfaceWidth = useGraphSurfaceWidth();
@@ -72,27 +76,28 @@ export const SoundMeter = memo(function SoundMeter() {
 const SoundMeterStats = memo(function SoundMeterStats() {
   const { colors } = useTheme();
   const offsetDb = useCalibrationStore(state => state.offsetDb);
-  const { isRunning, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
+  const { validFrameCount, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
-      isRunning: state.isRunning && state.sessionMode === 'measurement',
+      validFrameCount: state.validFrameCount,
       averageDbfs: state.averageDbfs,
       maximumDbfs: state.maximumDbfs,
     }),
     300
   );
+  const shouldDisplayStats = validFrameCount > 0;
 
   return (
     <View style={styles.statsContainer}>
       <View style={styles.statContainer}>
         <Text style={[styles.avgDbText, { color: colors.info }]}>
-          {isRunning ? Math.round(applyCalibrationOffset(averageDbfs, offsetDb)) : '–'}
+          {shouldDisplayStats ? Math.round(applyCalibrationOffset(averageDbfs, offsetDb)) : '–'}
         </Text>
         <Text style={[styles.unitText, { color: colors.text }]}>AVG</Text>
       </View>
       <AnimatedDbText color={colors.quiet} offsetDb={offsetDb} />
       <View style={styles.statContainer}>
         <Text style={[styles.maxDbText, { color: colors.loud }]}>
-          {isRunning ? Math.round(applyCalibrationOffset(maximumDbfs, offsetDb)) : '–'}
+          {shouldDisplayStats ? Math.round(applyCalibrationOffset(maximumDbfs, offsetDb)) : '–'}
         </Text>
         <Text style={[styles.unitText, { color: colors.text }]}>MAX</Text>
       </View>
@@ -100,17 +105,11 @@ const SoundMeterStats = memo(function SoundMeterStats() {
   );
 });
 
-const AnimatedDbText = memo(function AnimatedDbText({
-  color,
-  offsetDb,
-}: {
-  color: string;
-  offsetDb: number;
-}) {
+const AnimatedDbText = memo(function AnimatedDbText({ color, offsetDb }: { color: string; offsetDb: number }) {
   const calibrationOffset = useSharedValue(offsetDb);
   const animatedDb = useAnimatedCurrentDb(calibrationOffset);
   const animatedProps = useAnimatedProps<TextInputProps>(() => {
-    const text = audioVisualValues.isRunning.value ? `${Math.round(animatedDb.value)}` : '–';
+    const text = hasHeldMeasurementValue() ? `${Math.round(animatedDb.value)}` : '–';
     return {
       text,
       value: text,
@@ -149,21 +148,10 @@ function useAnimatedMeterDb(calibrationOffset: SharedValue<number>, clampToMeter
 
   useAnimatedReaction(
     () => {
-      if (!audioVisualValues.isRunning.value) {
-        return INACTIVE_TARGET_DB;
-      }
-
       const targetDb = audioVisualValues.displayDb.value + calibrationOffset.value;
       return clampToMeterRange ? Math.min(120, Math.max(0, targetDb)) : targetDb;
     },
     targetDb => {
-      if (targetDb === INACTIVE_TARGET_DB) {
-        cancelAnimation(animatedDb);
-        animatedDb.value = 0;
-        hasInitialValue.value = false;
-        return;
-      }
-
       if (!hasInitialValue.value) {
         cancelAnimation(animatedDb);
         animatedDb.value = targetDb;
@@ -215,7 +203,7 @@ const Meter = memo(function Meter() {
   const animatedPathProps = useAnimatedProps(() => {
     const strokeDashoffset = interpolate(animatedProgress.value, [0, 120], [pathLength, 0], Extrapolation.CLAMP);
     return {
-      opacity: audioVisualValues.isRunning.value ? 1 : 0,
+      opacity: hasHeldMeasurementValue() ? 1 : 0,
       strokeDashoffset,
     };
   });
