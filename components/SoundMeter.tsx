@@ -76,16 +76,15 @@ export const SoundMeter = memo(function SoundMeter() {
 const SoundMeterStats = memo(function SoundMeterStats() {
   const { colors } = useTheme();
   const offsetDb = useCalibrationStore(state => state.offsetDb);
-  const { isRunning, validFrameCount, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
+  const { validFrameCount, averageDbfs, maximumDbfs } = useThrottledAudioMeterValue(
     state => ({
-      isRunning: state.isRunning && state.sessionMode === 'measurement',
       validFrameCount: state.validFrameCount,
       averageDbfs: state.averageDbfs,
       maximumDbfs: state.maximumDbfs,
     }),
     300
   );
-  const shouldDisplayStats = isRunning || validFrameCount > 0;
+  const shouldDisplayStats = validFrameCount > 0;
 
   return (
     <View style={styles.statsContainer}>
