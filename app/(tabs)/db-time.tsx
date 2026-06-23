@@ -1,5 +1,10 @@
+import GraphsLayout from '@/components/GraphTabLayout';
 import SoundGraph from '@/components/SoundGraph';
 
 export default function DbTimeScreen() {
-  return <SoundGraph />;
+  return (
+    <GraphsLayout>
+      <SoundGraph />
+    </GraphsLayout>
+  );
 }
