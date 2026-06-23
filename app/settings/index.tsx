@@ -437,7 +437,7 @@ export default function SettingsPage() {
               }
             >
               <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>
-                {t('settings.terms')}
+                Terms
               </Text>
             </TouchableOpacity>
             <View style={dynamicStyles.sunnyBannerFooterDivider} />
@@ -449,7 +449,7 @@ export default function SettingsPage() {
               }
             >
               <Text allowFontScaling={false} style={dynamicStyles.sunnyBannerFooterLink}>
-                {t('settings.privacy')}
+                Privacy
               </Text>
             </TouchableOpacity>
           </View>
